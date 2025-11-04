@@ -146,6 +146,30 @@ After trusting, plugins install automatically!
 
 ---
 
+### Verify Installation
+
+After installing, verify everything works:
+
+```bash
+# Check for any errors
+/doctor
+
+# List installed plugins
+/plugin list
+
+# Should show:
+# frontend-development@mag-claude-plugins (global or project)
+#   Version: 1.1.0
+#   Status: ✓ Loaded
+```
+
+**Common issues:**
+- If `/doctor` shows errors, see [Troubleshooting](#-troubleshooting) below
+- If plugin not listed, ensure marketplace was added first
+- For project-specific installation, you must trust the folder when prompted
+
+---
+
 ### Local Development
 
 **Testing plugins locally or contributing?**
@@ -648,43 +672,28 @@ Have a plugin idea? [Open an issue](https://github.com/MadAppGang/claude-code/is
 
 ## 🐛 Troubleshooting
 
-### Marketplace Not Loading
+### Common Issues
 
-**Issue**: Can't add marketplace or see plugins
+**Settings format error:**
+```json
+// ✅ CORRECT
+"enabledPlugins": {
+  "frontend-development@mag-claude-plugins": true
+}
 
-**Solutions**:
-- Verify the marketplace URL/path is correct
-- Check that `.claude-plugin/marketplace.json` exists
-- Validate JSON syntax: `claude plugin validate`
-- For private repos, confirm you have access permissions
+// ❌ WRONG
+"enabledPlugins": ["frontend-development@mag-claude-plugins"]
+```
 
-### Plugin Installation Fails
+**Plugin not loading:**
+- Ensure marketplace added: `/plugin marketplace add MadAppGang/claude-code`
+- For project-specific: Trust folder when prompted
+- Refresh marketplace: `/plugin marketplace update mag-claude-plugins`
 
-**Issue**: Plugin installation fails or plugin not working
-
-**Solutions**:
-- Verify plugin source URLs are accessible
-- Check that plugin directories contain required files (`plugin.json`)
-- For GitHub sources, ensure repositories are public or you have access
-- Test plugin sources manually by cloning/downloading
-
-### Agents Not Available
-
-**Issue**: Installed plugin agents don't appear in Claude Code
-
-**Solutions**:
-- Confirm plugin installation: `/plugin list`
-- Check agent markdown files have proper frontmatter
-- Verify agent paths in `plugin.json` are correct
-- Restart Claude Code session
-
-### Getting Help
-
-1. Check the [documentation](https://docs.claude.com/en/docs/claude-code/plugins)
-2. Review [plugin examples](./.claude-plugin/plugins)
-3. Check [ai-docs](./ai-docs/) for detailed guides
-4. [Open an issue](https://github.com/MadAppGang/claude-code/issues)
-5. Contact: [i@madappgang.com](mailto:i@madappgang.com)
+**Need help?**
+- [Local Development Guide](./docs/local-development.md) - Detailed debugging
+- [Open an issue](https://github.com/MadAppGang/claude-code/issues)
+- Email: [i@madappgang.com](mailto:i@madappgang.com)
 
 ---
 
