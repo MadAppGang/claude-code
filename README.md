@@ -24,7 +24,7 @@ Then add to your project's `.claude/settings.json`:
 {
   "enabledPlugins": {
     "frontend@mag-claude-plugins": true,
-    "qfrontend@mag-claude-plugins": true
+    "code-analysis@mag-claude-plugins": true
   }
 }
 ```
@@ -66,50 +66,6 @@ The star feature is the `/implement` command—a complete 7-stage orchestration 
 **Perfect for:** React/TypeScript teams, TanStack ecosystem, API-driven apps, Figma workflows, production-ready code quality
 
 👉 **[Read the complete guide](./docs/frontend.md)** for detailed workflow documentation
-
----
-
-#### ⚡ Quick Frontend Development (Haiku-Powered)
-
-**Version:** 1.0.0 | **Category:** Development | **Model:** Haiku
-
-Fast, cost-effective frontend development using Haiku-powered agents for quick iterations and rapid prototyping.
-
-**Highlights:**
-- **4 Specialized Agents** - General-purpose, developer, reviewer, tester (all using Haiku)
-- **1 Slash Command** - `/implement` for streamlined workflow
-- **Same proven workflows** - Mirrors the full frontend plugin but optimized for speed
-- **Cost-effective** - Uses Haiku model for faster, cheaper execution
-
-**The Quick `/implement` Workflow:**
-
-A streamlined 5-stage orchestration optimized for speed:
-
-1. **Implementation** → Fast code generation using Haiku
-2. **Code Review** → Quick review with Haiku-powered senior reviewer
-3. **UI Testing** → Efficient browser testing
-4. **User Approval** → Final review gate
-5. **Delivery** → Summary and handoff
-
-**Agents:**
-- `quick-general` - General-purpose quick tasks
-- `typescript-frontend-dev` (Haiku) - Fast TypeScript/React implementation
-- `senior-code-reviewer` (Haiku) - Quick code review
-- `ui-manual-tester` (Haiku) - Efficient UI testing
-
-**Perfect for:** Rapid prototyping, quick iterations, cost-sensitive projects, exploratory development
-
-**When to use:**
-- ✅ Quick prototypes and MVPs
-- ✅ Simple feature implementations
-- ✅ Budget-conscious development
-- ✅ Fast iteration cycles
-
-**When to use full frontend plugin instead:**
-- Complex architecture planning needed
-- Production-critical code requiring deep analysis
-- Large-scale refactoring
-- Comprehensive test generation
 
 ---
 
@@ -212,7 +168,6 @@ Need more than one plugin? Just add more entries:
 {
   "enabledPlugins": {
     "frontend@mag-claude-plugins": true,
-    "qfrontend@mag-claude-plugins": true,
     "code-analysis@mag-claude-plugins": true
   }
 }
@@ -749,9 +704,8 @@ If you don't want to add the marketplace globally, you can include it in project
 
 ### Current Focus
 
-- ✅ Frontend Development plugin (v2.2.0 - complete)
-- ✅ Quick Frontend Development plugin (v1.0.0 - complete)
-- ✅ Code Analysis plugin (v1.0.0 - complete)
+- ✅ Frontend Development plugin (v2.3.0 - complete)
+- ✅ Code Analysis plugin (v1.1.0 - complete)
 - 🚧 Backend Development plugin (planned)
 - 🚧 API Development plugin (planned)
 

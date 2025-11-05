@@ -18,13 +18,11 @@ A complete Claude Code plugin marketplace with enterprise-level architecture:
   - 3 Skills
   - MCP Servers (auto-configured)
   - Pixel-perfect UI implementation with design fidelity validation
-- **Quick Frontend Plugin** (v1.0.0) - Fast Haiku-powered
-  - 4 Specialized Agents (general, developer, reviewer, tester)
-  - 1 Slash Command (/implement)
-  - Cost-effective and optimized for speed
-- **Code Analysis Plugin** (v1.0.0) - Deep codebase investigation
+- **Code Analysis Plugin** (v1.1.0) - Deep codebase investigation
   - 1 Specialized Agent (codebase-detective)
+  - 2 Skills (deep-analysis + semantic-code-search)
   - Pattern discovery and bug investigation
+  - Semantic code search with claude-context MCP
 
 ## Key Architecture Decisions
 
@@ -80,13 +78,11 @@ claude-code/
     │   ├── commands/                 (6 commands)
     │   ├── skills/                   (3 skills)
     │   └── mcp-servers/
-    ├── qfrontend/                    # Quick frontend plugin (Haiku)
-    │   ├── plugin.json
-    │   ├── agents/                   (4 agents)
-    │   └── commands/                 (1 command)
     └── code-analysis/                # Code analysis plugin
         ├── plugin.json
-        └── agents/                   (1 agent)
+        ├── agents/                   (1 agent)
+        ├── commands/                 (1 command)
+        └── skills/                   (2 skills)
 ```
 
 ## Important Files
@@ -136,21 +132,17 @@ claude-code/
 - `api-spec-analyzer` - OpenAPI/Swagger analysis
 - `ui-implementer` - Proactive UI implementation from design references
 
-### Quick Frontend Plugin (Haiku-Powered)
-
-**Agents:**
-- `quick-general` - General-purpose quick tasks (Haiku)
-- `typescript-frontend-dev` - Fast TypeScript/React implementation (Haiku)
-- `senior-code-reviewer` - Quick code review (Haiku)
-- `ui-manual-tester` - Efficient UI testing (Haiku)
-
-**Commands:**
-- `/implement` - Streamlined implementation (5 phases)
-
 ### Code Analysis Plugin
 
 **Agents:**
 - `codebase-detective` - Deep code investigation (Sonnet)
+
+**Commands:**
+- `/analyze` - Launch deep codebase investigation
+
+**Skills:**
+- `deep-analysis` - Automatic code investigation and analysis
+- `semantic-code-search` - Expert guidance on claude-context MCP usage
 
 ## Environment Variables
 
@@ -210,7 +202,6 @@ Add to `.claude/settings.json`:
 {
   "enabledPlugins": {
     "frontend@mag-claude-plugins": true,
-    "qfrontend@mag-claude-plugins": true,
     "code-analysis@mag-claude-plugins": true
   }
 }
@@ -218,10 +209,9 @@ Add to `.claude/settings.json`:
 
 Commit this file and team members get automatic setup!
 
-**Plugin Selection Guide:**
-- Use **frontend** for production code, complex features, comprehensive testing
-- Use **qfrontend** for rapid prototyping, MVPs, cost-effective development
-- Use **code-analysis** for investigating bugs, understanding legacy code
+**Plugin Guide:**
+- Use **frontend** for production code, complex features, comprehensive testing, UI development
+- Use **code-analysis** for investigating bugs, understanding legacy code, semantic code search
 
 ### Alternative: Global Plugin Installation
 
@@ -267,20 +257,20 @@ Include marketplace in project settings (requires folder trust):
 
 ✅ **Production Ready**
 
-**3 Complete Plugins:**
+**2 Complete Plugins:**
 1. **Frontend** (v2.3.0) - 11 agents, 6 commands, 3 skills - Full-featured Sonnet with pixel-perfect UI
-2. **Quick Frontend** (v1.0.0) - 4 agents, 1 command - Fast Haiku
-3. **Code Analysis** (v1.0.0) - 1 agent - Deep investigation
+2. **Code Analysis** (v1.1.0) - 1 agent, 1 command, 2 skills - Deep investigation with semantic search
 
 **Features:**
-- 16+ specialized agents across all plugins
-- **NEW: Designer + UI Developer ecosystem** (3 agents for pixel-perfect implementation)
-- 7+ slash commands (**NEW: /implement-ui** with intelligent agent switching)
-- 3 workflow skills (**NEW: ui-implementer** skill)
-- **NEW: Design Fidelity Validation** in /implement command (PHASE 2.5)
+- 12+ specialized agents
+- **Designer + UI Developer ecosystem** (3 agents for pixel-perfect implementation)
+- 7 slash commands (including /implement-ui with intelligent agent switching)
+- 5 workflow skills (including semantic-code-search for claude-context MCP)
+- **Design Fidelity Validation** in /implement command (PHASE 2.5)
 - Modern UI development with **Tailwind CSS 4 & React 19 best practices (2025)**
+- **Semantic code search** with 40% token reduction
 - **Smart agent switching** - adaptively uses UI Developer or UI Developer Codex
-- 4000+ lines of documentation
+- 4500+ lines of documentation
 - Team architecture implemented
 - Smart validation system
 - Security best practices
@@ -290,4 +280,4 @@ Include marketplace in project settings (requires folder trust):
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** November 5, 2024
-**Version:** 2.3.0
+**Version:** 2.4.0
