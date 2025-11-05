@@ -115,17 +115,19 @@ A streamlined 5-stage orchestration optimized for speed:
 
 #### 🔍 Code Analysis
 
-**Version:** 1.0.0 | **Category:** Development | **Model:** Sonnet
+**Version:** 1.1.0 | **Category:** Development | **Model:** Sonnet
 
-Deep code investigation and analysis toolkit for understanding complex codebases.
+Deep code investigation and analysis toolkit for understanding complex codebases with semantic search capabilities.
 
 **Highlights:**
 - **codebase-detective agent** - Investigates code patterns, relationships, and architecture
+- **2 Skills** - Deep analysis + semantic code search expert guidance
+- **MCP Integration** - Optimal usage of claude-context for 40% token reduction
 - **Deep analysis** - Understands code relationships across multiple files
 - **Pattern discovery** - Identifies usage patterns and architectural decisions
 - **Bug investigation** - Tracks down issues across the codebase
 
-**Perfect for:** Code exploration, bug investigation, understanding legacy code, architectural analysis
+**Perfect for:** Code exploration, bug investigation, understanding legacy code, architectural analysis, large codebase navigation
 
 ---
 

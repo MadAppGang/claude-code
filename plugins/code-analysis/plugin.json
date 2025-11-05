@@ -1,6 +1,6 @@
 {
 	"name": "code-analysis",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Deep code investigation and analysis toolkit. Features the codebase-detective agent for understanding code patterns, relationships, and architecture across complex codebases.",
 	"author": {
 		"name": "Jack Rudenko",
@@ -26,6 +26,7 @@
 		"./commands/analyze.md"
 	],
 	"skills": [
-		"./skills/deep-analysis"
+		"./skills/deep-analysis",
+		"./skills/semantic-code-search"
 	]
 }

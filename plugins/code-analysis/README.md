@@ -28,10 +28,11 @@ That's it! No additional configuration required.
 **Analysis Workflow:**
 - `/analyze [question]` - Launch deep codebase investigation to answer questions about code structure, functionality, and patterns
 
-### Skill (1)
+### Skills (2)
 
 **Proactive Analysis:**
 - `deep-analysis` - Automatically triggered when you ask about code structure, implementations, or need to understand how features work
+- `semantic-code-search` - Expert guidance on using claude-context MCP for semantic code search with best practices for indexing, query formulation, and performance optimization
 
 ## What This Plugin Does
 
@@ -179,6 +180,12 @@ When the `claude-context` MCP server is available, the plugin uses semantic sear
 - Understands concepts, not just keywords
 - Finds related code across the codebase
 - Indexes codebase for fast searches
+- **NEW: `semantic-code-search` skill** provides expert guidance on optimal usage:
+  - Best practices for indexing (AST vs LangChain splitters)
+  - Query formulation strategies for maximum relevance
+  - Performance optimization (40% token reduction)
+  - Troubleshooting and common pitfalls
+  - Real-world workflow examples
 
 ### Fallback Mode
 
@@ -362,7 +369,7 @@ MIT License - see LICENSE file for details
 
 **Author:** Jack Rudenko @ MadAppGang
 **Email:** i@madappgang.com
-**Plugin Version:** 1.0.0
+**Plugin Version:** 1.1.0
 **Marketplace:** mag-claude-plugins
 
 ## Related Plugins
