@@ -1,6 +1,6 @@
 {
 	"name": "frontend",
-	"version": "2.4.0",
+	"version": "2.4.1",
 	"description": "Comprehensive frontend development toolkit with TypeScript, React, Vite, TanStack Router & Query support. Role-based agents for architecture, development, code review, testing, and pixel-perfect UI implementation with parallel design validation (designer + designer-codex). Includes specialized Designer and UI Developer agents with Tailwind CSS 4 best practices (2025).",
 	"author": {
 		"name": "Jack Rudenko",
