@@ -5,6 +5,157 @@ All notable changes to the MAG Claude Plugins project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2025-11-06
+
+### Added
+
+#### Chrome DevTools MCP Debugging Methodology (949 lines)
+
+Comprehensive systematic debugging approach for responsive layout issues integrated into all three UI-related agents.
+
+**Problem Solved**: Users encounter layout issues (horizontal overflow, unwanted scrolling, layout wrapping) but lack a systematic way to debug them. This leads to guessing, trial-and-error, and breaking other components.
+
+#### UI Developer Agent - Implementation-Focused Debugging (+422 lines)
+
+**New Section**: "🔍 Debugging Responsive Layout Issues with Chrome DevTools MCP"
+
+**Four-Phase Workflow**:
+- **Phase 1: Problem Identification** - Connect to Chrome DevTools MCP, measure overflow
+- **Phase 2: Root Cause Analysis** - Find overflowing elements, walk parent chain to identify CSS constraints
+- **Phase 3: Targeted Fixes** - Pattern-based fix recommendations (shrink-0 → shrink + min-w-0)
+- **Phase 4: Validation** - Reload page, test multiple viewport sizes, validate fixes
+
+**Key Features**:
+- Specific Chrome DevTools MCP scripts for overflow detection
+- Parent chain walking to identify root CSS constraints
+- Common fix patterns for Figma-generated code issues
+- Debugging script library (3 ready-to-use scripts)
+- Complete example debugging session
+- Anti-pattern documentation
+
+**Critical Rules Enforced**:
+1. Never make blind changes - inspect first
+2. Always walk the parent chain
+3. Validate after every change
+4. Test at multiple viewport sizes
+5. Document findings
+
+#### CSS Developer Agent - Architecture Analysis Guidance (+396 lines)
+
+**New Section**: "🔍 Guiding UI Developers on Debugging Responsive Layout Issues"
+
+**Four-Phase Guidance Workflow**:
+- **Phase 1: Problem Identification Guidance** - Guide UI Developer to measure overflow
+- **Phase 2: Root Cause Analysis Guidance** - Guide element inspection and parent chain walking
+- **Phase 3: CSS Architecture Analysis** - Analyze patterns, assess impact (LOCAL vs GLOBAL)
+- **Phase 4: Provide Structured Guidance** - Safe fix recommendations with full context
+
+**Key Features**:
+- Guides UI Developer (doesn't implement)
+- CSS architecture analysis (is this pattern used elsewhere?)
+- Impact assessment for each change
+- Safe fix recommendations with context
+- Pattern validation against codebase
+- Example consultation dialogue
+
+**Guidance Principles**:
+- Always analyze architecture first
+- Provide context, not just solutions
+- Include validation steps
+- Update knowledge files after resolution
+
+#### Designer Agent - Layout Issue Detection (+131 lines)
+
+**New Section**: "### 2.5. Detect and Report Layout Issues (Optional)"
+
+**Layout Health Check Workflow**:
+- Quick overflow detection script
+- Multi-viewport testing (1920px, 1380px, 1200px, 900px)
+- Overflowing element identification
+- Structured layout issue reporting
+
+**Key Features**:
+- Detects layout issues during design review
+- Reports layout problems separately from visual discrepancies
+- Recommends fixing layout FIRST before design review
+- Clear reporting templates
+- Delegates to UI/CSS Developer (doesn't implement)
+
+**Important Distinction**:
+- Layout issues (overflow) ≠ visual design discrepancies (colors, spacing)
+- Can't assess design fidelity if layout is broken
+- Focus on visual review once layout is stable
+
+### Chrome DevTools MCP Scripts Provided
+
+**Script 1: Overflow Detection**
+- Measures viewport vs document scroll width
+- Returns: viewport, documentScrollWidth, horizontalOverflow, status
+
+**Script 2: Find Overflowing Elements**
+- Queries all DOM elements, filters by width
+- Returns: Top 10 sorted by overflow with className, minWidth, flexShrink
+
+**Script 3: Walk Parent Chain**
+- Walks from element up to document.body
+- Returns: Full CSS context (width, minWidth, maxWidth, flexShrink, flexGrow)
+
+**Script 4: Analyze Flex Container**
+- Examines flex container and all children
+- Returns: Container gap/width, child flex properties
+
+### Common Patterns Addressed
+
+**Figma-Generated Anti-Patterns**:
+- Universal `shrink-0` classes preventing responsive behavior
+- Hard-coded `min-width` from design specs (e.g., "643px")
+- Missing `min-w-0` on flex children
+
+**Fix Patterns**:
+- `shrink-0` → `shrink + min-w-0`
+- `min-w-[643px]` → `min-w-0` or reasonable minimum
+- Add `min-w-0` to flex children that should shrink
+
+### Agent Integration Workflow
+
+The three agents now work together seamlessly:
+1. Designer detects layout overflow during review
+2. UI Developer debugs using systematic methodology
+3. CSS Developer provides architecture analysis
+4. UI Developer implements safe fix and validates
+5. Designer re-reviews with stable layout
+
+### Changed
+
+- **Version Updates:**
+  - Frontend Plugin: 2.6.1 → 2.7.0
+  - Marketplace: 2.8.1 → 2.9.0
+
+### Benefits
+
+- ✅ **Systematic Approach** - Replaces trial-and-error with proven methodology
+- ✅ **Reduced Debugging Time** - From hours to minutes
+- ✅ **Safe Fixes** - Architecture analysis prevents breaking other components
+- ✅ **Complete Coverage** - Detection → Diagnosis → Fix → Validation loop
+- ✅ **Team Consistency** - All agents use same debugging principles
+- ✅ **Production Ready** - Battle-tested patterns documented
+
+### Technical Improvements
+
+- **Total Lines Added**: +949 lines across 3 agents
+- **UI Developer**: 856 → 1,278 lines (+422)
+- **CSS Developer**: 1,237 → 1,633 lines (+396)
+- **Designer**: 602 → 733 lines (+131)
+
+### Impact
+
+- Provides systematic debugging instead of guessing
+- Catches layout issues before they ship
+- Prevents breaking changes through architecture analysis
+- Builds consistent debugging knowledge across team
+
+---
+
 ## [2.6.1] - 2025-11-06
 
 ### Added

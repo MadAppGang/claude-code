@@ -12,11 +12,12 @@
 A complete Claude Code plugin marketplace with enterprise-level architecture:
 
 - **Plugin Marketplace** (`mag-claude-plugins`)
-- **Frontend Development Plugin** (v2.6.1) - Full-featured Sonnet-powered
+- **Frontend Development Plugin** (v2.7.0) - Full-featured Sonnet-powered
   - 13 Specialized Agents (including CSS Developer + Designer + Designer-Codex + UI Developer ecosystem)
   - 6 Slash Commands
   - 3 Skills
   - MCP Servers (auto-configured)
+  - **Chrome DevTools MCP debugging methodology** for responsive layout issues
   - CSS-aware design validation with DOM inspection and computed CSS analysis
   - CSS architecture management with knowledge files
   - Pixel-perfect UI implementation with parallel design validation

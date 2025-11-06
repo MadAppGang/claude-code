@@ -7,15 +7,15 @@
 	},
 	"metadata": {
 		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development",
-		"version": "2.8.1",
+		"version": "2.9.0",
 		"pluginRoot": "./plugins"
 	},
 	"plugins": [
 		{
 			"name": "frontend",
 			"source": "./plugins/frontend",
-			"description": "Comprehensive frontend development toolkit with TypeScript, React, Vite, TanStack Router & Query support. Features CSS-aware design validation with DOM inspection and computed CSS analysis, CSS Developer agent for architecture management, and Tailwind CSS 4 best practices (2025).",
-			"version": "2.6.1",
+			"description": "Comprehensive frontend development toolkit with TypeScript, React, Vite, TanStack Router & Query support. Features Chrome DevTools MCP debugging methodology for responsive layout issues, CSS-aware design validation with DOM inspection, CSS Developer agent for architecture management, and Tailwind CSS 4 best practices (2025).",
+			"version": "2.7.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
