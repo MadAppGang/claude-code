@@ -12,11 +12,24 @@
 A complete Claude Code plugin marketplace with enterprise-level architecture:
 
 - **Plugin Marketplace** (`mag-claude-plugins`)
-- **Frontend Development Plugin** (v2.7.0) - Full-featured Sonnet-powered
+- **Frontend Development Plugin** (v2.9.0) - Full-featured Sonnet-powered
   - 13 Specialized Agents (including CSS Developer + Designer + Designer-Codex + UI Developer ecosystem)
   - 6 Slash Commands
-  - 3 Skills
+  - **11 Modular Skills** (efficient context usage - load only what you need):
+    - **core-principles** - Project structure, execution rules, authoritative sources
+    - **tooling-setup** - Vite, TypeScript, Biome, Vitest configuration
+    - **react-patterns** - React 19 compiler, actions, forms, hooks
+    - **tanstack-router** - Type-safe routing patterns
+    - **tanstack-query** - Comprehensive Query v5 guide (900+ lines)
+    - **router-query-integration** - Router loaders with Query prefetching
+    - **api-integration** - Apidog + OpenAPI + MCP patterns
+    - **performance-security** - Performance, a11y, security best practices
+    - **browser-debugger** - Chrome DevTools MCP testing
+    - **api-spec-analyzer** - OpenAPI analysis
+    - **ui-implementer** - Proactive UI implementation
   - MCP Servers (auto-configured)
+  - **Modular Best Practices Architecture** - Context-efficient skill system prevents information overload
+  - **Intelligent Workflow Detection** - Automatically detects API/UI/Mixed tasks and adapts execution
   - **Chrome DevTools MCP debugging methodology** for responsive layout issues
   - CSS-aware design validation with DOM inspection and computed CSS analysis
   - CSS architecture management with knowledge files
@@ -139,7 +152,11 @@ claude-code/
 - `ui-developer-codex` - Expert UI review proxy via Codex AI (Proxy)
 
 **Commands:**
-- `/implement` - Full-cycle implementation with design fidelity validation (8 phases)
+- `/implement` - Full-cycle implementation with intelligent workflow detection (API/UI/Mixed) and adaptive execution (8 phases)
+  - **NEW in v2.8.0**: Automatically detects task type and adapts workflow
+  - API-focused: Skips design validation, runs 2 code reviewers, focuses on API testing
+  - UI-focused: Full design validation, runs 3 reviewers (code + codex + UI tester), UI testing
+  - Mixed: Both workflows combined with appropriate focus areas
 - `/implement-ui` - Implement UI from scratch with intelligent agent switching
 - `/import-figma` - Import Figma components
 - `/configure-mcp` - Configure MCP servers
@@ -370,20 +387,35 @@ Include marketplace in project settings (requires folder trust):
 
 ✅ **Production Ready**
 
-**2 Complete Plugins:**
-1. **Frontend** (v2.6.1) - 13 agents, 6 commands, 3 skills - Full-featured Sonnet with CSS-aware validation and CVA best practices
+**3 Complete Plugins:**
+1. **Frontend** (v2.9.0) - 13 agents, 6 commands, **11 modular skills** - Context-efficient best practices system
 2. **Code Analysis** (v1.1.0) - 1 agent, 1 command, 2 skills - Deep investigation with semantic search
+3. **Bun Backend** (v1.2.0) - 3 agents, 3 commands, 1 skill - Production TypeScript backend with Bun
 
 **Features:**
 - 13+ specialized agents
+- **Modular Best Practices System (v2.9.0)** - Context-efficient skill architecture
+  - 8 focused best practice skills (vs 1 monolithic 1200-line file)
+  - Load only what you need: tooling, React, Router, Query, API, performance, security
+  - 900+ lines TanStack Query v5 guidance in dedicated skill
+  - Prevents context overload - agents get relevant information only
+  - Cross-referenced skills for easy navigation
+  - Feature-based colocation, query key factories, Query Options API
+  - Multi-layer error handling, Suspense integration, optimistic updates
+  - Advanced patterns: prefetching, infinite queries, pagination
+  - Performance optimization, MSW testing, anti-patterns
+- **Intelligent Workflow Detection** (NEW in v2.8.0) - Automatically detects API/UI/Mixed tasks and adapts execution
+  - API-focused workflows skip design validation and UI testing for faster implementation
+  - UI-focused workflows get full design validation and 3-reviewer quality gates
+  - Mixed workflows combine both with appropriate focus areas
 - **Designer + UI Developer ecosystem** (3 agents for pixel-perfect implementation)
-- 7 slash commands (including /implement-ui with intelligent agent switching)
+- 7 slash commands (including /implement with adaptive workflow detection)
 - 5 workflow skills (including semantic-code-search for claude-context MCP)
-- **Design Fidelity Validation** in /implement command (PHASE 2.5)
+- **Design Fidelity Validation** in /implement command (PHASE 2.5 - adaptive)
 - Modern UI development with **Tailwind CSS 4 & React 19 best practices (2025)**
 - **Semantic code search** with 40% token reduction
 - **Smart agent switching** - adaptively uses UI Developer or UI Developer Codex
-- 4500+ lines of documentation
+- 5000+ lines of documentation
 - Team architecture implemented
 - Smart validation system
 - Security best practices
@@ -393,4 +425,4 @@ Include marketplace in project settings (requires folder trust):
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** November 6, 2024
-**Version:** 2.6.1
+**Version:** 2.9.0

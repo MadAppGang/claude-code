@@ -152,6 +152,163 @@ TodoWrite with the following items:
 
 **IMPORTANT**: This global todo list provides high-level workflow tracking. Each agent will also maintain its own internal todo list for detailed task tracking.
 
+---
+
+### STEP 0.5: Detect Workflow Type (MANDATORY BEFORE PHASE 1)
+
+**CRITICAL**: Before starting implementation, you MUST detect whether this is a UI-focused, API-focused, or mixed workflow. Different workflows require different agents, review processes, and validation steps.
+
+#### 1. Analyze Feature Request
+
+Analyze `$ARGUMENTS` (the feature request) for workflow indicators:
+
+**UI/UX Indicators** (suggests UI_FOCUSED):
+- Keywords: "component", "screen", "page", "layout", "design", "styling", "Figma", "visual", "UI", "UX", "interface"
+- Mentions: Colors, typography, spacing, responsive design, CSS, Tailwind, styling
+- Design deliverables: Figma links, mockups, wireframes, design specs
+- Visual elements: Buttons, forms, modals, cards, navigation, animations
+
+**API/Logic Indicators** (suggests API_FOCUSED):
+- Keywords: "API", "endpoint", "fetch", "data", "service", "integration", "backend", "HTTP", "REST", "GraphQL"
+- Mentions: API calls, data fetching, error handling, loading states, caching, HTTP requests
+- Data operations: CRUD operations, API responses, request/response types, API documentation
+- Business logic: Calculations, validations, state management, data transformations
+
+**Mixed Indicators** (suggests MIXED):
+- Both UI and API work mentioned
+- Examples: "Create user profile screen and integrate with user API", "Build dashboard with live data from backend"
+
+#### 2. Classify Workflow Type
+
+Based on indicators, classify as:
+
+- **UI_FOCUSED**:
+  - Primarily focuses on UI/UX implementation, visual design, components, styling
+  - May include minor data handling but UI is the main focus
+  - Examples: "Implement UserProfile component from Figma", "Style the Dashboard screen", "Create responsive navigation"
+
+- **API_FOCUSED**:
+  - Primarily focuses on API integration, data fetching, business logic, services
+  - May update existing UI minimally but API/logic is the main focus
+  - Examples: "Integrate user management API", "Implement data fetching for reports", "Add error handling to API calls"
+
+- **MIXED**:
+  - Substantial work on both UI and API
+  - Building new features from scratch with both frontend and backend integration
+  - Examples: "Build user management feature with UI and API", "Create analytics dashboard with real-time data"
+
+- **UNCLEAR**:
+  - Cannot determine from feature request alone
+  - Ambiguous or vague requirements
+
+#### 3. User Confirmation (if needed)
+
+IF workflow type is **UNCLEAR** or you have low confidence in classification:
+
+Use AskUserQuestion to ask:
+```
+What type of implementation work is this?
+
+This helps me optimize the workflow and use the right specialized agents.
+
+Options:
+1. "UI/UX focused - Primarily building or styling user interface components"
+2. "API/Logic focused - Primarily integrating APIs, data fetching, or business logic"
+3. "Mixed - Both substantial UI work AND API integration"
+```
+
+Store user's answer as `workflow_type`.
+
+#### 4. Log Detected Workflow Type
+
+Clearly log the detected/confirmed workflow type:
+
+```markdown
+🎯 **Workflow Type Detected: [UI_FOCUSED | API_FOCUSED | MIXED]**
+
+**Rationale**: [Brief explanation of why this workflow was chosen]
+
+**Workflow Implications**:
+[Explain what this means for the implementation process]
+
+**Agents to be used**:
+[List which agents will be used for this workflow type]
+```
+
+#### 5. Workflow-Specific Configuration
+
+Based on `workflow_type`, configure the workflow:
+
+##### For **UI_FOCUSED** Workflow:
+```markdown
+✅ **UI-FOCUSED WORKFLOW ACTIVATED**
+
+**PHASE 2**: Will use `frontend:developer` and/or `frontend:ui-developer` (intelligent switching)
+**PHASE 2.5**: Will run design fidelity validation (if Figma links present)
+  - Designer agent for visual review
+  - UI Developer agent for fixes
+  - Optional Codex UI expert review
+**PHASE 3**: Will run ALL THREE reviewers in parallel:
+  - frontend:reviewer (code review)
+  - frontend:codex-reviewer (automated AI review)
+  - frontend:tester (manual UI testing in browser)
+**PHASE 4**: Testing focused on UI components, user interactions, visual regression
+```
+
+##### For **API_FOCUSED** Workflow:
+```markdown
+✅ **API-FOCUSED WORKFLOW ACTIVATED**
+
+**PHASE 2**: Will use `frontend:developer` (TypeScript/API specialist, not UI developer)
+  - Focus: API integration, data fetching, type safety, error handling
+  - No UI development specialists involved
+**PHASE 2.5**: **COMPLETELY SKIPPED** - No design validation needed for API work
+  - All PHASE 2.5 todos will be marked as "completed" with note: "Skipped - API workflow"
+**PHASE 3**: Will run only TWO reviewers in parallel:
+  - frontend:reviewer (code review focused on API logic, error handling, types)
+  - frontend:codex-reviewer (automated analysis of API patterns and best practices)
+  - **frontend:tester SKIPPED** - No UI testing needed for API-only work
+**PHASE 4**: Testing focused on:
+  - Unit tests for API service functions
+  - Integration tests for API calls
+  - Mock API responses and error scenarios
+  - Type safety and data validation
+```
+
+##### For **MIXED** Workflow:
+```markdown
+✅ **MIXED WORKFLOW ACTIVATED** (UI + API)
+
+**PHASE 2**: Will run parallel implementation tracks:
+  - Track A: API implementation using `frontend:developer` (API/logic specialist)
+  - Track B: UI implementation using `frontend:ui-developer` (UI specialist)
+  - Coordination between tracks for data flow and integration
+**PHASE 2.5**: Will run design validation ONLY for UI components:
+  - Designer agent validates visual fidelity of UI track work
+  - API track skips design validation
+**PHASE 3**: Will run ALL THREE reviewers in parallel:
+  - frontend:reviewer (reviews both API and UI code, integration points)
+  - frontend:codex-reviewer (analyzes both API patterns and UI patterns)
+  - frontend:tester (tests UI components that use the API integration)
+**PHASE 4**: Testing focused on both:
+  - API tests: Unit tests for services, mock API responses
+  - UI tests: Component tests with mocked API data
+  - Integration tests: UI + API working together
+```
+
+#### 6. Store Workflow Configuration
+
+Store these variables for use throughout the workflow:
+
+- `workflow_type`: "UI_FOCUSED" | "API_FOCUSED" | "MIXED"
+- `skip_phase_2_5`: boolean (true for API_FOCUSED)
+- `skip_ui_tester`: boolean (true for API_FOCUSED)
+- `use_parallel_tracks`: boolean (true for MIXED)
+
+These will be referenced in subsequent phases to route execution correctly.
+
+---
+
 ### PHASE 1: Architecture Planning (architect)
 
 1. **Launch Planning Agent**:
@@ -213,7 +370,25 @@ TodoWrite with the following items:
    - **Update TodoWrite**: Mark "PHASE 2: Get manual testing instructions" as completed
    - Save testing instructions for use by tester agent
 
-### PHASE 2.5: Design Fidelity Validation (Conditional - Only if Figma Links Present)
+### PHASE 2.5: Design Fidelity Validation (Conditional - Only for UI Workflows with Figma Links)
+
+**CRITICAL WORKFLOW ROUTING**: This phase behavior depends on the `workflow_type` detected in STEP 0.5.
+
+#### Check Workflow Type First
+
+**IF `workflow_type` is "API_FOCUSED":**
+- **SKIP ENTIRE PHASE 2.5** - No design validation needed for API-only work
+- **Update TodoWrite**: Mark ALL PHASE 2.5 todos as "completed" with note: "Skipped - API_FOCUSED workflow (no UI changes)"
+- Log: "✅ PHASE 2.5 skipped - API-FOCUSED workflow detected. No design validation needed."
+- **Proceed directly to PHASE 3** (but remember to skip UI tester there too)
+
+**IF `workflow_type` is "UI_FOCUSED" or "MIXED":**
+- Continue with design validation below
+- For MIXED workflows: Only validate UI components, not API logic
+
+---
+
+#### Design Fidelity Validation Process (for UI_FOCUSED or MIXED workflows)
 
 This phase runs ONLY if Figma design links are detected in the feature request or architecture plan. It ensures pixel-perfect UI implementation before code review.
 
@@ -767,26 +942,63 @@ Options:
 
 **REMINDER**: You are orchestrating. You do NOT implement fixes yourself. Always use Task to delegate to designer and ui-developer agents.
 
-### PHASE 3: Triple Review Loop (Code + Code AI + Manual UI Testing)
+### PHASE 3: Review Loop (Adaptive Based on Workflow Type)
+
+**CRITICAL WORKFLOW ROUTING**: This phase adapts based on the `workflow_type` detected in STEP 0.5.
+
+#### Workflow-Specific Review Strategy:
+
+**For API_FOCUSED workflows:**
+- Launch **TWO reviewers only** (code + codex) - **SKIP UI tester**
+- Review focus: API logic, type safety, error handling, data validation, HTTP patterns
+- Todo: Update "Launch ALL THREE reviewers" → "Launch TWO code reviewers"
+
+**For UI_FOCUSED workflows:**
+- Launch **ALL THREE reviewers** (code + codex + tester)
+- Review focus: UI code quality, visual implementation, user interactions, browser testing
+
+**For MIXED workflows:**
+- Launch **ALL THREE reviewers** (code + codex + tester)
+- Review focus: Both API logic AND UI implementation, plus integration points
+
+---
 
 1. **Prepare Review Context**:
-   - **Update TodoWrite**: Mark "PHASE 3: Launch all three reviewers in parallel" as in_progress
+   - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers in parallel" as in_progress
+     * If API_FOCUSED: Update todo text to "Launch TWO code reviewers in parallel"
+     * If UI_FOCUSED or MIXED: Keep as "Launch ALL THREE reviewers in parallel"
    - Run `git status` to identify all unstaged changes
    - Run `git diff` to capture the COMPLETE implementation changes
    - Read planning documentation from AI-DOCS folder to get 2-3 sentence summary
-   - Retrieve the manual testing instructions from Step 3 of Phase 2
-   - Prepare this context for all three reviewers
+   - IF workflow is UI_FOCUSED or MIXED: Retrieve the manual testing instructions from Step 3 of Phase 2
+   - Prepare this context for reviewers
 
-2. **Launch ALL THREE Reviewers in Parallel**:
+2. **Launch Reviewers in Parallel (Workflow-Adaptive)**:
+
+   **IF `workflow_type` is "API_FOCUSED":**
+   - **CRITICAL**: Use a single message with TWO Task tool calls to run code reviews in parallel
+   - **DO NOT launch UI tester** - no UI testing needed for API-only work
+   - Log: "🔍 Launching TWO code reviewers for API-focused implementation (UI tester skipped)"
+
+   **Parallel Execution for API_FOCUSED**:
+   ```
+   Send a single message with TWO Task calls:
+
+   Task 1: Launch reviewer (with API focus)
+   Task 2: Launch codex-reviewer (with API focus)
+   ```
+
+   **IF `workflow_type` is "UI_FOCUSED" or "MIXED":**
    - **CRITICAL**: Use a single message with THREE Task tool calls to run all reviews in parallel
+   - Log: "🔍 Launching ALL THREE reviewers for UI/Mixed implementation"
 
-   **Parallel Execution Example**:
+   **Parallel Execution for UI_FOCUSED or MIXED**:
    ```
    Send a single message with THREE Task calls:
 
    Task 1: Launch reviewer
    Task 2: Launch codex-reviewer
-   Task 3: Launch tester
+   Task 3: Launch tester (UI testing)
    ```
 
    - **Reviewer 1 - Senior Code Reviewer (Human-Focused Review)**:
@@ -794,12 +1006,26 @@ Options:
      * Provide context:
        - "Review all unstaged git changes from the current implementation"
        - Path to the original plan for reference (AI-DOCS/...)
+       - Workflow type: [API_FOCUSED | UI_FOCUSED | MIXED]
        - Request comprehensive review against:
          * Simplicity principles
          * OWASP security standards
          * React and TypeScript best practices
          * Code quality and maintainability
          * Alignment with the approved plan
+       - **IF API_FOCUSED**: Add specific focus areas:
+         * API integration patterns and error handling
+         * Type safety for API requests/responses
+         * Loading and error states
+         * Data validation and transformation
+         * HTTP request/response handling
+         * Security: input sanitization, XSS prevention, API token handling
+       - **IF UI_FOCUSED**: Add specific focus areas:
+         * Component structure and reusability
+         * React patterns and hooks usage
+         * Accessibility (WCAG 2.1 AA)
+         * Responsive design implementation
+         * User interaction patterns
 
    - **Reviewer 2 - Codex Code Analyzer (Automated AI Review)**:
      * Use Task tool with `subagent_type: frontend:codex-reviewer`
@@ -807,6 +1033,8 @@ Options:
      * Provide a fully prepared prompt containing:
        ```
        You are an expert code reviewer analyzing a TypeScript/React implementation.
+
+       WORKFLOW TYPE: [API_FOCUSED | UI_FOCUSED | MIXED]
 
        PLANNING CONTEXT:
        [2-3 sentence summary from AI-DOCS planning files]
@@ -822,6 +1050,28 @@ Options:
        - TypeScript and React best practices
        - Code quality and maintainability
        - Performance considerations
+
+       [IF API_FOCUSED - ADD THIS SECTION:]
+       SPECIFIC FOCUS FOR API-FOCUSED IMPLEMENTATION:
+       This is an API integration implementation. Pay special attention to:
+       - API client patterns (fetch, axios, TanStack Query)
+       - Type safety: request/response types match API schema
+       - Error handling: HTTP errors, network failures, timeout handling
+       - Loading states and race conditions
+       - Data validation and transformation
+       - Security: API tokens, input sanitization, XSS prevention
+       - Retry logic and error recovery
+       - Cache invalidation patterns
+
+       [IF UI_FOCUSED - ADD THIS SECTION:]
+       SPECIFIC FOCUS FOR UI-FOCUSED IMPLEMENTATION:
+       This is a UI/UX implementation. Pay special attention to:
+       - Component structure and reusability
+       - React patterns: hooks, composition, render optimization
+       - Accessibility: WCAG 2.1 AA compliance, ARIA attributes
+       - Responsive design: mobile-first, breakpoints
+       - User interaction: event handlers, form validation, feedback
+       - Visual consistency with design system
 
        CODE TO REVIEW (complete git diff output):
        [Paste COMPLETE git diff output here]
@@ -844,6 +1094,7 @@ Options:
      * The agent will forward this complete prompt to Codex AI and return the results
 
    - **Reviewer 3 - UI Manual Tester (Real Browser Testing)**:
+     * **ONLY for UI_FOCUSED or MIXED workflows** - Skip for API_FOCUSED
      * Use Task tool with `subagent_type: frontend:tester`
      * Provide context:
        - **Manual testing instructions** from Phase 2 Step 3 (the structured guide from developer)
@@ -865,57 +1116,77 @@ Options:
        - UI/UX issues discovered
        - Overall assessment: PASS / FAIL / PARTIAL
 
-3. **Collect and Analyze Triple Review Results**:
-   - Wait for ALL THREE reviewers to complete
-   - **Update TodoWrite**: Mark "PHASE 3: Launch all three reviewers" as completed
-   - **Update TodoWrite**: Mark "PHASE 3: Analyze triple review results" as in_progress
+3. **Collect and Analyze Review Results** (Workflow-Adaptive):
+   - **IF API_FOCUSED**: Wait for TWO code reviewers to complete
+   - **IF UI_FOCUSED or MIXED**: Wait for ALL THREE reviewers to complete
+   - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers" as completed
+   - **Update TodoWrite**: Mark "PHASE 3: Analyze review results" as in_progress
    - **Senior Code Reviewer Feedback**: Document all findings and recommendations
    - **Codex Analysis Feedback**: Document all automated findings
-   - **UI Manual Tester Feedback**: Document all testing results, UI bugs, and console errors
+   - **IF UI_FOCUSED or MIXED**: **UI Manual Tester Feedback**: Document all testing results, UI bugs, and console errors
+   - **IF API_FOCUSED**: Note that UI testing was skipped for API-only implementation
    - **Combined Analysis**:
-     * Merge and deduplicate issues from all three sources
+     * Merge and deduplicate issues from all reviewers
      * Categorize by severity (critical, major, minor)
      * Identify overlapping concerns (higher confidence when multiple reviewers find the same issue)
      * Note unique findings from each reviewer:
        - Code review findings (logic, security, quality)
        - Automated analysis findings (patterns, best practices)
-       - UI testing findings (runtime behavior, user experience, console errors)
-     * Cross-reference: UI bugs may reveal code issues, console errors may indicate missing error handling
-   - **Update TodoWrite**: Mark "PHASE 3: Analyze triple review results" as completed
+       - **IF UI_FOCUSED or MIXED**: UI testing findings (runtime behavior, user experience, console errors)
+     * **IF UI_FOCUSED or MIXED**: Cross-reference: UI bugs may reveal code issues, console errors may indicate missing error handling
+   - **Update TodoWrite**: Mark "PHASE 3: Analyze review results" as completed
 
-4. **Triple Review Feedback Loop**:
-   - **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all three reviewers approved" as in_progress
+4. **Review Feedback Loop** (Workflow-Adaptive):
+   - **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as in_progress
    - IF **ANY** reviewer identifies issues:
-     * Document all feedback clearly from ALL THREE reviewers
+     * Document all feedback clearly from ALL reviewers (2 or 3 depending on workflow)
      * Categorize and prioritize the combined feedback:
        - **Code issues** (from reviewer and codex)
        - **UI/runtime issues** (from tester)
        - **Console errors** (from tester)
-     * **Update TodoWrite**: Add "PHASE 3 - Iteration X: Fix issues and re-run all reviewers" task
+     * **Update TodoWrite**: Add "PHASE 3 - Iteration X: Fix issues and re-run reviewers" task
      * **CRITICAL**: Do NOT fix issues yourself - delegate to developer agent
      * **Launch developer agent** using Task tool with:
        - Original plan reference (path to AI-DOCS)
-       - Combined feedback from ALL THREE reviewers:
+       - Combined feedback from ALL reviewers:
          * Code review feedback (logic, security, quality issues)
          * Automated analysis feedback (patterns, best practices)
-         * UI testing feedback (runtime bugs, console errors, UX issues)
-       - Clear instruction: "Fix all issues identified by reviewers and testers"
+         * **IF UI_FOCUSED or MIXED**: UI testing feedback (runtime bugs, console errors, UX issues)
+       - Clear instruction: "Fix all issues identified by reviewers"
        - Priority order for fixes (Critical first, then Medium, then Minor)
-       - Note: Some UI bugs may require code changes, console errors may indicate missing error handling
+       - **IF UI_FOCUSED or MIXED**: Note: Some UI bugs may require code changes, console errors may indicate missing error handling
        - Instruction to run quality checks after fixes
      * After developer completes fixes:
-       - **IMPORTANT**: Request updated manual testing instructions if implementation changed significantly
-       - Re-run ALL THREE reviewers in parallel (loop back to step 2)
-     * Repeat until ALL THREE reviewers approve
-   - IF **ALL THREE** reviewers approve:
-     * Document that triple review passed (code review + automated analysis + manual UI testing)
-     * **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all three reviewers approved" as completed
+       - **IF UI_FOCUSED or MIXED**: Request updated manual testing instructions if implementation changed significantly
+       - Re-run reviewers in parallel (loop back to step 2):
+         * **IF API_FOCUSED**: Re-run TWO code reviewers only
+         * **IF UI_FOCUSED or MIXED**: Re-run ALL THREE reviewers
+     * Repeat until all reviewers approve
+   - IF **ALL** reviewers approve (2 or 3 depending on workflow):
+     * **IF API_FOCUSED**: Document that dual code review passed (code review + automated analysis)
+     * **IF UI_FOCUSED or MIXED**: Document that triple review passed (code review + automated analysis + manual UI testing)
+     * **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as completed
      * Proceed to Phase 4
-   - **Track loop iterations** (document how many review cycles occurred and feedback from each reviewer/tester)
+   - **Track loop iterations** (document how many review cycles occurred and feedback from each reviewer)
 
    **REMINDER**: You are orchestrating. You do NOT fix code yourself. Always use Task to delegate to developer.
 
 ### PHASE 4: Testing Loop (test-architect)
+
+**Testing Focus Adapts to Workflow Type:**
+
+**For API_FOCUSED workflows:**
+- Focus on: Unit tests for API services, integration tests for API calls, mock API responses, error scenarios, type safety
+- Skip: UI component visual tests, interaction tests
+
+**For UI_FOCUSED workflows:**
+- Focus on: Component tests, user interaction tests, accessibility tests, visual regression tests
+- May include: Minimal API mocking for data-dependent components
+
+**For MIXED workflows:**
+- Focus on: Both API tests AND UI tests, plus integration tests connecting UI to API
+
+---
 
 1. **Launch Testing Agent**:
    - **Update TodoWrite**: Mark "PHASE 4: Launch test-architect" as in_progress
@@ -923,6 +1194,10 @@ Options:
    - Provide:
      * Implemented code (reference to files)
      * Original plan requirements
+     * Workflow type: [API_FOCUSED | UI_FOCUSED | MIXED]
+     * **IF API_FOCUSED**: Emphasize API testing focus (unit tests for services, integration tests, error handling, mock responses)
+     * **IF UI_FOCUSED**: Emphasize UI testing focus (component tests, user interactions, accessibility, visual elements)
+     * **IF MIXED**: Request both API and UI test coverage
      * Instruction to create comprehensive test coverage
      * Instruction to run all tests
 
@@ -1021,25 +1296,36 @@ Options:
    - Key architectural decisions made
    - Patterns and components used
 
+   **Workflow Type:** [API_FOCUSED | UI_FOCUSED | MIXED]
+
    **Quality Assurance:**
-   - Design Fidelity Validation (PHASE 2.5):
-     * Figma references found: [Number or "N/A"]
+   - **IF UI_FOCUSED or MIXED**: Design Fidelity Validation (PHASE 2.5):
+     * Figma references found: [Number or "N/A - skipped for API workflow"]
      * Components validated against design: [Number or "N/A"]
      * Design fidelity iterations: [Number or "N/A"]
      * Issues found and fixed: [Number or "N/A"]
      * Average design fidelity score: [X/60 or "N/A"]
      * Codex UI expert review: [Enabled/Disabled or "N/A"]
      * All components match design: [Yes ✅ / No ❌ / "N/A"]
-   - Number of triple review cycles completed (code + codex + UI testing)
+   - **IF API_FOCUSED**: Design Fidelity Validation: Skipped (API-only implementation, no UI changes)
+   - Code Review Cycles (PHASE 3):
+     * **IF API_FOCUSED**: Number of dual review cycles (code + codex) - UI testing skipped for API workflow
+     * **IF UI_FOCUSED or MIXED**: Number of triple review cycles (code + codex + UI testing)
    - Senior Code Reviewer feedback summary
+     * **IF API_FOCUSED**: Focus areas: API integration, type safety, error handling, security
+     * **IF UI_FOCUSED**: Focus areas: Component quality, accessibility, responsive design
    - Codex Analyzer feedback summary
-   - UI Manual Tester results summary:
+   - **IF UI_FOCUSED or MIXED**: UI Manual Tester results summary:
      * Manual test steps executed
      * UI bugs found and fixed
      * Console errors found and resolved
      * Final assessment: PASS
+   - **IF API_FOCUSED**: UI Manual Testing: Skipped (API-only workflow, no UI changes to test)
    - Number of automated test-fix cycles completed
    - Test coverage achieved
+     * **IF API_FOCUSED**: Focus: API service tests, integration tests, error scenarios
+     * **IF UI_FOCUSED**: Focus: Component tests, interaction tests, accessibility tests
+     * **IF MIXED**: Focus: Both API and UI test coverage
    - All automated tests passing confirmation
 
    **How to Test:**
@@ -1059,14 +1345,19 @@ Options:
    - Documentation that should be updated
 
    **Metrics:**
+   - Workflow type used: [API_FOCUSED | UI_FOCUSED | MIXED]
    - Total time/iterations
-   - Design fidelity cycles: [number or "N/A - no Figma references"]
-   - Components validated against design: [number or "N/A"]
-   - Design issues found and fixed: [number or "N/A"]
-   - Average design fidelity score: [X/60 or "N/A"]
-   - Triple review cycles: [number] (code + codex + UI testing)
-   - Manual UI test steps: [number executed]
-   - UI bugs found and fixed: [number]
+   - **IF UI_FOCUSED or MIXED**: Design fidelity cycles: [number or "N/A - no Figma references"]
+   - **IF UI_FOCUSED or MIXED**: Components validated against design: [number or "N/A"]
+   - **IF UI_FOCUSED or MIXED**: Design issues found and fixed: [number or "N/A"]
+   - **IF UI_FOCUSED or MIXED**: Average design fidelity score: [X/60 or "N/A"]
+   - **IF API_FOCUSED**: Design validation: Skipped (API-only workflow)
+   - Code review cycles:
+     * **IF API_FOCUSED**: [number] dual review cycles (code + codex only)
+     * **IF UI_FOCUSED or MIXED**: [number] triple review cycles (code + codex + UI testing)
+   - **IF UI_FOCUSED or MIXED**: Manual UI test steps: [number executed]
+   - **IF UI_FOCUSED or MIXED**: UI bugs found and fixed: [number]
+   - **IF API_FOCUSED**: UI testing: Skipped (API-only workflow)
    - Console errors found and resolved: [number]
    - Automated test-fix cycles: [number]
    - User feedback iterations: [number]
@@ -1091,9 +1382,12 @@ Options:
 - Document decisions and rationale throughout
 - Maintain a workflow log showing agent transitions
 
-### Loop Prevention:
-- Maximum 3 design fidelity iterations per component before escalating to user
-- Maximum 3 triple review cycles (code + codex + UI testing) before escalating to user
+### Loop Prevention (Workflow-Adaptive):
+- **IF UI_FOCUSED or MIXED**: Maximum 3 design fidelity iterations per component before escalating to user
+- **IF API_FOCUSED**: Design fidelity validation skipped entirely
+- Maximum 3 code review cycles before escalating to user:
+  * **IF API_FOCUSED**: Dual review cycles (code + codex)
+  * **IF UI_FOCUSED or MIXED**: Triple review cycles (code + codex + UI testing)
 - Maximum 5 automated test-fix cycles before escalating to user
 - If loops exceed limits, ask user for guidance
 
@@ -1107,36 +1401,55 @@ Options:
 - Do not commit during the workflow
 - Preserve git state for review analysis
 
-### Quality Gates:
+### Quality Gates (Workflow-Adaptive):
+
+**Universal Gates (all workflows):**
 - User approval required after Phase 1 (architecture plan)
+- Code review approvals required before Phase 4 (Phase 3 gate)
+- All automated tests must pass before Phase 5 (Phase 4 gate)
+- User approval required after Phase 5 (final implementation review)
+
+**UI-Specific Gates (UI_FOCUSED or MIXED workflows only):**
 - ALL UI components must match design specifications (Phase 2.5 gate - if Figma links present)
 - **User manual validation of UI components (Phase 2.5 gate - if Figma links present and manual validation enabled)**
   - If manual validation enabled: User must explicitly approve: "Yes - All components look perfect"
   - If fully automated: Trust designer agents' validation
-- **ALL THREE** reviewer approvals required before Phase 4 (reviewer AND Codex AND tester)
-- All automated tests must pass before Phase 5
-- User approval required after Phase 5 (final implementation review)
-- Each gate is mandatory except manual UI validation (conditional based on user preference)
+- **ALL THREE** reviewer approvals required (reviewer AND Codex AND tester)
+- Manual UI testing passed with no critical issues
 
-## Success Criteria
+**API-Specific Gates (API_FOCUSED workflows):**
+- **SKIP** Phase 2.5 entirely (no design validation for API-only work)
+- **TWO** reviewer approvals required (reviewer AND Codex only - tester skipped)
+- **SKIP** manual UI testing (no UI changes to test)
+
+## Success Criteria (Workflow-Adaptive)
 
 The command is complete when:
 1. ✅ User approved the architecture plan (Phase 1 gate)
 2. ✅ Implementation follows the approved plan
-3. ✅ Manual testing instructions generated by implementation agent
-4. ✅ ALL UI components match design specifications (Phase 2.5 gate - if applicable)
-5. ✅ **UI validation complete (Phase 2.5 gate - if Figma links present)**
+3. ✅ **IF UI_FOCUSED or MIXED**: Manual testing instructions generated by implementation agent
+4. ✅ **IF UI_FOCUSED or MIXED**: ALL UI components match design specifications (Phase 2.5 gate - if Figma present)
+5. ✅ **IF UI_FOCUSED or MIXED with Figma**: UI validation complete
    - If manual validation enabled: User manually validated UI components
    - If fully automated: Designer agents validated UI components
-6. ✅ **ALL THREE** reviewers approved the implementation (Phase 3 gate: reviewer AND Codex AND tester)
-7. ✅ Manual UI testing passed with no critical issues
-8. ✅ All automated tests written and passing (Phase 4 gate)
-9. ✅ User approved the final implementation (Phase 5 gate)
-10. ✅ Project cleanup completed successfully
-11. ✅ Comprehensive summary provided
-12. ✅ User acknowledges completion
+6. ✅ **Code review approvals (Phase 3 gate)**:
+   - **IF API_FOCUSED**: TWO reviewers approved (code + codex) - UI tester skipped
+   - **IF UI_FOCUSED or MIXED**: ALL THREE reviewers approved (code + codex + tester)
+7. ✅ **IF UI_FOCUSED or MIXED**: Manual UI testing passed with no critical issues
+8. ✅ **IF API_FOCUSED**: API integration tested (no UI testing needed)
+9. ✅ All automated tests written and passing (Phase 4 gate)
+   - **IF API_FOCUSED**: API service tests, integration tests, error scenarios
+   - **IF UI_FOCUSED**: Component tests, interaction tests, accessibility tests
+   - **IF MIXED**: Both API and UI test coverage
+10. ✅ User approved the final implementation (Phase 5 gate)
+11. ✅ Project cleanup completed successfully
+12. ✅ Comprehensive workflow-specific summary provided
+13. ✅ User acknowledges completion
 
-**CRITICAL**: Item #5 (User manual validation of UI) is MANDATORY when Figma design references are present. The workflow cannot proceed past Phase 2.5 without explicit user approval after manual testing against designs.
+**CRITICAL WORKFLOW NOTES**:
+- **API_FOCUSED workflows**: Phase 2.5 (design validation) is completely skipped. UI tester is skipped in Phase 3. Success depends on API logic quality, not visual fidelity.
+- **UI_FOCUSED workflows**: Full design validation and UI testing. Success depends on matching design specifications and user experience quality.
+- **MIXED workflows**: Both design validation (for UI parts) and API review (for logic parts). Success depends on both visual fidelity and API integration quality.
 
 ## Examples: Correct vs Incorrect Orchestrator Behavior
 
@@ -1291,29 +1604,67 @@ CORRECT BEHAVIOR:
 ## Notes
 
 - This is a long-running orchestration - expect multiple agent invocations
+
+### Workflow Detection (NEW in v2.7.0)
+
+- **STEP 0.5: Intelligent Workflow Detection** automatically classifies tasks as:
+  * **API_FOCUSED**: API integration, data fetching, business logic (skips design validation and UI testing)
+  * **UI_FOCUSED**: UI components, styling, visual design (full design validation and UI testing)
+  * **MIXED**: Both API and UI work (validates UI parts, reviews both API and UI code)
+- The workflow type determines which agents run and which phases are executed
+- **For API-only work**: Design validation (PHASE 2.5) is completely skipped, UI tester is skipped in PHASE 3
+- **For UI work**: Full design validation and UI testing workflow
+- If workflow is unclear, the orchestrator asks the user to clarify
+
+### Design Fidelity Validation (PHASE 2.5)
+
 - **PHASE 2.5 (Design Fidelity Validation)** is conditional:
-  * Only runs if Figma design links are detected in feature request or architecture plan
+  * **ONLY runs for UI_FOCUSED or MIXED workflows** with Figma design links
+  * **COMPLETELY SKIPPED for API_FOCUSED workflows** (no UI changes to validate)
   * Uses designer agent to review implementation vs design reference
   * Uses ui-developer agent to fix visual/UX discrepancies
   * Optional ui-developer-codex agent provides third-party expert review
   * Maximum 3 iterations per component before escalating to user
   * Ensures pixel-perfect implementation before code review phase
-- **CRITICAL**: Always run all three reviewers in parallel using THREE Task tool calls in a single message:
+
+### Adaptive Review Process (PHASE 3)
+
+- **CRITICAL**: Reviewer execution adapts to workflow type:
+
+  **For API_FOCUSED workflows** (TWO reviewers in parallel):
+  * Task 1: `subagent_type: frontend:reviewer` (code review focused on API logic, error handling, types)
+  * Task 2: `subagent_type: frontend:codex-reviewer` (automated analysis of API patterns)
+  * **SKIP Task 3** (frontend:tester) - No UI testing needed for API-only work
+  * Both Task calls in SAME message for parallel execution
+
+  **For UI_FOCUSED or MIXED workflows** (THREE reviewers in parallel):
   * Task 1: `subagent_type: frontend:reviewer` (human-focused code review using Sonnet)
-  * Task 2: `subagent_type: frontend:codex-reviewer` (automated AI code review using Codex via mcp__codex-cli__ask-codex)
+  * Task 2: `subagent_type: frontend:codex-reviewer` (automated AI code review using Codex)
   * Task 3: `subagent_type: frontend:tester` (real browser manual UI testing with Chrome DevTools)
-  * All THREE Task calls must be in the SAME message for true parallel execution
-- Before running tester, ensure you have manual testing instructions from the implementation agent
-- Maintain clear communication with user at each quality gate (Plan, Implementation, Triple Review, Tests, Final Implementation)
-- Document all decisions and iterations from all three reviewers
+  * All THREE Task calls must be in SAME message for true parallel execution
+
+- Before running tester (UI workflows only), ensure you have manual testing instructions from the implementation agent
+- Maintain clear communication with user at each quality gate
+- Document all decisions and iterations from reviewers
 - Be transparent about any compromises or trade-offs made
 - If anything is unclear during execution, ask the user rather than making assumptions
-- The triple-review system provides comprehensive validation through three independent perspectives:
-  * **reviewer**: Traditional human-style review with 15+ years experience perspective (code quality, architecture, security)
-  * **codex-reviewer**: Automated AI analysis using Codex models for pattern detection (best practices, potential bugs)
-  * **tester**: Real browser testing with manual interaction (runtime behavior, UI/UX, console errors)
-- The tester follows specific testing instructions with accessibility selectors, making tests efficient and reproducible
-- UI testing catches runtime issues that static code review cannot detect (event handlers, state management, API integration)
-- Console errors found during UI testing often reveal missing error handling or race conditions in the code
+
+### Review System Perspectives
+
+- The review system provides comprehensive validation through independent perspectives:
+  * **reviewer**: Traditional human-style review with 15+ years experience (code quality, architecture, security)
+    - For API_FOCUSED: Focuses on API integration, type safety, error handling
+    - For UI_FOCUSED: Focuses on component quality, accessibility, responsive design
+  * **codex-reviewer**: Automated AI analysis using Codex models (best practices, potential bugs)
+    - For API_FOCUSED: Analyzes API patterns, HTTP handling, data validation
+    - For UI_FOCUSED: Analyzes React patterns, UI code quality, visual consistency
+  * **tester** (UI_FOCUSED/MIXED only): Real browser testing with manual interaction (runtime behavior, UI/UX, console errors)
+    - Follows specific testing instructions with accessibility selectors
+    - Catches runtime issues that static code review cannot detect
+    - Console errors often reveal missing error handling or race conditions
+
+### Other Important Notes
+
 - The cleaner agent runs only after user approval to ensure no important artifacts are removed prematurely
 - User approval gates ensure the user stays in control of the implementation direction and final deliverable
+- Workflow type is logged and included in final summary for transparency

@@ -1,8 +1,8 @@
 # Frontend Development Plugin
 
-Professional frontend development toolkit for Claude Code with TypeScript, React, Vite, TanStack Router & Query support. Features CSS-aware design validation, CVA best practices for shadcn/ui, and modern UI development workflows.
+Professional frontend development toolkit for Claude Code with TypeScript, React, Vite, TanStack Router & Query support. Features intelligent workflow detection (API/UI/Mixed), CSS-aware design validation, CVA best practices for shadcn/ui, and modern UI development workflows.
 
-**Version:** 2.6.1
+**Version:** 2.8.0
 
 ## Quick Start
 
@@ -63,7 +63,11 @@ Professional frontend development toolkit for Claude Code with TypeScript, React
 ### Commands (6)
 
 **Development Workflows:**
-- `/implement` - Full-cycle feature implementation with 8 phases (plan → code → design validation → test → review)
+- `/implement` - **NEW in v2.8.0**: Full-cycle feature implementation with intelligent workflow detection and adaptive execution (8 phases)
+  - Automatically detects API-focused, UI-focused, or Mixed workflows
+  - API workflows: Skips design validation, runs 2 code reviewers, focuses on API testing
+  - UI workflows: Full design validation, runs 3 reviewers (code + codex + UI tester)
+  - Mixed workflows: Both workflows combined with appropriate focus
 - `/implement-ui` - Implement UI components from scratch with task decomposition and intelligent agent switching
 - `/import-figma` - Import Figma designs as React components
 - `/api-docs` - Analyze and integrate API documentation
@@ -96,6 +100,47 @@ Professional frontend development toolkit for Claude Code with TypeScript, React
 - **GitHub** - Repository integration and PR management
 
 ## Key Features
+
+### Intelligent Workflow Detection (v2.8.0+)
+
+**Automatically adapts implementation workflow based on task type:**
+
+#### API-Focused Workflows
+For tasks like "Integrate tenant management API" or "Add error handling to API calls":
+- **PHASE 2.5 (Design Validation)**: Completely skipped - no UI changes to validate
+- **PHASE 3 (Code Review)**: Runs 2 reviewers in parallel (code + codex)
+  - Focus: API patterns, type safety, error handling, HTTP security
+  - UI tester skipped - no UI to test
+- **PHASE 4 (Testing)**: API-focused tests
+  - Unit tests for services, integration tests, mock responses, error scenarios
+  - Skips UI component tests
+
+**Benefits**: Faster implementation, focused reviews, no time wasted on irrelevant UI validation
+
+#### UI-Focused Workflows
+For tasks like "Implement UserProfile component" or "Style the Dashboard screen":
+- **PHASE 2.5 (Design Validation)**: Full design fidelity validation (if Figma present)
+  - Designer agent validates visual accuracy
+  - UI Developer fixes discrepancies
+- **PHASE 3 (Code Review)**: Runs 3 reviewers in parallel (code + codex + UI tester)
+  - Focus: Component quality, accessibility, responsive design, visual consistency
+- **PHASE 4 (Testing)**: UI-focused tests
+  - Component tests, interaction tests, accessibility tests
+
+**Benefits**: Pixel-perfect UI, comprehensive validation, high design fidelity
+
+#### Mixed Workflows
+For tasks with both API and UI work:
+- **PHASE 2.5**: Design validation for UI components only
+- **PHASE 3**: All 3 reviewers with appropriate focus areas
+- **PHASE 4**: Both API and UI test coverage
+
+**How It Works:**
+1. Analyzes your feature request for indicators (keywords, patterns)
+2. Classifies as API_FOCUSED, UI_FOCUSED, or MIXED
+3. If unclear, asks you to confirm
+4. Adapts all subsequent phases based on workflow type
+5. Logs workflow type in final summary for transparency
 
 ### CSS-Aware Design Validation (v2.6.0+)
 - **DOM Inspection** - Designers inspect actual rendered elements via Chrome DevTools MCP

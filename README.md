@@ -108,31 +108,46 @@ This repository contains production-ready plugins designed for modern web develo
 
 #### 🎨 Frontend Development (Full-Featured)
 
-**Version:** 2.6.1 | **Category:** Development | **Model:** Sonnet | **[📖 Full Documentation](./docs/frontend.md)**
+**Version:** 2.8.0 | **Category:** Development | **Model:** Sonnet | **[📖 Full Documentation](./docs/frontend.md)**
 
-Professional toolkit for TypeScript/React development with CSS-aware design validation, orchestrated workflows, quality automation, and team collaboration features.
+Professional toolkit for TypeScript/React development with intelligent workflow detection, CSS-aware design validation, orchestrated workflows, quality automation, and team collaboration features.
 
 **Highlights:**
+- **NEW in v2.8.0: Intelligent Workflow Detection** - Automatically detects API/UI/Mixed tasks and adapts execution for faster, more focused implementations
 - **13 Specialized Agents** - Including CSS Developer, Designer ecosystem (designer + designer-codex), UI Developer team (ui-developer + ui-developer-codex), architecture planning, code review, and browser testing
-- **6 Slash Commands** - Including `/implement` (8-phase with design validation), `/implement-ui` (with task decomposition), `/validate-ui`
+- **6 Slash Commands** - Including `/implement` (8-phase with adaptive workflow detection), `/implement-ui` (with task decomposition), `/validate-ui`
 - **3 Skills** - Browser testing, API analysis, and proactive UI implementation
 - **MCP Servers** - Apidog, Figma, Chrome DevTools integration
 - **CSS-Aware Validation** - DOM inspection, computed CSS analysis, pattern awareness
 - **CVA Best Practices** - Comprehensive shadcn/ui integration guidance
 - **Task Decomposition** - Parallel execution for independent UI components
 
-**The `/implement` Workflow:**
+**The `/implement` Workflow with Intelligent Detection:**
 
-The star feature is the `/implement` command—a complete 8-phase orchestration that takes you from idea to production-ready code:
+The star feature is the `/implement` command—now with intelligent workflow detection that automatically adapts based on your task:
 
+**For API Integration Tasks** (e.g., "Integrate user management API"):
+- Skips design validation (PHASE 2.5) entirely
+- Runs 2 code reviewers (manual + AI) focused on API patterns
+- Skips UI testing - focuses on API service tests
+- **Result**: Faster implementation, no wasted time on irrelevant UI checks
+
+**For UI Implementation Tasks** (e.g., "Build UserProfile component"):
 1. **Architecture Planning** → Designs solution, asks questions, gets approval
 2. **Implementation** → Generates code following project patterns
-2.5. **Design Fidelity Validation** → CSS-aware validation if Figma links present (optional, conditional)
+2.5. **Design Fidelity Validation** → CSS-aware validation if Figma links present
 3. **Triple Review** → Manual review + AI analysis + browser testing
-4. **Test Generation** → Creates comprehensive test suites
+4. **Test Generation** → UI-focused test suites
 5. **User Approval** → Final review gate
 6. **Cleanup** → Removes temporary artifacts
 7. **Delivery** → Production-ready feature with documentation
+- **Result**: Pixel-perfect UI, comprehensive validation
+
+**For Mixed Tasks** (both API and UI):
+- Combines both workflows with appropriate focus areas
+- Design validation for UI parts only
+- All 3 reviewers with targeted focus
+- Both API and UI test coverage
 
 **Perfect for:** React/TypeScript teams, TanStack ecosystem, API-driven apps, Figma workflows, shadcn/ui projects, pixel-perfect UI implementation, production-ready code quality
 

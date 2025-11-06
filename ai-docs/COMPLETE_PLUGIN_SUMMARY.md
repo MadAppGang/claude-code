@@ -12,13 +12,21 @@
 ## 📦 Complete Plugin Inventory
 
 **3 Production Plugins:**
-- Frontend Development (v2.7.0) - 13 agents, 6 commands, 3 skills
+- Frontend Development (v2.8.0) - 13 agents, 6 commands, 3 skills
 - Code Analysis (v1.1.0) - 1 agent, 1 command, 2 skills
 - Bun Backend Development (v1.2.0) - 3 agents, 3 commands, 1 skill
 
-### Frontend Development Plugin v2.7.0
+### Frontend Development Plugin v2.8.0
 
 **Total Artifacts:** 22 files
+
+**What's New in v2.8.0:**
+- **Intelligent Workflow Detection** - /implement command now automatically detects API/UI/Mixed workflows and adapts execution
+  - API-focused workflows skip design validation and UI testing for faster implementation
+  - UI-focused workflows get full design validation and 3-reviewer quality gates
+  - Mixed workflows combine both with appropriate focus areas
+  - Adaptive code review (2 or 3 reviewers based on workflow type)
+  - Workflow-specific testing strategies (API tests vs UI tests)
 
 **What's New in v2.7.0:**
 - Chrome DevTools MCP debugging methodology for responsive layout issues
@@ -55,7 +63,7 @@
 
 | Command | Purpose | File |
 |---------|---------|------|
-| /implement | Full-cycle feature implementation with 8 phases (includes design validation) | commands/implement.md |
+| /implement | **NEW in v2.8.0**: Full-cycle feature implementation with intelligent workflow detection and 8 adaptive phases (automatically skips design validation for API-only tasks) | commands/implement.md |
 | /import-figma | Import Figma components into React project | commands/import-figma.md |
 | /configure-mcp | Configure MCP servers (Apidog, Figma, etc.) | commands/configure-mcp.md |
 | /api-docs | Analyze & work with API documentation | commands/api-docs.md |
