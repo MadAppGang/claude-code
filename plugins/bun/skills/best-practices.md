@@ -338,6 +338,410 @@ userRouter.delete('/:id', userController.deleteUser);
 export default userRouter;
 ```
 
+## API Field Naming Convention: camelCase
+
+**CRITICAL: Always use camelCase for JSON REST API field names.**
+
+**Why camelCase:**
+- ✅ **Native to JavaScript/JSON** - No transformation needed in frontend code
+- ✅ **Industry standard** - Google, Microsoft, Facebook, AWS all use camelCase
+- ✅ **TypeScript friendly** - Direct mapping to TypeScript interfaces
+- ✅ **OpenAPI/Swagger convention** - Most OpenAPI examples use camelCase
+- ✅ **Auto-generated clients** - API client generators expect camelCase by default
+
+**Examples:**
+
+```typescript
+// ✅ CORRECT: camelCase
+{
+  "userId": "123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "emailAddress": "john@example.com",
+  "createdAt": "2025-01-06T12:00:00Z",
+  "isActive": true,
+  "phoneNumber": "+1234567890",
+  "dateOfBirth": "1990-01-01"
+}
+
+// ❌ WRONG: snake_case (Python/Ruby convention)
+{
+  "user_id": "123",
+  "first_name": "John",
+  "last_name": "Doe",
+  "email_address": "john@example.com",
+  "created_at": "2025-01-06T12:00:00Z",
+  "is_active": true
+}
+
+// ❌ WRONG: PascalCase (C# convention)
+{
+  "UserId": "123",
+  "FirstName": "John",
+  "LastName": "Doe",
+  "EmailAddress": "john@example.com"
+}
+
+// ❌ WRONG: kebab-case (not valid in JavaScript)
+{
+  "user-id": "123",
+  "first-name": "John",
+  "last-name": "Doe"
+}
+```
+
+**Consistent Application:**
+
+1. **Request Bodies**: All fields in camelCase
+   ```typescript
+   POST /api/users
+   {
+     "email": "user@example.com",
+     "firstName": "Jane",
+     "lastName": "Smith",
+     "dateOfBirth": "1995-05-15"
+   }
+   ```
+
+2. **Response Bodies**: All fields in camelCase
+   ```typescript
+   GET /api/users/123
+   {
+     "id": "123",
+     "email": "user@example.com",
+     "firstName": "Jane",
+     "lastName": "Smith",
+     "createdAt": "2025-01-06T12:00:00Z",
+     "updatedAt": "2025-01-06T12:00:00Z"
+   }
+   ```
+
+3. **Query Parameters**: Use camelCase
+   ```typescript
+   GET /api/users?pageSize=20&sortBy=createdAt&orderBy=desc
+   ```
+
+4. **Zod Schemas**: Define fields in camelCase
+   ```typescript
+   export const userSchema = z.object({
+     firstName: z.string(),
+     lastName: z.string(),
+     emailAddress: z.string().email(),
+     phoneNumber: z.string().optional(),
+     dateOfBirth: z.string().datetime()
+   });
+   ```
+
+5. **TypeScript Interfaces**: Match API camelCase
+   ```typescript
+   interface User {
+     id: string;
+     firstName: string;
+     lastName: string;
+     emailAddress: string;
+     createdAt: Date;
+     updatedAt: Date;
+   }
+   ```
+
+**Database vs API Naming:**
+
+While Prisma schema uses camelCase by default (matching JavaScript conventions), if you inherit a database with snake_case columns, use Prisma's `@map()` to transform:
+
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  firstName String   @map("first_name")  // DB: first_name → API: firstName
+  lastName  String   @map("last_name")   // DB: last_name → API: lastName
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+```
+
+**Key Takeaway:** camelCase is the JavaScript/TypeScript/JSON ecosystem standard. Using it ensures seamless integration with frontend code, API tools, and the broader JavaScript ecosystem.
+
+## Database Naming Conventions: camelCase
+
+**CRITICAL: All database identifiers (tables, columns, indexes, constraints) use camelCase.**
+
+**Why camelCase in Databases:**
+- ✅ **Stack consistency** - TypeScript is our primary language across backend and frontend
+- ✅ **Zero translation layer** - Database names map 1:1 with TypeScript types
+- ✅ **Reduced complexity** - No snake_case ↔ camelCase conversion needed
+- ✅ **Modern ORM compatibility** - Prisma, Drizzle, TypeORM work seamlessly with camelCase
+- ✅ **Team productivity** - Full-stack TypeScript developers think in camelCase
+
+**Yes, we know:** PostgreSQL traditionally uses `snake_case`. We're deliberately deviating because our technology stack is TypeScript-first, and the benefits of consistency across all layers outweigh adherence to legacy SQL conventions.
+
+### Naming Rules
+
+**1. Tables:** Use singular, camelCase
+```sql
+-- ✅ Good
+users
+orderItems
+userPreferences
+
+-- ❌ Bad
+user_profiles
+OrderItems
+```
+
+**2. Columns:** Use camelCase
+```sql
+-- ✅ Good
+userId, firstName, emailAddress, createdAt, isActive
+
+-- ❌ Bad
+user_id, first_name, email_address, created_at, is_active
+```
+
+**3. Primary Keys:** `{tableName}Id`
+```sql
+userId    -- in users table
+orderId   -- in orders table
+productId -- in products table
+```
+
+**4. Foreign Keys:** Same as the referenced primary key
+```sql
+-- orders table references users table
+userId  -- references users.userId
+```
+
+**5. Boolean Fields:** Prefix with is/has/can
+```sql
+isActive, isDeleted, isPublic
+hasPermission, hasAccess
+canEdit, canDelete
+```
+
+**6. Timestamps:** Consistent suffixes
+```sql
+createdAt      -- creation time
+updatedAt      -- last modification
+deletedAt      -- soft delete time
+lastLoginAt    -- specific event times
+publishedAt
+verifiedAt
+```
+
+**7. Indexes:** `idx{TableName}{ColumnName}`
+```sql
+idxUsersEmailAddress
+idxOrdersUserIdCreatedAt
+idxProductsCreatedAt
+```
+
+**8. Constraints:**
+```sql
+-- Foreign keys: fk{TableName}{ColumnName}
+fkOrdersUserId
+
+-- Unique constraints: unq{TableName}{ColumnName}
+unqUsersEmailAddress
+
+-- Check constraints: chk{TableName}{Description}
+chkUsersAgePositive
+```
+
+### PostgreSQL Schema Example
+
+```sql
+CREATE TABLE users (
+  userId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  emailAddress VARCHAR(255) NOT NULL,
+  firstName VARCHAR(100),
+  lastName VARCHAR(100),
+  phoneNumber VARCHAR(20),
+  isActive BOOLEAN DEFAULT true,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  lastLoginAt TIMESTAMP
+);
+
+CREATE INDEX idxUsersEmailAddress ON users(emailAddress);
+CREATE INDEX idxUsersCreatedAt ON users(createdAt);
+
+CREATE TABLE orders (
+  orderId UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  userId UUID NOT NULL,
+  totalAmount DECIMAL(10,2),
+  orderStatus VARCHAR(50),
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fkOrdersUserId FOREIGN KEY (userId) REFERENCES users(userId)
+);
+
+ALTER TABLE users ADD CONSTRAINT unqUsersEmailAddress UNIQUE (emailAddress);
+```
+
+### Prisma Schema Example
+
+```prisma
+model User {
+  userId       String   @id @default(cuid())
+  emailAddress String   @unique
+  firstName    String?
+  lastName     String?
+  phoneNumber  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lastLoginAt  DateTime?
+
+  orders       Order[]
+
+  @@index([emailAddress])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Order {
+  orderId      String   @id @default(cuid())
+  userId       String
+  totalAmount  Decimal  @db.Decimal(10, 2)
+  orderStatus  String
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("orders")
+}
+```
+
+### TypeScript Types (Perfect Match)
+
+```typescript
+// Exact 1:1 mapping with database
+interface User {
+  userId: string;
+  emailAddress: string;
+  firstName: string | null;
+  lastName: string | null;
+  phoneNumber: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLoginAt: Date | null;
+}
+
+interface Order {
+  orderId: string;
+  userId: string;
+  totalAmount: number;
+  orderStatus: string;
+  createdAt: Date;
+}
+```
+
+### MongoDB Collection Example
+
+```javascript
+// users collection
+{
+  userId: "550e8400-e29b-41d4-a716-446655440000",
+  emailAddress: "user@example.com",
+  firstName: "John",
+  lastName: "Doe",
+  phoneNumber: "+1234567890",
+  isActive: true,
+  createdAt: ISODate("2025-11-06T10:00:00Z"),
+  updatedAt: ISODate("2025-11-06T10:00:00Z"),
+  lastLoginAt: ISODate("2025-11-06T12:30:00Z")
+}
+```
+
+### Special Cases
+
+**Acronyms:** Keep as proper words
+```typescript
+userId      // not userID
+apiKey      // not APIKey
+htmlContent // not HTMLContent
+urlPath     // not URLPath
+
+// Exception: When acronym is the entire word
+id, api     // acceptable
+```
+
+**Reserved Keywords:** Avoid them, but if unavoidable:
+```sql
+-- Quote in PostgreSQL if needed
+CREATE TABLE orders (
+  "order" UUID,
+  "group" VARCHAR(50)
+);
+
+-- Better: Use more descriptive names
+orderType, orderGroup
+```
+
+**JSONB Columns:** Column and content both use camelCase
+```sql
+CREATE TABLE users (
+  userId UUID PRIMARY KEY,
+  metadata JSONB  -- column name: camelCase
+);
+
+-- JSONB content also camelCase
+{
+  "preferredLanguage": "en",
+  "notificationSettings": {
+    "emailEnabled": true,
+    "pushEnabled": false
+  }
+}
+```
+
+### Migration from snake_case
+
+If migrating from snake_case databases, use Prisma's `@map()`:
+
+```prisma
+model User {
+  userId    String @id @map("user_id")       // DB: user_id → App: userId
+  firstName String @map("first_name")        // DB: first_name → App: firstName
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("users")
+}
+```
+
+Eventually migrate the actual database columns to camelCase and remove `@map()`.
+
+### Benefits of This Approach
+
+**Single Convention Everywhere:**
+```typescript
+// Database column
+userId
+
+// Prisma model
+userId
+
+// TypeScript type
+userId
+
+// API response
+userId
+
+// Frontend state
+userId
+
+// No translation needed anywhere ✓
+```
+
+**Eliminates Entire Class of Bugs:**
+- No mapping errors between layers
+- No "which convention am I using now?" confusion
+- Autocomplete works perfectly everywhere
+- Type safety maintained end-to-end
+
+**Key Takeaway:** While this deviates from traditional PostgreSQL conventions, it's optimal for TypeScript-first full-stack development. Consistency and productivity gains far outweigh adherence to legacy SQL naming conventions.
+
 ## Database with Prisma
 
 **Prisma client setup (src/database/client.ts):**

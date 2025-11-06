@@ -102,10 +102,24 @@ TodoWrite with the following items:
 After receiving answers, design the comprehensive architecture:
 
 #### 2.1 Database Schema Design
+
+**CRITICAL: Use camelCase for ALL database identifiers**
+
+All table names, column names, indexes, and constraints MUST use camelCase:
+- **Tables:** `users`, `orderItems`, `userPreferences`
+- **Columns:** `userId`, `firstName`, `emailAddress`, `createdAt`
+- **Primary Keys:** `{tableName}Id` (e.g., `userId`, `orderId`)
+- **Booleans:** Prefix with `is/has/can` (e.g., `isActive`, `hasPermission`)
+- **Timestamps:** `createdAt`, `updatedAt`, `deletedAt`, `lastLoginAt`
+- **Indexes:** `idx{TableName}{Column}` (e.g., `idxUsersEmailAddress`)
+
+**Why camelCase?** Our TypeScript-first stack requires 1:1 naming across all layers (database → Prisma → TypeScript → API → frontend). This eliminates translation layers and mapping bugs.
+
+**Design Process:**
 - **Entity Modeling**: Identify all entities (users, posts, comments, etc.)
 - **Relationships**: Define one-to-one, one-to-many, many-to-many relationships
 - **Prisma Schema**: Design complete schema with:
-  - Models with all fields and types
+  - Models with all fields and types (camelCase)
   - Enums for constrained values
   - Indexes for performance
   - Unique constraints
@@ -118,19 +132,20 @@ After receiving answers, design the comprehensive architecture:
 ```prisma
 // prisma/schema.prisma
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      Role     @default(USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId       String   @id @default(cuid())
+  emailAddress String   @unique
+  firstName    String
+  lastName     String
+  password     String
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  posts     Post[]
-  sessions  Session[]
+  posts        Post[]
+  sessions     Session[]
 
-  @@index([email])
+  @@index([emailAddress])
   @@index([role, isActive])
   @@map("users")
 }
@@ -395,6 +410,45 @@ Present the complete plan to the user:
 - Use HTTP methods correctly (GET, POST, PUT, PATCH, DELETE)
 - Use nested routes for relationships (`/users/:id/posts`)
 - Version your API (`/api/v1/...`)
+
+### Naming Conventions: camelCase
+
+**CRITICAL: All API field names MUST use camelCase.**
+
+**Why camelCase:**
+- ✅ Native to JavaScript/JSON ecosystem - No transformation needed
+- ✅ Industry standard - Google, Microsoft, Facebook, AWS APIs use camelCase
+- ✅ TypeScript friendly - Direct mapping to interfaces
+- ✅ OpenAPI/Swagger convention - Standard for API specifications
+- ✅ Auto-generated clients - Expected by code generation tools
+
+**Apply to:**
+- Request body fields: `{ "firstName": "John", "emailAddress": "john@example.com" }`
+- Response body fields: `{ "userId": "123", "createdAt": "2025-01-06T12:00:00Z" }`
+- Query parameters: `?pageSize=20&sortBy=createdAt&orderBy=desc`
+- Schema definitions: All property names in OpenAPI/Swagger specs
+- Database mappings: Use Prisma `@map()` if DB uses snake_case
+
+**Example:**
+```typescript
+// ✅ CORRECT
+{
+  "userId": "123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "emailAddress": "john@example.com",
+  "createdAt": "2025-01-06T12:00:00Z",
+  "isActive": true
+}
+
+// ❌ WRONG: snake_case
+{ "user_id": "123", "first_name": "John", "created_at": "2025-01-06T12:00:00Z" }
+
+// ❌ WRONG: PascalCase
+{ "UserId": "123", "FirstName": "John", "CreatedAt": "2025-01-06T12:00:00Z" }
+```
+
+When designing schemas in your architecture documentation, ALWAYS use camelCase for all field names.
 
 ### Pagination Pattern
 ```

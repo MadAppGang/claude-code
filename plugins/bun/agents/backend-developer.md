@@ -104,6 +104,48 @@ Global error handler catches all errors and formats responses consistently.
 - Always handle not-found cases
 - Strip passwords before returning user objects
 
+**Database Naming: ALWAYS use camelCase**
+
+All database identifiers must use camelCase (tables, columns, indexes, constraints):
+
+```prisma
+// ✅ CORRECT
+model User {
+  userId       String   @id @default(cuid())
+  emailAddress String   @unique
+  firstName    String?
+  lastName     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  orders       Order[]
+
+  @@index([emailAddress])
+  @@map("users")
+}
+
+// ❌ WRONG: snake_case
+model User {
+  user_id       String @id
+  email_address String @unique
+  first_name    String?
+  is_active     Boolean
+}
+```
+
+**Naming Rules:**
+- **Tables:** Singular, camelCase (`users`, `orderItems`)
+- **Columns:** camelCase (`userId`, `emailAddress`, `createdAt`)
+- **Primary keys:** `{tableName}Id` (`userId`, `orderId`)
+- **Foreign keys:** Same as referenced key (`userId` references `users.userId`)
+- **Booleans:** Prefix with `is/has/can` (`isActive`, `hasPermission`, `canEdit`)
+- **Timestamps:** `createdAt`, `updatedAt`, `deletedAt`, `lastLoginAt`
+- **Indexes:** `idx{TableName}{Column}` (`idxUsersEmailAddress`)
+- **Constraints:** `fk{Table}{Column}`, `unq{Table}{Column}`
+
+**Why camelCase?** TypeScript-first stack means 1:1 mapping between database, Prisma models, TypeScript types, and API responses. Zero translation layer, zero mapping bugs.
+
 ### 6. Request Validation
 **ALWAYS** validate inputs with Zod middleware:
 ```typescript
@@ -137,6 +179,66 @@ Validate:
 - Enable compression middleware (gzip/brotli)
 - Leverage Bun's performance (native speed, fast startup)
 - Profile and optimize hot paths
+
+### 9. API Naming Conventions: camelCase
+
+**CRITICAL: ALWAYS use camelCase for all JSON API field names.**
+
+**Why camelCase:**
+- ✅ Native to JavaScript/JSON - No transformation needed in frontend code
+- ✅ Industry standard - Google, Microsoft, Facebook, AWS all use camelCase
+- ✅ TypeScript friendly - Direct mapping to TypeScript interfaces
+- ✅ OpenAPI/Swagger convention - Most API specifications use camelCase
+- ✅ Auto-generated clients - API client generators expect camelCase by default
+
+**Apply camelCase consistently across:**
+- **Request bodies**: `{ "firstName": "John", "emailAddress": "john@example.com" }`
+- **Response bodies**: `{ "userId": "123", "createdAt": "2025-01-06T12:00:00Z" }`
+- **Query parameters**: `?pageSize=20&sortBy=createdAt&orderBy=desc`
+- **Zod schemas**: `z.object({ firstName: z.string(), emailAddress: z.string().email() })`
+- **TypeScript types**: `interface User { firstName: string; emailAddress: string; }`
+
+**Examples:**
+```typescript
+// ✅ CORRECT: camelCase
+{
+  "userId": "123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "emailAddress": "john@example.com",
+  "createdAt": "2025-01-06T12:00:00Z",
+  "isActive": true,
+  "phoneNumber": "+1234567890"
+}
+
+// ❌ WRONG: snake_case
+{
+  "user_id": "123",
+  "first_name": "John",
+  "created_at": "2025-01-06T12:00:00Z"
+}
+
+// ❌ WRONG: PascalCase
+{
+  "UserId": "123",
+  "FirstName": "John",
+  "CreatedAt": "2025-01-06T12:00:00Z"
+}
+```
+
+**Database Mapping with Prisma:**
+If you have snake_case database columns, use `@map()` to transform to camelCase in API:
+```prisma
+model User {
+  id        String   @id @default(cuid())
+  firstName String   @map("first_name")  // DB: first_name → API: firstName
+  lastName  String   @map("last_name")   // DB: last_name → API: lastName
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("users")
+}
+```
+
+**Remember**: The entire API surface (requests, responses, query params) must use camelCase consistently. This is non-negotiable for JavaScript/TypeScript ecosystem compatibility.
 
 ## Mandatory Quality Checks
 

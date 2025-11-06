@@ -15,7 +15,7 @@ The Bun plugin equips you with everything needed for professional backend API de
 
 ## 📦 What's Included
 
-### Agents (2)
+### Agents (3)
 
 #### `backend-developer` (Sonnet)
 Expert TypeScript backend developer for implementing API features, services, and database integrations.
@@ -52,7 +52,24 @@ Elite backend architecture specialist for planning and designing API systems.
 - Implementation phase planning
 - Documentation generation
 
-### Commands (2)
+#### `apidog` (Sonnet)
+API documentation synchronization specialist for managing Apidog integration.
+
+**Use when:**
+- Creating new API endpoints in Apidog
+- Importing OpenAPI specifications to Apidog
+- Synchronizing API changes to Apidog
+- Updating API documentation
+
+**Key capabilities:**
+- Environment validation (APIDOG_PROJECT_ID, APIDOG_API_TOKEN)
+- Existing schema analysis and reuse
+- OpenAPI 3.0 spec generation with Apidog extensions
+- Temporary spec file creation
+- Apidog MCP server integration
+- Validation URL generation
+
+### Commands (3)
 
 #### `/implement-api`
 Full-cycle API implementation with multi-agent orchestration and quality gates.
@@ -92,6 +109,46 @@ Initialize a new Bun + TypeScript backend project with best practices setup.
 ```
 /setup-project Set up a new backend API for my task management app
 ```
+
+#### `/apidog`
+Synchronize API specifications with Apidog by analyzing schemas and importing OpenAPI specs.
+
+**What it does:**
+1. **Environment Validation** - Verifies APIDOG_PROJECT_ID and APIDOG_API_TOKEN
+2. **Fetch Current Spec** - Gets existing API specification from Apidog
+3. **Schema Analysis** - Identifies reusable schemas vs. new ones needed
+4. **Spec Generation** - Creates OpenAPI 3.0 spec with Apidog extensions
+5. **Temporary Storage** - Saves spec to /tmp directory
+6. **Import to Apidog** - Uses Apidog REST API to import
+7. **Validation** - Provides Apidog project URL for review
+
+**Usage:**
+```
+/apidog Add POST /api/users endpoint with email, password, and role fields
+```
+
+### MCP Servers (1)
+
+#### `apidog`
+Apidog MCP Server for API documentation synchronization and OpenAPI spec management.
+
+**Configuration:**
+```json
+{
+  "apidog": {
+    "command": "npx",
+    "args": ["-y", "@apidog/mcp-server"],
+    "env": {
+      "APIDOG_PROJECT_ID": "${APIDOG_PROJECT_ID}",
+      "APIDOG_API_TOKEN": "${APIDOG_API_TOKEN}"
+    }
+  }
+}
+```
+
+**Required Environment Variables:**
+- `APIDOG_PROJECT_ID`: Your Apidog project ID (get from project settings)
+- `APIDOG_API_TOKEN`: Your personal API token (get from account settings)
 
 ### Skills (1)
 
@@ -133,7 +190,25 @@ This plugin is optimized for the modern Bun backend stack:
 
 ## 📋 Quick Start
 
-### 1. Install the Plugin
+### 1. Prerequisites
+
+**Required:**
+- Bun 1.x or later
+- Node.js 18+ (for MCP servers)
+
+**Optional (for Apidog integration):**
+- Apidog account
+- APIDOG_PROJECT_ID (from project settings)
+- APIDOG_API_TOKEN (from account settings)
+
+**Set environment variables in `.env`:**
+```bash
+# Optional: For Apidog integration
+APIDOG_PROJECT_ID=your-project-id
+APIDOG_API_TOKEN=your-api-token
+```
+
+### 2. Install the Plugin
 
 **Global marketplace + project-specific plugin (recommended for teams):**
 
@@ -157,7 +232,7 @@ Commit `.claude/settings.json` and team members get automatic setup!
 /plugin install bun@mag-claude-plugins
 ```
 
-### 2. Set Up a New Project
+### 3. Set Up a New Project
 
 ```bash
 /setup-project Create a new REST API for my e-commerce platform
@@ -170,7 +245,7 @@ Follow the interactive prompts to configure:
 - Docker (yes/no)
 - Additional features (Redis, file uploads, etc.)
 
-### 3. Implement Features
+### 4. Implement Features
 
 ```bash
 /implement-api Add product catalog with CRUD operations and search
@@ -179,7 +254,20 @@ Follow the interactive prompts to configure:
 The command orchestrates the complete workflow:
 - Architecture planning → User approval → Implementation → Testing → Review → Deployment ready
 
-### 4. Use Agents Directly
+### 5. Synchronize with Apidog (Optional)
+
+If you have Apidog configured, sync your API documentation:
+
+```bash
+/apidog Import my OpenAPI spec to Apidog
+```
+
+Or use the agent directly:
+```
+@apidog Create a new POST /api/products endpoint in Apidog with name, price, and description fields
+```
+
+### 6. Use Agents Directly
 
 For specific tasks, invoke agents directly:
 
@@ -363,7 +451,7 @@ MIT License - See LICENSE file in repository
 ---
 
 **Last Updated:** November 2025
-**Plugin Version:** 1.0.0
+**Plugin Version:** 1.1.0
 **Bun Version:** 1.x
 **Tool Versions:** TypeScript 5.7, Prisma 6.2, Hono 4.6, Biome 2.3
 
