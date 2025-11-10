@@ -32,23 +32,22 @@ export function initLogger(debugMode: boolean): void {
 }
 
 /**
- * Log a message (to file if debug mode, otherwise to console)
+ * Log a message (to file only in debug mode, silent otherwise)
  */
 export function log(message: string, forceConsole = false): void {
   const timestamp = new Date().toISOString();
   const logLine = `[${timestamp}] ${message}\n`;
 
   if (logFilePath) {
-    // Debug mode - write to file only
+    // Debug mode - write to file
     appendFileSync(logFilePath, logLine);
-    // Don't write to console unless forced
   } else {
-    // No debug mode - write to console
-    console.log(message);
+    // No debug mode - silent (no console spam)
+    // Do nothing
   }
 
-  // Force console output (for critical messages even in debug mode)
-  if (forceConsole && logFilePath) {
+  // Force console output (for critical messages even when not in debug mode)
+  if (forceConsole) {
     console.log(message);
   }
 }

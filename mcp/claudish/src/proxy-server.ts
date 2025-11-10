@@ -425,6 +425,10 @@ export async function createProxyServer(
                     log("[Proxy] Received [DONE] from OpenRouter");
 
                     // Finalize the stream
+                    if (!textBlockStarted) {
+                      log("[Proxy] WARNING: Model produced no text output (only reasoning deltas)");
+                    }
+
                     if (textBlockStarted) {
                       sendSSE("content_block_stop", {
                         type: "content_block_stop",
