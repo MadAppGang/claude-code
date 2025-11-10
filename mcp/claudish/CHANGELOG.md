@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.0.7] - 2024-11-10
+
+### Fixed
+- ✅ Clean console output in debug mode
+  - Proxy logs now go to file only (not console)
+  - Console only shows essential claudish messages
+  - No more console flooding with [Proxy] logs
+  - Perfect for clean interactive sessions
+
+### Changed
+- `dev:grok` script now includes `--debug` by default
+- Build size: 17.68 KB
+
+### Usage
+```bash
+# Clean console with all logs in file
+bun run dev:grok
+
+# Or manually
+claudish -i -d --model x-ai/grok-code-fast-1
+```
+
 ## [1.0.6] - 2024-11-10
 
 ### Added

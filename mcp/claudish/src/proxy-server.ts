@@ -76,8 +76,8 @@ export async function createProxyServer(
 
   server = await serverPromise;
 
-  log(`[Proxy] Server started on http://127.0.0.1:${port}`, true);
-  log(`[Proxy] Routing to OpenRouter model: ${model}`, true);
+  log(`[Proxy] Server started on http://127.0.0.1:${port}`);
+  log(`[Proxy] Routing to OpenRouter model: ${model}`);
 
   return {
     port,
