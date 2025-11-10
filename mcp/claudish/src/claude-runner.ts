@@ -26,14 +26,15 @@ function createTempSettingsFile(modelDisplay: string): string {
   const BOLD = "\\033[1m";       // Bold text
 
   // Model context windows (max tokens) - using actual OpenRouter model IDs
+  // Values verified via web search (Nov 2025) for accurate context tracking
   // This is our shortlist for better UX, but ANY model will work (falls back to 100k)
   const MODEL_CONTEXT: Record<string, number> = {
-    "x-ai/grok-code-fast-1": 131072,              // 128k
-    "openai/gpt-5-codex": 200000,                 // 200k
-    "minimax/minimax-m2": 1000000,                // 1M
-    "z-ai/glm-4.6": 128000,                       // 128k
-    "qwen/qwen3-vl-235b-a22b-instruct": 32768,   // 32k
-    "anthropic/claude-sonnet-4.5": 200000,        // 200k
+    "x-ai/grok-code-fast-1": 256000,              // 256k (verified: released with 256k context)
+    "openai/gpt-5-codex": 400000,                 // 400k (verified: 272k input + 128k output)
+    "minimax/minimax-m2": 204800,                 // 200k (verified: M2 reduced from M1's 1M to 200k)
+    "z-ai/glm-4.6": 200000,                       // 200k (verified: expanded from 128k in GLM-4.5)
+    "qwen/qwen3-vl-235b-a22b-instruct": 256000,   // 256k (verified: native 256k, expandable to 1M)
+    "anthropic/claude-sonnet-4.5": 200000,        // 200k (verified: Claude Sonnet 4.5 standard)
   };
   // Default to 100k for unknown models (safe fallback that works with most models)
   const maxTokens = MODEL_CONTEXT[modelDisplay] || 100000;
