@@ -11,6 +11,8 @@ export function parseArgs(args: string[]): ClaudishConfig {
     dangerous: false,
     interactive: false, // Single-shot mode by default
     debug: false, // No debug logging by default
+    quiet: undefined, // Will be set based on mode (true for single-shot, false for interactive)
+    jsonOutput: false, // No JSON output by default
     claudeArgs: [],
   };
 
@@ -61,6 +63,12 @@ export function parseArgs(args: string[]): ClaudishConfig {
       config.interactive = true;
     } else if (arg === "--debug" || arg === "-d") {
       config.debug = true;
+    } else if (arg === "--quiet" || arg === "-q") {
+      config.quiet = true;
+    } else if (arg === "--verbose" || arg === "-v") {
+      config.quiet = false;
+    } else if (arg === "--json") {
+      config.jsonOutput = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -108,6 +116,17 @@ export function parseArgs(args: string[]): ClaudishConfig {
     process.exit(1);
   }
 
+  // Set default for quiet mode if not explicitly set
+  // Single-shot mode: quiet by default
+  // Interactive mode: verbose by default
+  // JSON output: always quiet
+  if (config.quiet === undefined) {
+    config.quiet = !config.interactive;
+  }
+  if (config.jsonOutput) {
+    config.quiet = true; // JSON output mode is always quiet
+  }
+
   return config as ClaudishConfig;
 }
 
@@ -127,13 +146,16 @@ OPTIONS:
   -m, --model <model>      OpenRouter model to use (shows interactive selector if not provided)
   -p, --port <port>        Proxy server port (default: random)
   -d, --debug              Enable debug logging to file (logs/claudish_*.log)
+  -q, --quiet              Suppress [claudish] log messages (default in single-shot mode)
+  -v, --verbose            Show [claudish] log messages (default in interactive mode)
+  --json                   Output in JSON format for tool integration (implies --quiet)
   --no-auto-approve        Disable auto permission skip (prompts enabled)
   --dangerous              Pass --dangerouslyDisableSandbox to Claude Code
   --list-models            List available OpenRouter models
   -h, --help               Show this help message
 
 MODES:
-  • Single-shot mode (default): Runs one task and exits
+  • Single-shot mode (default): Runs one task in headless mode and exits (uses -p flag)
   • Interactive mode (--interactive): Starts persistent session, you interact with Claude directly
 
 NOTES:
@@ -171,6 +193,12 @@ EXAMPLES:
 
   # Pass flags to claude
   claudish --model x-ai/grok-code-fast-1 --verbose "debug issue"
+
+  # JSON output for tool integration (quiet by default)
+  claudish --json "list 5 prime numbers"
+
+  # Verbose mode in single-shot (show [claudish] logs)
+  claudish --verbose "analyze code structure"
 
 AVAILABLE MODELS:
   Run: claudish --list-models

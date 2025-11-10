@@ -19,6 +19,8 @@ export interface ClaudishConfig {
   dangerous: boolean;
   interactive: boolean;
   debug: boolean;
+  quiet: boolean; // Suppress [claudish] log messages (default true in single-shot mode)
+  jsonOutput: boolean; // Output in JSON format for tool integration
   openrouterApiKey: string;
   claudeArgs: string[];
 }

@@ -90,11 +90,17 @@ export async function runClaudeWithProxy(
     }
   } else {
     // Single-shot mode - add all arguments
+    // Add -p flag FIRST to enable headless/print mode (non-interactive, exits after task)
+    claudeArgs.push("-p");
     if (config.autoApprove) {
       claudeArgs.push("--dangerously-skip-permissions");
     }
     if (config.dangerous) {
       claudeArgs.push("--dangerouslyDisableSandbox");
+    }
+    // Add JSON output format if requested
+    if (config.jsonOutput) {
+      claudeArgs.push("--output-format", "json");
     }
     // Add user-provided args (including prompt)
     claudeArgs.push(...config.claudeArgs);
@@ -113,21 +119,28 @@ export async function runClaudeWithProxy(
     [ENV.CLAUDISH_ACTIVE_MODEL_NAME]: modelId,
   };
 
+  // Helper function to log messages (respects quiet flag)
+  const log = (message: string) => {
+    if (!config.quiet) {
+      console.log(message);
+    }
+  };
+
   if (config.interactive) {
-    console.log(`\n[claudish] Starting Claude Code in INTERACTIVE mode`);
-    console.log(`[claudish] Model: ${modelId}`);
-    console.log(`[claudish] Proxy URL: ${proxyUrl}`);
-    console.log(`[claudish] Status line: dir • ${modelId} • $cost • ctx% (live)`);
-    console.log(`[claudish] Tracking: Real-time cost + context window usage`);
-    console.log(`[claudish] Thinking mode: Optimized ultra-compact layout`);
-    console.log(`[claudish] Supports: ANY OpenRouter model (not just shortlist)`);
-    console.log(`[claudish] You can now interact with Claude Code directly`);
-    console.log(`[claudish] Press Ctrl+C or type 'exit' to quit\n`);
+    log(`\n[claudish] Starting Claude Code in INTERACTIVE mode`);
+    log(`[claudish] Model: ${modelId}`);
+    log(`[claudish] Proxy URL: ${proxyUrl}`);
+    log(`[claudish] Status line: dir • ${modelId} • $cost • ctx% (live)`);
+    log(`[claudish] Tracking: Real-time cost + context window usage`);
+    log(`[claudish] Thinking mode: Optimized ultra-compact layout`);
+    log(`[claudish] Supports: ANY OpenRouter model (not just shortlist)`);
+    log(`[claudish] You can now interact with Claude Code directly`);
+    log(`[claudish] Press Ctrl+C or type 'exit' to quit\n`);
   } else {
-    console.log(`\n[claudish] Starting Claude Code with ${modelId}`);
-    console.log(`[claudish] Proxy URL: ${proxyUrl}`);
-    console.log(`[claudish] Status line: dir • ${modelId} • $cost • ctx% (live)`);
-    console.log(`[claudish] Arguments: ${claudeArgs.join(" ")}\n`);
+    log(`\n[claudish] Starting Claude Code with ${modelId}`);
+    log(`[claudish] Proxy URL: ${proxyUrl}`);
+    log(`[claudish] Status line: dir • ${modelId} • $cost • ctx% (live)`);
+    log(`[claudish] Arguments: ${claudeArgs.join(" ")}\n`);
   }
 
   // Spawn claude CLI process
@@ -139,7 +152,7 @@ export async function runClaudeWithProxy(
   });
 
   // Handle process termination signals (includes cleanup)
-  setupSignalHandlers(proc, tempSettingsPath);
+  setupSignalHandlers(proc, tempSettingsPath, config.quiet);
 
   // Wait for claude to exit
   const exitCode = await proc.exited;
@@ -157,12 +170,14 @@ export async function runClaudeWithProxy(
 /**
  * Setup signal handlers to gracefully shutdown
  */
-function setupSignalHandlers(proc: Subprocess, tempSettingsPath: string): void {
+function setupSignalHandlers(proc: Subprocess, tempSettingsPath: string, quiet: boolean): void {
   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGHUP"];
 
   for (const signal of signals) {
     process.on(signal, () => {
-      console.log(`\n[claudish] Received ${signal}, shutting down...`);
+      if (!quiet) {
+        console.log(`\n[claudish] Received ${signal}, shutting down...`);
+      }
       proc.kill();
       // Clean up temp settings file
       try {

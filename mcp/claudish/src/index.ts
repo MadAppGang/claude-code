@@ -43,19 +43,23 @@ async function main() {
       exitCode = await runClaudeWithProxy(config, proxy.url);
     } finally {
       // Always cleanup proxy
-      console.log("\n[claudish] Shutting down proxy server...");
+      if (!config.quiet) {
+        console.log("\n[claudish] Shutting down proxy server...");
+      }
       await proxy.shutdown();
     }
 
-    console.log("[claudish] Done");
+    if (!config.quiet) {
+      console.log("[claudish] Done");
+    }
 
     // Show log file location if debug mode
-    if (config.debug) {
+    if (config.debug && !config.quiet) {
       const logFile = getLogFilePath();
       if (logFile) {
         console.log(`[claudish] Debug log saved to: ${logFile}\n`);
       }
-    } else {
+    } else if (!config.quiet) {
       console.log("");
     }
 
