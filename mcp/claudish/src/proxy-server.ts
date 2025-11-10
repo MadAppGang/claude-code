@@ -129,11 +129,19 @@ export async function createProxyServer(
             if (Array.isArray(msg.content)) {
               const textParts: string[] = [];
               const toolResults: any[] = [];
+              const seenToolResultIds = new Set<string>(); // Track tool result IDs to prevent duplicates
 
               for (const block of msg.content) {
                 if (block.type === "text") {
                   textParts.push(block.text);
                 } else if (block.type === "tool_result") {
+                  // Skip duplicate tool results with same tool_use_id
+                  if (seenToolResultIds.has(block.tool_use_id)) {
+                    log(`[Proxy] Skipping duplicate tool_result with tool_use_id: ${block.tool_use_id}`);
+                    continue;
+                  }
+                  seenToolResultIds.add(block.tool_use_id);
+
                   toolResults.push({
                     role: "tool",
                     content:
@@ -169,11 +177,19 @@ export async function createProxyServer(
             if (Array.isArray(msg.content)) {
               const textParts: string[] = [];
               const toolCalls: any[] = [];
+              const seenToolIds = new Set<string>(); // Track tool IDs to prevent duplicates
 
               for (const block of msg.content) {
                 if (block.type === "text") {
                   textParts.push(block.text);
                 } else if (block.type === "tool_use") {
+                  // Skip duplicate tool calls with same ID
+                  if (seenToolIds.has(block.id)) {
+                    log(`[Proxy] Skipping duplicate tool_use with ID: ${block.id}`);
+                    continue;
+                  }
+                  seenToolIds.add(block.id);
+
                   toolCalls.push({
                     id: block.id,
                     type: "function",
@@ -363,6 +379,10 @@ export async function createProxyServer(
             let usage: any = null;
             let isClosed = false;
 
+            // Track tool calls - map from tool index to tool state
+            const toolCalls = new Map<number, { id: string; name: string; args: string; blockIndex: number; started: boolean }>();
+            let nextBlockIndex = 0; // Track content block indices
+
             // Send initial events IMMEDIATELY (like 1rgs/claude-code-proxy does)
             // Don't wait for first chunk!
             sendSSE("message_start", {
@@ -388,13 +408,14 @@ export async function createProxyServer(
             // Claude Code expects this IMMEDIATELY after message_start
             sendSSE("content_block_start", {
               type: "content_block_start",
-              index: 0,
+              index: nextBlockIndex,
               content_block: {
                 type: "text",
                 text: "",
               },
             });
             textBlockStarted = true;
+            nextBlockIndex++;
 
             // Send ping (required by Claude Code)
             sendSSE("ping", {
@@ -432,15 +453,27 @@ export async function createProxyServer(
                     log("[Proxy] Received [DONE] from OpenRouter");
 
                     // Finalize the stream
-                    if (!textBlockStarted) {
-                      log("[Proxy] WARNING: Model produced no text output (only reasoning deltas)");
+                    if (!textBlockStarted && toolCalls.size === 0) {
+                      log("[Proxy] WARNING: Model produced no text output and no tool calls");
                     }
 
+                    // Close text block if still open
                     if (textBlockStarted) {
                       sendSSE("content_block_stop", {
                         type: "content_block_stop",
                         index: 0,
                       });
+                    }
+
+                    // Close any open tool blocks
+                    for (const [toolIndex, toolState] of toolCalls.entries()) {
+                      if (toolState.started) {
+                        log(`[Proxy] Closing tool block (from [DONE]): ${toolState.name} at index ${toolState.blockIndex}`);
+                        sendSSE("content_block_stop", {
+                          type: "content_block_stop",
+                          index: toolState.blockIndex,
+                        });
+                      }
                     }
 
                     sendSSE("message_delta", {
@@ -505,18 +538,81 @@ export async function createProxyServer(
                       });
                     }
 
-                    // Handle tool calls in streaming
+                    // Handle tool calls in streaming (OpenAI → Claude format)
+                    // Tool calls come in multiple chunks: first with name, then many with argument pieces
                     if (delta?.tool_calls) {
                       for (const toolCall of delta.tool_calls) {
+                        const toolIndex = toolCall.index ?? 0;
+
+                        // Get or create tool call state
+                        let toolState = toolCalls.get(toolIndex);
+
+                        // First chunk: has name (and maybe id)
                         if (toolCall.function?.name) {
-                          sendSSE("content_block_start", {
-                            type: "content_block_start",
-                            index: 1,
-                            content_block: {
-                              type: "tool_use",
-                              id: toolCall.id || `tool_${Date.now()}`,
+                          if (!toolState) {
+                            // Create new tool state
+                            toolState = {
+                              id: toolCall.id || `tool_${Date.now()}_${toolIndex}`,
                               name: toolCall.function.name,
+                              args: "",
+                              blockIndex: nextBlockIndex++,
+                              started: false
+                            };
+                            toolCalls.set(toolIndex, toolState);
+                            log(`[Proxy] Starting tool call: ${toolState.name} at block index ${toolState.blockIndex}`);
+                          }
+
+                          // Send content_block_start for this tool
+                          if (!toolState.started) {
+                            // Close text block if it was started
+                            if (textBlockStarted) {
+                              sendSSE("content_block_stop", {
+                                type: "content_block_stop",
+                                index: 0,
+                              });
+                              textBlockStarted = false;
+                            }
+
+                            sendSSE("content_block_start", {
+                              type: "content_block_start",
+                              index: toolState.blockIndex,
+                              content_block: {
+                                type: "tool_use",
+                                id: toolState.id,
+                                name: toolState.name,
+                              },
+                            });
+                            toolState.started = true;
+                          }
+                        }
+
+                        // Subsequent chunks: have argument pieces
+                        if (toolCall.function?.arguments && toolState) {
+                          const argChunk = toolCall.function.arguments;
+                          toolState.args += argChunk;
+
+                          log(`[Proxy] Tool argument delta: ${argChunk}`);
+                          sendSSE("content_block_delta", {
+                            type: "content_block_delta",
+                            index: toolState.blockIndex,
+                            delta: {
+                              type: "input_json_delta",
+                              partial_json: argChunk,
                             },
+                          });
+                        }
+                      }
+                    }
+
+                    // Handle finish_reason for tool_calls
+                    if (choice?.finish_reason === "tool_calls") {
+                      // Close all open tool blocks
+                      for (const [toolIndex, toolState] of toolCalls.entries()) {
+                        if (toolState.started) {
+                          log(`[Proxy] Closing tool block: ${toolState.name} at index ${toolState.blockIndex}`);
+                          sendSSE("content_block_stop", {
+                            type: "content_block_stop",
+                            index: toolState.blockIndex,
                           });
                         }
                       }
