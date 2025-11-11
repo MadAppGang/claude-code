@@ -1,14 +1,14 @@
 {
-  "name": "claudish",
-  "version": "1.0.8",
-  "description": "Run Claude Code with OpenRouter models via local proxy",
+  "name": "@madappgang/claudish",
+  "version": "1.0.10",
+  "description": "CLI tool to run Claude Code with any OpenRouter model (Grok, GPT-5, MiniMax, etc.) via local Anthropic API-compatible proxy",
   "type": "module",
-  "bin": {
-    "claudish": "./dist/index.js"
-  },
+  "main": "./dist/index.js",
+  "bin": "./dist/index.js",
   "scripts": {
     "dev": "bun run src/index.ts",
-    "dev:grok": "bun run src/index.ts --interactive --debug --model x-ai/grok-code-fast-1",
+    "dev:grok": "bun run src/index.ts --interactive --debug --log-level info --model x-ai/grok-code-fast-1",
+    "dev:info": "bun run src/index.ts --interactive --debug --log-level info --monitor",
     "build": "bun build src/index.ts --outdir dist --target bun --minify --external react --external ink --external react-devtools-core && chmod +x dist/index.js",
     "test": "bun test ./tests/comprehensive-model-test.ts",
     "typecheck": "tsc --noEmit",

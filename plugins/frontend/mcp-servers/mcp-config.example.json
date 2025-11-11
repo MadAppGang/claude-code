@@ -26,13 +26,6 @@
     "command": "npx",
     "args": ["-y", "chrome-devtools-mcp@latest"]
   },
-  "claudish": {
-    "command": "node",
-    "args": ["${CLAUDE_PLUGIN_ROOT}/../../mcp/claudish-mcp/dist/index.js"],
-    "env": {
-      "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
-    }
-  },
   "github": {
     "command": "npx",
     "args": ["-y", "@modelcontextprotocol/server-github"],

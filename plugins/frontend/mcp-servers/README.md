@@ -64,7 +64,6 @@ Run `/mcp` to see connected servers. You should see:
 - ✅ apidog (if APIDOG_API_TOKEN and APIDOG_PROJECT_ID are set)
 - ✅ figma (if FIGMA_ACCESS_TOKEN is set)
 - ✅ chrome-devtools (always available, no credentials required)
-- ✅ claudish (if OPENROUTER_API_KEY is set)
 
 ## Interactive Setup
 
@@ -117,9 +116,10 @@ The configuration is saved, so you won't be asked again.
 - `browser-debugger` skill
 - `/implement` and `/validate-ui` commands
 
-### Claudish
+### Claudish CLI (External AI Models)
 
 **Required:**
+- Claudish installed (`npx claudish --help` to verify)
 - `OPENROUTER_API_KEY` (secret, personal) - Your OpenRouter API key
 
 **Get your key:** https://openrouter.ai/keys
@@ -131,19 +131,18 @@ The configuration is saved, so you won't be asked again.
 - Technical analysis and architecture advice
 
 **Available models:**
-- `code-review` - OpenAI GPT-5 Codex
-- `ui-review` - OpenAI GPT-5 Codex
-- `design-review` - OpenAI GPT-5 Codex
-- `grok-fast` - xAI Grok (fast coding)
-- `minimax` - MiniMax M2 (high performance)
-- `qwen-vision` - Alibaba Qwen (vision-language)
+- `x-ai/grok-code-fast-1` - xAI Grok (fast coding)
+- `openai/gpt-5-codex` - OpenAI GPT-5 Codex (advanced reasoning)
+- `minimax/minimax-m2` - MiniMax M2 (high performance)
+- `qwen/qwen3-vl-235b-a22b-instruct` - Alibaba Qwen (vision-language)
+- And ANY OpenRouter model: https://openrouter.ai/models
 
 **Used by:**
 - `/implement` command (code review, design validation)
 - `/validate-ui` command (design validation)
-- Can be used by any agent for specialized tasks
+- All agents with PROXY_MODE support
 
-**See:** `/mcp/claudish-mcp/README.md` for detailed usage
+**See:** `/mcp/claudish/README.md` for detailed usage
 
 ## Configuration Patterns
 

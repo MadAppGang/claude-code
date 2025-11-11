@@ -32,7 +32,7 @@ Orchestrate a complete feature implementation workflow using specialized agents 
 - ALL planning → architect agent
 - ALL design reviews (UI fidelity) → designer agent
 - ALL UI implementation/fixes → ui-developer agent
-- ALL code reviews → 3 parallel reviewers (Claude Sonnet + Grok + GPT-5 Codex via Claudish MCP)
+- ALL code reviews → 3 parallel reviewers (Claude Sonnet + Grok + GPT-5 Codex via Claudish CLI)
 - ALL testing → test-architect agent
 - ALL cleanup → cleaner agent
 
@@ -72,11 +72,11 @@ See full list at: https://openrouter.ai/models
 
 **How Multi-Model Review Works:**
 1. **Primary Review** - Always run with Claude Sonnet (comprehensive, human-focused)
-2. **External Reviews** - Run in parallel with configured external models via Claudish MCP
+2. **External Reviews** - Run in parallel with configured external models via Claudish CLI
 3. **Synthesis** - Combine findings from all reviewers for comprehensive coverage
 
 **To use external models:**
-- Ensure Claudish MCP server is configured in `mcp-servers/mcp-config.json`
+- Ensure Claudish is installed (`npx claudish --help` to verify)
 - Set `OPENROUTER_API_KEY` environment variable
 - Models run via OpenRouter API (costs apply based on OpenRouter pricing)
 

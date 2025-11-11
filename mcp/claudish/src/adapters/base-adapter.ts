@@ -49,6 +49,14 @@ export abstract class BaseModelAdapter {
    * Get adapter name for logging
    */
   abstract getName(): string;
+
+  /**
+   * Reset internal state between requests (prevents state contamination)
+   */
+  reset(): void {
+    // Default implementation does nothing
+    // Subclasses can override if they maintain state
+  }
 }
 
 /**

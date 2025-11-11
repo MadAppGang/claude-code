@@ -28,10 +28,7 @@ Professional frontend development toolkit for Claude Code with TypeScript, React
    FIGMA_ACCESS_TOKEN=your-token
    ```
 
-2. **Run configuration wizard**:
-   ```bash
-   /configure-mcp
-   ```
+   MCP servers (Apidog, Figma) are automatically configured when the plugin is enabled.
 
 ## Available Tools
 
@@ -75,9 +72,6 @@ Professional frontend development toolkit for Claude Code with TypeScript, React
 **UI Validation:**
 - `/validate-ui` - UI validation workflow with designer & ui-developer agents
 
-**Configuration:**
-- `/configure-mcp` - Configure MCP servers (Apidog, Figma, GitHub)
-
 **Maintenance:**
 - `/cleanup-artifacts` - Clean temporary files, build artifacts, and caches
 
@@ -92,12 +86,13 @@ Professional frontend development toolkit for Claude Code with TypeScript, React
 **UI Implementation:**
 - `ui-implementer` - Proactive UI implementation from design references (automatically triggers on Figma links)
 
-### MCP Servers (3)
+### MCP Servers (4)
 
-**Integrated Services:**
+**Integrated Services (Auto-configured):**
 - **Apidog** - API documentation and testing platform
 - **Figma** - Design file access and component extraction
-- **GitHub** - Repository integration and PR management
+- **Chrome DevTools** - Browser debugging and UI inspection
+- **Claudish** - External AI models via OpenRouter (Codex, Grok, GPT-5, etc.)
 
 ## Key Features
 
@@ -273,18 +268,6 @@ CODEX_API_KEY=your-codex-key
 # - Analyze OpenAPI spec
 # - Generate TypeScript types
 # - Create API client code
-```
-
-### Configure MCP Servers
-
-```bash
-/configure-mcp
-
-# Interactive wizard:
-# - Validates existing configuration
-# - Prompts for missing credentials
-# - Tests connections
-# - Saves to .claude/settings.json
 ```
 
 ## Team Setup

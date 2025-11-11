@@ -8,13 +8,26 @@ import { initLogger, getLogFilePath } from "./logger.js";
 import { findAvailablePort } from "./port-manager.js";
 import { createProxyServer } from "./proxy-server.js";
 
+/**
+ * Read content from stdin
+ */
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+
+  return Buffer.concat(chunks).toString('utf-8');
+}
+
 async function main() {
   try {
     // Parse CLI arguments
     const config = parseArgs(process.argv.slice(2));
 
-    // Initialize logger if debug mode
-    initLogger(config.debug);
+    // Initialize logger if debug mode with specified log level
+    initLogger(config.debug, config.logLevel);
 
     // Show debug log location if enabled
     if (config.debug && !config.quiet) {
@@ -36,6 +49,15 @@ async function main() {
       console.log(""); // Empty line for better UI
       config.model = await selectModelInteractively();
       console.log(""); // Empty line after selection
+    }
+
+    // Read prompt from stdin if --stdin flag is set
+    if (config.stdin) {
+      const stdinInput = await readStdin();
+      if (stdinInput.trim()) {
+        // Prepend stdin content to claudeArgs
+        config.claudeArgs = [stdinInput, ...config.claudeArgs];
+      }
     }
 
     // Find available port

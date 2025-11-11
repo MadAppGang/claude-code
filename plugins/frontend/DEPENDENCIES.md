@@ -89,7 +89,7 @@ npm install -g @anthropic-ai/codex-cli
 
 ### MCP Server Configuration
 
-The plugin includes three MCP servers that **auto-load** when enabled. Configuration is done via environment variables in `.claude/settings.json`.
+The plugin includes four MCP servers that **auto-load** when enabled. Configuration is done via environment variables in `.claude/settings.json`.
 
 #### Configuration Pattern
 
@@ -142,6 +142,42 @@ Personal `.claude/settings.local.json`:
 }
 ```
 
+#### 3. Chrome DevTools MCP Server
+
+**No configuration required** - Works out of the box!
+
+**What it provides:**
+- Launch and control Chrome browser
+- Inspect DOM and CSS
+- Debug responsive layouts
+- Capture screenshots
+- Analyze performance
+
+**Used by:** `ui-manual-tester` agent, `browser-debugger` skill, `/implement` and `/validate-ui` commands
+
+#### 4. Claudish CLI (External AI Models)
+
+**Required:**
+- Claudish installed (`npx claudish --help` to verify)
+- `OPENROUTER_API_KEY` (secret, personal) - Your OpenRouter API key
+
+**Get your key:** https://openrouter.ai/keys
+
+**What it provides:**
+- Call external AI models (Codex, Grok, GPT-5, MiniMax, Qwen)
+- Expert code reviews
+- UI/UX design validation
+- Technical analysis
+
+**Setup:**
+
+Add to your shell profile (~/.zshrc or ~/.bashrc):
+```bash
+export OPENROUTER_API_KEY="sk-or-v1-your-key-here"
+```
+
+**See also:** `/mcp/claudish/README.md` for detailed usage
+
 ### Optional Environment Variables
 
 #### Chrome DevTools Configuration
@@ -186,7 +222,8 @@ Personal `.claude/settings.local.json` (gitignored):
 {
   "env": {
     "APIDOG_API_TOKEN": "your-personal-token",
-    "FIGMA_ACCESS_TOKEN": "your-figma-token"
+    "FIGMA_ACCESS_TOKEN": "your-figma-token",
+    "OPENROUTER_API_KEY": "sk-or-v1-your-key"
   }
 }
 ```

@@ -172,7 +172,6 @@ claude-code/
   - Mixed: Both workflows combined with appropriate focus areas
 - `/implement-ui` - Implement UI from scratch with intelligent agent switching
 - `/import-figma` - Import Figma components
-- `/configure-mcp` - Configure MCP servers
 - `/api-docs` - API documentation workflows
 - `/cleanup-artifacts` - Clean temporary files
 - `/validate-ui` - UI validation workflow with designer & ui-developer

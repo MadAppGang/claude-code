@@ -10,7 +10,7 @@ import type { ClaudishConfig } from "./types.js";
  * This ensures each Claudish instance has its own status line without affecting
  * global Claude Code settings or other running instances
  */
-function createTempSettingsFile(modelDisplay: string): string {
+function createTempSettingsFile(modelDisplay: string, port: string): string {
   const tempDir = tmpdir();
   const timestamp = Date.now();
   const tempPath = join(tempDir, `claudish-settings-${timestamp}.json`);
@@ -47,10 +47,16 @@ function createTempSettingsFile(modelDisplay: string): string {
   // - Context: percentage of context window remaining
   // - Works with ANY OpenRouter model (uses fallback context size for unknown models)
   // - Reserves ~40 chars for Claude's thinking mode/context UI elements
+  //
+  // CONTEXT TRACKING FIX: Read tokens from file written by proxy
+  // Claude Code doesn't provide token data to status line, so proxy writes it to a file
+  // File path: /tmp/claudish-tokens-{PORT}.json
+  const tokenFilePath = `/tmp/claudish-tokens-${port}.json`;
+
   const settings = {
     statusLine: {
       type: "command",
-      command: `JSON=$(cat) && DIR=$(basename "$(pwd)") && [ \${#DIR} -gt 15 ] && DIR="\${DIR:0:12}..." || true && COST=$(echo "$JSON" | grep -o '"total_cost_usd":[0-9.]*' | cut -d: -f2) && [ -z "$COST" ] && COST="0" || true && CTX=$(echo "scale=0; (${maxTokens} - $(echo "$JSON" | grep -o '"total_tokens":[0-9]*' | cut -d: -f2 | head -1 || echo 0)) * 100 / ${maxTokens}" | bc 2>/dev/null || echo "100") && printf "${CYAN}${BOLD}%s${RESET} ${DIM}•${RESET} ${YELLOW}%s${RESET} ${DIM}•${RESET} ${GREEN}\\$%.3f${RESET} ${DIM}•${RESET} ${MAGENTA}%s%%${RESET}\\n" "$DIR" "$CLAUDISH_ACTIVE_MODEL_NAME" "$COST" "$CTX"`,
+      command: `JSON=$(cat) && DIR=$(basename "$(pwd)") && [ \${#DIR} -gt 15 ] && DIR="\${DIR:0:12}..." || true && COST=$(echo "$JSON" | grep -o '"total_cost_usd":[0-9.]*' | cut -d: -f2) && [ -z "$COST" ] && COST="0" || true && if [ -f "${tokenFilePath}" ]; then TOKENS=$(cat "${tokenFilePath}" 2>/dev/null) && INPUT=$(echo "$TOKENS" | grep -o '"input_tokens":[0-9]*' | grep -o '[0-9]*') && OUTPUT=$(echo "$TOKENS" | grep -o '"output_tokens":[0-9]*' | grep -o '[0-9]*') && TOTAL=$((INPUT + OUTPUT)) && CTX=$(echo "scale=0; (${maxTokens} - \$TOTAL) * 100 / ${maxTokens}" | bc 2>/dev/null); else INPUT=0 && OUTPUT=0 && CTX=100; fi && [ -z "$CTX" ] && CTX="100" || true && printf "${CYAN}${BOLD}%s${RESET} ${DIM}•${RESET} ${YELLOW}%s${RESET} ${DIM}•${RESET} ${GREEN}\\$%.3f${RESET} ${DIM}•${RESET} ${MAGENTA}%s%%${RESET}\\n" "$DIR" "$CLAUDISH_ACTIVE_MODEL_NAME" "$COST" "$CTX"`,
       padding: 0,
     },
   };
@@ -70,8 +76,12 @@ export async function runClaudeWithProxy(
   // This ensures ANY model works, not just our shortlist
   const modelId = config.model || "unknown";
 
+  // Extract port from proxy URL for token file path
+  const portMatch = proxyUrl.match(/:(\d+)/);
+  const port = portMatch ? portMatch[1] : "unknown";
+
   // Create temporary settings file with custom status line for this instance
-  const tempSettingsPath = createTempSettingsFile(modelId);
+  const tempSettingsPath = createTempSettingsFile(modelId, port);
 
   // Build claude arguments
   const claudeArgs: string[] = [];

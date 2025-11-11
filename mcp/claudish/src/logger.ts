@@ -2,15 +2,19 @@ import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 
 let logFilePath: string | null = null;
+let logLevel: "debug" | "info" | "minimal" = "info"; // Default to structured logging
 
 /**
  * Initialize file logging for this session
  */
-export function initLogger(debugMode: boolean): void {
+export function initLogger(debugMode: boolean, level: "debug" | "info" | "minimal" = "info"): void {
   if (!debugMode) {
     logFilePath = null;
     return;
   }
+
+  // Set log level
+  logLevel = level;
 
   // Create logs directory if it doesn't exist
   const logsDir = join(process.cwd(), "logs");
@@ -25,7 +29,7 @@ export function initLogger(debugMode: boolean): void {
   // Write header
   writeFileSync(
     logFilePath,
-    `Claudish Debug Log - ${new Date().toISOString()}\n${"=".repeat(80)}\n\n`
+    `Claudish Debug Log - ${new Date().toISOString()}\nLog Level: ${level}\n${"=".repeat(80)}\n\n`
   );
 }
 
@@ -55,4 +59,84 @@ export function log(message: string, forceConsole = false): void {
  */
 export function getLogFilePath(): string | null {
   return logFilePath;
+}
+
+/**
+ * Check if logging is enabled (useful for optimizing expensive log operations)
+ */
+export function isLoggingEnabled(): boolean {
+  return logFilePath !== null;
+}
+
+/**
+ * Mask sensitive credentials for logging
+ * Shows only first 4 and last 4 characters
+ */
+export function maskCredential(credential: string): string {
+  if (!credential || credential.length <= 8) {
+    return "***";
+  }
+  return `${credential.substring(0, 4)}...${credential.substring(credential.length - 4)}`;
+}
+
+/**
+ * Set log level (debug, info, minimal)
+ * - debug: Full verbose logs (everything)
+ * - info: Structured logs (communication flow, truncated content)
+ * - minimal: Only critical events
+ */
+export function setLogLevel(level: "debug" | "info" | "minimal"): void {
+  logLevel = level;
+  if (logFilePath) {
+    log(`[Logger] Log level changed to: ${level}`);
+  }
+}
+
+/**
+ * Get current log level
+ */
+export function getLogLevel(): "debug" | "info" | "minimal" {
+  return logLevel;
+}
+
+/**
+ * Truncate content for logging (keeps first N chars + "...")
+ */
+export function truncateContent(content: string | any, maxLength: number = 200): string {
+  const str = typeof content === "string" ? content : JSON.stringify(content);
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return `${str.substring(0, maxLength)}... [truncated ${str.length - maxLength} chars]`;
+}
+
+/**
+ * Log structured data (only in info/debug mode)
+ * Automatically truncates long content based on log level
+ */
+export function logStructured(label: string, data: Record<string, any>): void {
+  if (!logFilePath) return;
+
+  if (logLevel === "minimal") {
+    // Minimal: Only show label
+    log(`[${label}]`);
+    return;
+  }
+
+  if (logLevel === "info") {
+    // Info: Show structure with truncated content
+    const structured: Record<string, any> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === "string" || typeof value === "object") {
+        structured[key] = truncateContent(value, 150);
+      } else {
+        structured[key] = value;
+      }
+    }
+    log(`[${label}] ${JSON.stringify(structured, null, 2)}`);
+    return;
+  }
+
+  // Debug: Show everything
+  log(`[${label}] ${JSON.stringify(data, null, 2)}`);
 }

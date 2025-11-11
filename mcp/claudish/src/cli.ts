@@ -11,9 +11,11 @@ export function parseArgs(args: string[]): ClaudishConfig {
     dangerous: false,
     interactive: false, // Single-shot mode by default
     debug: false, // No debug logging by default
+    logLevel: "info", // Default to info level (structured logging with truncated content)
     quiet: undefined, // Will be set based on mode (true for single-shot, false for interactive)
     jsonOutput: false, // No JSON output by default
     monitor: false, // Monitor mode disabled by default
+    stdin: false, // Read prompt from stdin instead of args
     claudeArgs: [],
   };
 
@@ -64,6 +66,13 @@ export function parseArgs(args: string[]): ClaudishConfig {
       config.interactive = true;
     } else if (arg === "--debug" || arg === "-d") {
       config.debug = true;
+    } else if (arg === "--log-level") {
+      const levelArg = args[++i];
+      if (!levelArg || !["debug", "info", "minimal"].includes(levelArg)) {
+        console.error("--log-level requires one of: debug, info, minimal");
+        process.exit(1);
+      }
+      config.logLevel = levelArg as "debug" | "info" | "minimal";
     } else if (arg === "--quiet" || arg === "-q") {
       config.quiet = true;
     } else if (arg === "--verbose" || arg === "-v") {
@@ -72,6 +81,21 @@ export function parseArgs(args: string[]): ClaudishConfig {
       config.jsonOutput = true;
     } else if (arg === "--monitor") {
       config.monitor = true;
+    } else if (arg === "--stdin") {
+      config.stdin = true;
+    } else if (arg === "--cost-tracker") {
+      // Enable cost tracking for this session
+      config.costTracking = true;
+      // In monitor mode, we'll track costs instead of proxying
+      if (!config.monitor) {
+        config.monitor = true; // Switch to monitor mode to track requests
+      }
+    } else if (arg === "--audit-costs") {
+      // Special mode to just show cost analysis
+      config.auditCosts = true;
+    } else if (arg === "--reset-costs") {
+      // Reset accumulated cost statistics
+      config.resetCosts = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -168,12 +192,17 @@ OPTIONS:
   -m, --model <model>      OpenRouter model to use (shows interactive selector if not provided)
   -p, --port <port>        Proxy server port (default: random)
   -d, --debug              Enable debug logging to file (logs/claudish_*.log)
+  --log-level <level>      Log verbosity: debug (full), info (truncated), minimal (labels only)
   -q, --quiet              Suppress [claudish] log messages (default in single-shot mode)
   -v, --verbose            Show [claudish] log messages (default in interactive mode)
   --json                   Output in JSON format for tool integration (implies --quiet)
+  --stdin                  Read prompt from stdin (useful for large prompts or piping)
   --monitor                Monitor mode - proxy to REAL Anthropic API and log all traffic
   --no-auto-approve        Disable auto permission skip (prompts enabled)
   --dangerous              Pass --dangerouslyDisableSandbox to Claude Code
+  --cost-tracker           Enable cost tracking for API usage (NB!)
+  --audit-costs            Show cost analysis report
+  --reset-costs            Reset accumulated cost statistics
   --list-models            List available OpenRouter models
   -h, --help               Show this help message
 
@@ -201,6 +230,10 @@ EXAMPLES:
   # Single-shot mode - one task and exit
   claudish "implement user authentication"
   claudish --model openai/gpt-5-codex "add tests for login"
+
+  # Use stdin for large prompts (e.g., git diffs, code review)
+  echo "Review this code..." | claudish --stdin --model x-ai/grok-code-fast-1
+  git diff | claudish --stdin --model openai/gpt-5-codex "Review these changes"
 
   # Monitor mode - understand how Claude Code works (requires real Anthropic API key)
   claudish --monitor --debug "analyze code structure"

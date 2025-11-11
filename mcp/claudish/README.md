@@ -438,6 +438,79 @@ claudish --model openai/gpt-5-codex "task B"
 claudish --model minimax/minimax-m2 "task C"
 ```
 
+## Extended Thinking Support
+
+**NEW in v1.1.0+**: Claudish now fully supports models with extended thinking/reasoning capabilities (Grok, o1, etc.)
+
+### What is Extended Thinking?
+
+Some AI models (like Grok and OpenAI's o1) can show their internal reasoning process before providing the final answer. This "thinking" content helps you understand how the model arrived at its conclusion.
+
+### How Claudish Handles Thinking
+
+Claudish implements the Anthropic Messages API's `interleaved-thinking` protocol:
+
+**Thinking Blocks (Hidden):**
+- Contains model's reasoning process
+- Automatically collapsed in Claude Code UI
+- Shows "Claude is thinking..." indicator
+- User can expand to view reasoning
+
+**Text Blocks (Visible):**
+- Contains final response
+- Displayed normally
+- Streams incrementally
+
+### Supported Models with Thinking
+
+- ✅ **x-ai/grok-code-fast-1** - Grok's reasoning mode
+- ✅ **openai/gpt-5-codex** - o1 reasoning (when enabled)
+- ✅ **openai/o1-preview** - Full reasoning support
+- ✅ **openai/o1-mini** - Compact reasoning
+- ⚠️ Other models may support reasoning in future
+
+### Technical Details
+
+**Streaming Protocol:**
+```
+1. message_start
+2. ping
+3. content_block_start (thinking, index=0)  ← Reasoning
+4. thinking_delta events × N
+5. content_block_stop (index=0)
+6. content_block_start (text, index=1)      ← Response
+7. text_delta events × M
+8. content_block_stop (index=1)
+9. message_delta + message_stop
+```
+
+**Key Features:**
+- ✅ Separate thinking and text blocks (proper indices)
+- ✅ `thinking_delta` vs `text_delta` event types
+- ✅ Thinking content hidden by default
+- ✅ Smooth transitions between blocks
+- ✅ Full Claude Code UI compatibility
+
+### UX Benefits
+
+**Before (Broken):**
+- Reasoning visible as regular text
+- Confusing output with internal thoughts
+- No progress indicators
+- "All at once" message updates
+
+**After (Fixed):**
+- Reasoning hidden/collapsed
+- Clean, professional output
+- "Claude is thinking..." shown
+- Smooth incremental streaming
+
+### Documentation
+
+For complete protocol documentation, see:
+- [STREAMING_PROTOCOL.md](./STREAMING_PROTOCOL.md) - Complete SSE protocol spec
+- [COMPREHENSIVE_UX_ISSUE_ANALYSIS.md](./COMPREHENSIVE_UX_ISSUE_ANALYSIS.md) - Technical analysis
+
 ## Development
 
 ### Project Structure

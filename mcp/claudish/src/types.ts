@@ -19,9 +19,11 @@ export interface ClaudishConfig {
   dangerous: boolean;
   interactive: boolean;
   debug: boolean;
+  logLevel: "debug" | "info" | "minimal"; // Log verbosity level (default: info)
   quiet: boolean; // Suppress [claudish] log messages (default true in single-shot mode)
   jsonOutput: boolean; // Output in JSON format for tool integration
   monitor: boolean; // Monitor mode - proxy to real Anthropic API and log everything
+  stdin: boolean; // Read prompt from stdin instead of args
   openrouterApiKey?: string; // Optional in monitor mode
   anthropicApiKey?: string; // Required in monitor mode
   claudeArgs: string[];

@@ -2,6 +2,31 @@
 
 Quick reference for development and debugging.
 
+## 📚 Protocol Documentation
+
+**IMPORTANT**: Before modifying streaming logic, read:
+- [STREAMING_PROTOCOL.md](./STREAMING_PROTOCOL.md) - Complete Anthropic Messages API spec
+- [COMPREHENSIVE_UX_ISSUE_ANALYSIS.md](./COMPREHENSIVE_UX_ISSUE_ANALYSIS.md) - Technical analysis & fixes
+
+### Key Streaming Concepts
+
+**Content Block Types:**
+- `thinking` - Model's reasoning (hidden/collapsed)
+- `text` - Final response (visible)
+- `tool_use` - Function/tool calls
+
+**Delta Types:**
+- `thinking_delta` - Reasoning content (field: `thinking`)
+- `text_delta` - Response content (field: `text`)
+- `input_json_delta` - Tool arguments (field: `partial_json`)
+
+**Critical Rules:**
+1. ❌ **NEVER mix `delta.reasoning` and `delta.content`** - They go to different blocks!
+2. ✅ Use `thinking_delta` for reasoning, `text_delta` for content
+3. ✅ Create separate blocks for thinking and text
+4. ✅ Use sequential indices: 0=thinking, 1=text, 2=tool1, 3=tool2
+5. ✅ Always close blocks: start → delta(s) → stop
+
 ## 🚀 Quick Start Scripts
 
 ### Development (runs from TypeScript source - no build needed)

@@ -4,7 +4,7 @@ description: Multi-agent orchestrated UI design validation with iterative fixes 
 
 ## Task
 
-**Multi-agent orchestration command** - coordinate between designer agent (reviews UI fidelity), ui-developer agent (fixes UI issues), and optional external AI models (GPT-5 Codex, Grok) for independent expert review via Claudish MCP to iteratively validate and fix UI implementation against design references.
+**Multi-agent orchestration command** - coordinate between designer agent (reviews UI fidelity), ui-developer agent (fixes UI issues), and optional external AI models (GPT-5 Codex, Grok) for independent expert review via Claudish CLI to iteratively validate and fix UI implementation against design references.
 
 ### Phase 1: Gather User Inputs
 
@@ -21,7 +21,7 @@ Ask the user directly for the following information:
    - Example: "user profile page", "main dashboard", "product card component"
 
 3. **Use external AI expert review?** (yes or no)
-   - "yes" to enable external AI model review (GPT-5 Codex via Claudish MCP) on each iteration
+   - "yes" to enable external AI model review (GPT-5 Codex via Claudish CLI) on each iteration
    - "no" to use only Claude Sonnet designer review
 
 **Auto-detect reference type from user's input:**

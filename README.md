@@ -117,7 +117,7 @@ Professional toolkit for TypeScript/React development with intelligent workflow 
 - **13 Specialized Agents** - Including CSS Developer, Designer ecosystem (designer + designer-codex), UI Developer team (ui-developer + ui-developer-codex), architecture planning, code review, and browser testing
 - **6 Slash Commands** - Including `/implement` (8-phase with adaptive workflow detection), `/implement-ui` (with task decomposition), `/validate-ui`
 - **3 Skills** - Browser testing, API analysis, and proactive UI implementation
-- **MCP Servers** - Apidog, Figma, Chrome DevTools integration
+- **4 MCP Servers** - Apidog, Figma, Chrome DevTools, Claudish (external AI models)
 - **CSS-Aware Validation** - DOM inspection, computed CSS analysis, pattern awareness
 - **CVA Best Practices** - Comprehensive shadcn/ui integration guidance
 - **Task Decomposition** - Parallel execution for independent UI components
@@ -406,14 +406,6 @@ This single command:
 ```
 
 Fetches your Figma component, adapts it to your codebase, installs dependencies, and opens it in browser for validation.
-
-### Example: Configure API Access
-
-```bash
-/configure-mcp apidog
-```
-
-Smart setup that checks existing configuration, validates credentials, and only asks for what's missing.
 
 ---
 
