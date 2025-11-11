@@ -600,6 +600,11 @@ export async function createProxyServer(
 
       // Handle streaming response
       log("[Proxy] Starting streaming response");
+
+      // Shared state for stream handlers (accessible to both start and cancel)
+      let isClosed = false;
+      let pingInterval: NodeJS.Timeout | null = null;
+
       return c.body(
         new ReadableStream({
           async start(controller) {
@@ -607,13 +612,28 @@ export async function createProxyServer(
             const messageId = `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
             const sendSSE = (event: string, data: any) => {
-              const sseMessage = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-              controller.enqueue(encoder.encode(sseMessage));
+              // Guard against writing to closed controller (happens when user interrupts)
+              if (isClosed) {
+                log(`[Proxy] Skipping SSE event ${event} - controller already closed`);
+                return;
+              }
+
+              try {
+                const sseMessage = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+                controller.enqueue(encoder.encode(sseMessage));
+              } catch (error: any) {
+                // Handle "Controller is already closed" error gracefully
+                if (!isClosed && error?.message?.includes("already closed")) {
+                  log(`[Proxy] Controller closed during ${event} event, marking as closed`);
+                  isClosed = true;
+                } else if (!isClosed) {
+                  log(`[Proxy] Error sending SSE event ${event}: ${error?.message || error}`);
+                }
+              }
             };
 
             // Track state
             let usage: any = null;
-            let isClosed = false;
 
             // Track content blocks with proper indices
             let currentBlockIndex = 0;
@@ -674,7 +694,7 @@ export async function createProxyServer(
 
             // Adaptive ping: check every second, send ping if quiet for >1 second
             // This keeps UI responsive during encrypted reasoning or other quiet periods
-            const pingInterval = setInterval(() => {
+            pingInterval = setInterval(() => {
               if (!isClosed) {
                 const timeSinceLastContent = Date.now() - lastContentDeltaTime;
 
@@ -999,6 +1019,15 @@ export async function createProxyServer(
               }
             }
           },
+          // Handle client disconnect (user presses Escape/Ctrl+C)
+          cancel(reason) {
+            log(`[Proxy] Stream cancelled by client: ${reason || "unknown reason"}`);
+            isClosed = true;
+            if (pingInterval) {
+              clearInterval(pingInterval);
+              pingInterval = null;
+            }
+          }
         }),
         {
           headers: {
