@@ -26,9 +26,13 @@ If you see this directive:
    {actual_task}
    ```
 4. **Delegate to external AI** using Claudish CLI via Bash tool:
-   - Use stdin to handle large prompts (like git diffs)
-   - Use --quiet flag to suppress claudish logs
-   - Example: `echo "$FULL_PROMPT" | npx claudish --stdin --model {model_name} --quiet`
+   - **Mode**: Single-shot mode (non-interactive, returns result and exits)
+   - **Required flags**:
+     - `--model {model_name}` - Specify model (required for non-interactive mode)
+     - `--stdin` - Read prompt from stdin (handles unlimited prompt size)
+     - `--quiet` - Suppress claudish logs (clean output)
+   - **Example**: `echo "$FULL_PROMPT" | npx claudish --stdin --model {model_name} --quiet`
+   - **Note**: Default `claudish` runs interactive mode; we use single-shot for automation
 
 5. **Return the external AI's response** with attribution:
    ```markdown

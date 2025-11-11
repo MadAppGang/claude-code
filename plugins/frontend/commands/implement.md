@@ -76,9 +76,11 @@ See full list at: https://openrouter.ai/models
 3. **Synthesis** - Combine findings from all reviewers for comprehensive coverage
 
 **To use external models:**
-- Ensure Claudish is installed (`npx claudish --help` to verify)
+- Ensure Claudish is installed: `npx claudish --version`
 - Set `OPENROUTER_API_KEY` environment variable
+- Agents use single-shot mode: `npx claudish --model <model> --stdin --quiet`
 - Models run via OpenRouter API (costs apply based on OpenRouter pricing)
+- **Note**: `claudish` alone runs interactive mode; agents use `--model` for automation
 
 ## Feature Request
 
@@ -350,8 +352,8 @@ Based on `workflow_type`, configure the workflow:
   - API track skips design validation
 **PHASE 3**: Will run ALL THREE reviewers in parallel:
   - frontend:reviewer with Claude Sonnet (comprehensive code review)
-  - frontend:reviewer with Grok (fast coding analysis via Claudish MCP)
-  - frontend:reviewer with GPT-5 Codex (advanced code analysis via Claudish MCP)
+  - frontend:reviewer with Grok (fast coding analysis via Claudish CLI)
+  - frontend:reviewer with GPT-5 Codex (advanced code analysis via Claudish CLI)
   - frontend:tester (tests UI components that use the API integration)
 **PHASE 4**: Testing focused on both:
   - API tests: Unit tests for services, mock API responses
