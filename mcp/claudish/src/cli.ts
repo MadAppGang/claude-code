@@ -13,6 +13,7 @@ export function parseArgs(args: string[]): ClaudishConfig {
     debug: false, // No debug logging by default
     quiet: undefined, // Will be set based on mode (true for single-shot, false for interactive)
     jsonOutput: false, // No JSON output by default
+    monitor: false, // Monitor mode disabled by default
     claudeArgs: [],
   };
 
@@ -69,6 +70,8 @@ export function parseArgs(args: string[]): ClaudishConfig {
       config.quiet = false;
     } else if (arg === "--json") {
       config.jsonOutput = true;
+    } else if (arg === "--monitor") {
+      config.monitor = true;
     } else if (arg === "--help" || arg === "-h") {
       printHelp();
       process.exit(0);
@@ -84,27 +87,46 @@ export function parseArgs(args: string[]): ClaudishConfig {
     i++;
   }
 
-  // Get OpenRouter API key
-  const apiKey = process.env[ENV.OPENROUTER_API_KEY];
-  if (!apiKey) {
-    console.error("Error: OPENROUTER_API_KEY environment variable is required");
-    console.error("Get your API key from: https://openrouter.ai/keys");
-    process.exit(1);
-  }
-  config.openrouterApiKey = apiKey;
+  // Handle API keys based on mode
+  if (config.monitor) {
+    // Monitor mode: extracts API key from Claude Code's requests
+    // No need for user to provide API key - we intercept it from Claude Code
+    // IMPORTANT: Unset ANTHROPIC_API_KEY if it's a placeholder, so Claude Code uses its native auth
+    if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.includes('placeholder')) {
+      delete process.env.ANTHROPIC_API_KEY;
+      if (!config.quiet) {
+        console.log("[claudish] Removed placeholder API key - Claude Code will use native authentication");
+      }
+    }
 
-  // Require ANTHROPIC_API_KEY to prevent Claude Code dialog
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("\nError: ANTHROPIC_API_KEY is not set");
-    console.error("This placeholder key is required to prevent Claude Code from prompting.");
-    console.error("");
-    console.error("Set it now:");
-    console.error("  export ANTHROPIC_API_KEY='sk-ant-api03-placeholder'");
-    console.error("");
-    console.error("Or add it to your shell profile (~/.zshrc or ~/.bashrc) to set permanently.");
-    console.error("");
-    console.error("Note: This key is NOT used for auth - claudish uses OPENROUTER_API_KEY");
-    process.exit(1);
+    if (!config.quiet) {
+      console.log("[claudish] Monitor mode enabled - proxying to real Anthropic API");
+      console.log("[claudish] API key will be extracted from Claude Code's requests");
+      console.log("[claudish] Ensure you are logged in to Claude Code (claude auth login)");
+    }
+  } else {
+    // OpenRouter mode: requires OpenRouter API key
+    const apiKey = process.env[ENV.OPENROUTER_API_KEY];
+    if (!apiKey) {
+      console.error("Error: OPENROUTER_API_KEY environment variable is required");
+      console.error("Get your API key from: https://openrouter.ai/keys");
+      process.exit(1);
+    }
+    config.openrouterApiKey = apiKey;
+
+    // Require ANTHROPIC_API_KEY to prevent Claude Code dialog
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error("\nError: ANTHROPIC_API_KEY is not set");
+      console.error("This placeholder key is required to prevent Claude Code from prompting.");
+      console.error("");
+      console.error("Set it now:");
+      console.error("  export ANTHROPIC_API_KEY='sk-ant-api03-placeholder'");
+      console.error("");
+      console.error("Or add it to your shell profile (~/.zshrc or ~/.bashrc) to set permanently.");
+      console.error("");
+      console.error("Note: This key is NOT used for auth - claudish uses OPENROUTER_API_KEY");
+      process.exit(1);
+    }
   }
 
   // Validate we have some arguments for claude (unless in interactive mode)
@@ -149,6 +171,7 @@ OPTIONS:
   -q, --quiet              Suppress [claudish] log messages (default in single-shot mode)
   -v, --verbose            Show [claudish] log messages (default in interactive mode)
   --json                   Output in JSON format for tool integration (implies --quiet)
+  --monitor                Monitor mode - proxy to REAL Anthropic API and log all traffic
   --no-auto-approve        Disable auto permission skip (prompts enabled)
   --dangerous              Pass --dangerouslyDisableSandbox to Claude Code
   --list-models            List available OpenRouter models
@@ -178,6 +201,9 @@ EXAMPLES:
   # Single-shot mode - one task and exit
   claudish "implement user authentication"
   claudish --model openai/gpt-5-codex "add tests for login"
+
+  # Monitor mode - understand how Claude Code works (requires real Anthropic API key)
+  claudish --monitor --debug "analyze code structure"
 
   # Disable auto-approve (require manual confirmation)
   claudish --no-auto-approve "make changes to config"

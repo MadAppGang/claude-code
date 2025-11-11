@@ -6,6 +6,9 @@
 
 ## Features
 
+- ✅ **Monitor mode** - Proxy to real Anthropic API and log all traffic (for debugging)
+- ✅ **Protocol compliance** - 1:1 compatibility with Claude Code communication protocol
+- ✅ **Snapshot testing** - Comprehensive test suite with 13/13 passing tests
 - ✅ **Headless mode** - Automatic print mode for non-interactive execution
 - ✅ **Quiet mode** - Clean output by default (no log pollution)
 - ✅ **JSON output** - Structured data for tool integration
@@ -248,6 +251,66 @@ claudish "analyze code" --cwd /path/to/project
 claudish --model openai/gpt-5-codex "task" --verbose --debug
 ```
 
+### Monitor Mode
+
+**NEW!** Claudish now includes a monitor mode to help you understand how Claude Code works internally.
+
+```bash
+# Enable monitor mode (requires real Anthropic API key)
+claudish --monitor --debug "implement a feature"
+```
+
+**What Monitor Mode Does:**
+- ✅ **Proxies to REAL Anthropic API** (not OpenRouter) - Uses your actual Anthropic API key
+- ✅ **Logs ALL traffic** - Captures complete requests and responses
+- ✅ **Both streaming and JSON** - Logs SSE streams and JSON responses
+- ✅ **Debug logs to file** - Saves to `logs/claudish_*.log` when `--debug` is used
+- ✅ **Pass-through proxy** - No translation, forwards as-is to Anthropic
+
+**When to use Monitor Mode:**
+- 🔍 Understanding Claude Code's API protocol
+- 🐛 Debugging integration issues
+- 📊 Analyzing Claude Code's behavior
+- 🔬 Research and development
+
+**Requirements:**
+```bash
+# Monitor mode requires a REAL Anthropic API key (not placeholder)
+export ANTHROPIC_API_KEY='sk-ant-api03-...'
+
+# Use with --debug to save logs to file
+claudish --monitor --debug "your task"
+
+# Logs are saved to: logs/claudish_TIMESTAMP.log
+```
+
+**Example Output:**
+```
+[Monitor] Server started on http://127.0.0.1:8765
+[Monitor] Mode: Passthrough to real Anthropic API
+[Monitor] All traffic will be logged for analysis
+
+=== [MONITOR] Claude Code → Anthropic API Request ===
+{
+  "model": "claude-sonnet-4.5",
+  "messages": [...],
+  "max_tokens": 4096,
+  ...
+}
+=== End Request ===
+
+=== [MONITOR] Anthropic API → Claude Code Response (Streaming) ===
+event: message_start
+data: {"type":"message_start",...}
+
+event: content_block_start
+data: {"type":"content_block_start",...}
+...
+=== End Streaming Response ===
+```
+
+**Note:** Monitor mode charges your Anthropic account (not OpenRouter). Use `--debug` flag to save logs for analysis.
+
 ### Output Modes
 
 Claudish supports three output modes for different use cases:
@@ -340,10 +403,18 @@ claudish "your prompt"
 
 ### Request Flow
 
+**Normal Mode (OpenRouter):**
 ```
 Claude Code → Anthropic API format → Local Proxy → OpenRouter API format → OpenRouter
                                          ↓
 Claude Code ← Anthropic API format ← Local Proxy ← OpenRouter API format ← OpenRouter
+```
+
+**Monitor Mode (Anthropic Passthrough):**
+```
+Claude Code → Anthropic API format → Local Proxy (logs) → Anthropic API
+                                         ↓
+Claude Code ← Anthropic API format ← Local Proxy (logs) ← Anthropic API
 ```
 
 ### Parallel Runs
@@ -428,6 +499,38 @@ bun run typecheck
 # Run tests
 bun test
 ```
+
+### Protocol Compliance Testing
+
+Claudish includes a comprehensive snapshot testing system to ensure 1:1 compatibility with the official Claude Code protocol:
+
+```bash
+# Run snapshot tests (13/13 passing ✅)
+bun test tests/snapshot.test.ts
+
+# Full workflow: capture fixtures + run tests
+./tests/snapshot-workflow.sh --full
+
+# Capture new test fixtures from monitor mode
+./tests/snapshot-workflow.sh --capture
+
+# Debug SSE events
+bun tests/debug-snapshot.ts
+```
+
+**What Gets Tested:**
+- ✅ Event sequence (message_start → content_block_start → deltas → stop → message_delta → message_stop)
+- ✅ Content block indices (sequential: 0, 1, 2, ...)
+- ✅ Tool input streaming (fine-grained JSON chunks)
+- ✅ Usage metrics (present in message_start and message_delta)
+- ✅ Stop reasons (always present and valid)
+- ✅ Cache metrics (creation and read tokens)
+
+**Documentation:**
+- [Quick Start Guide](./QUICK_START_TESTING.md) - Get started with testing
+- [Snapshot Testing Guide](./SNAPSHOT_TESTING.md) - Complete testing documentation
+- [Implementation Details](./IMPLEMENTATION_COMPLETE.md) - Technical implementation summary
+- [Protocol Compliance Plan](./PROTOCOL_COMPLIANCE_PLAN.md) - Detailed compliance roadmap
 
 ### Install Globally
 

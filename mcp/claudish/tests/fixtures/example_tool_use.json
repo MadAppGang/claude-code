@@ -1,0 +1,207 @@
+{
+  "name": "example_tool_use",
+  "description": "Tool use scenario with Read tool (example fixture)",
+  "category": "tool_use",
+  "captured_at": "2025-01-15T10:05:00Z",
+  "request": {
+    "headers": {
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "oauth-2025-04-20,interleaved-thinking-2025-05-14,fine-grained-tool-streaming-2025-05-14",
+      "content-type": "application/json"
+    },
+    "body": {
+      "model": "claude-sonnet-4.5",
+      "max_tokens": 2048,
+      "messages": [
+        {
+          "role": "user",
+          "content": "Read the package.json file"
+        }
+      ],
+      "tools": [
+        {
+          "name": "Read",
+          "description": "Reads a file from the local filesystem",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "file_path": {
+                "type": "string",
+                "description": "The absolute path to the file to read"
+              }
+            },
+            "required": ["file_path"]
+          }
+        }
+      ],
+      "stream": true
+    }
+  },
+  "response": {
+    "type": "streaming",
+    "events": [
+      {
+        "event": "message_start",
+        "data": {
+          "type": "message_start",
+          "message": {
+            "id": "msg_***NORMALIZED***",
+            "type": "message",
+            "role": "assistant",
+            "content": [],
+            "model": "claude-sonnet-4.5",
+            "stop_reason": null,
+            "stop_sequence": null,
+            "usage": {
+              "input_tokens": 0,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 0,
+              "output_tokens": 0
+            }
+          }
+        }
+      },
+      {
+        "event": "content_block_start",
+        "data": {
+          "type": "content_block_start",
+          "index": 0,
+          "content_block": {
+            "type": "text",
+            "text": ""
+          }
+        }
+      },
+      {
+        "event": "ping",
+        "data": {
+          "type": "ping"
+        }
+      },
+      {
+        "event": "content_block_delta",
+        "data": {
+          "type": "content_block_delta",
+          "index": 0,
+          "delta": {
+            "type": "text_delta",
+            "text": "I'll read the package.json file for you."
+          }
+        }
+      },
+      {
+        "event": "content_block_stop",
+        "data": {
+          "type": "content_block_stop",
+          "index": 0
+        }
+      },
+      {
+        "event": "content_block_start",
+        "data": {
+          "type": "content_block_start",
+          "index": 1,
+          "content_block": {
+            "type": "tool_use",
+            "id": "toolu_***NORMALIZED***",
+            "name": "Read"
+          }
+        }
+      },
+      {
+        "event": "content_block_delta",
+        "data": {
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "{\"file"
+          }
+        }
+      },
+      {
+        "event": "content_block_delta",
+        "data": {
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "_path\":\"/Users/jack/mag"
+          }
+        }
+      },
+      {
+        "event": "content_block_delta",
+        "data": {
+          "type": "content_block_delta",
+          "index": 1,
+          "delta": {
+            "type": "input_json_delta",
+            "partial_json": "/claude-code/mcp/claudish/package.json\"}"
+          }
+        }
+      },
+      {
+        "event": "content_block_stop",
+        "data": {
+          "type": "content_block_stop",
+          "index": 1
+        }
+      },
+      {
+        "event": "message_delta",
+        "data": {
+          "type": "message_delta",
+          "delta": {
+            "stop_reason": "tool_use",
+            "stop_sequence": null
+          },
+          "usage": {
+            "input_tokens": 125,
+            "output_tokens": 45
+          }
+        }
+      },
+      {
+        "event": "message_stop",
+        "data": {
+          "type": "message_stop"
+        }
+      }
+    ]
+  },
+  "assertions": {
+    "eventSequence": [
+      "message_start",
+      "content_block_start",
+      "ping",
+      "content_block_delta",
+      "content_block_stop",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop"
+    ],
+    "contentBlocks": [
+      {
+        "index": 0,
+        "type": "text",
+        "hasContent": true
+      },
+      {
+        "index": 1,
+        "type": "tool_use",
+        "name": "Read",
+        "hasContent": true
+      }
+    ],
+    "stopReason": "tool_use",
+    "hasUsage": true,
+    "minInputTokens": 100,
+    "minOutputTokens": 30
+  },
+  "notes": "Example fixture demonstrating fine-grained tool input streaming. Note how JSON is streamed in chunks: '{\"file' + '_path\":\"/Users/jack/mag' + '/claude-code/mcp/claudish/package.json\"}'"
+}

@@ -21,7 +21,9 @@ export interface ClaudishConfig {
   debug: boolean;
   quiet: boolean; // Suppress [claudish] log messages (default true in single-shot mode)
   jsonOutput: boolean; // Output in JSON format for tool integration
-  openrouterApiKey: string;
+  monitor: boolean; // Monitor mode - proxy to real Anthropic API and log everything
+  openrouterApiKey?: string; // Optional in monitor mode
+  anthropicApiKey?: string; // Required in monitor mode
   claudeArgs: string[];
 }
 

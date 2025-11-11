@@ -23,8 +23,8 @@ async function main() {
       process.exit(1);
     }
 
-    // If model not specified, show interactive selector
-    if (!config.model) {
+    // If model not specified and not in monitor mode, show interactive selector
+    if (!config.monitor && !config.model) {
       console.log(""); // Empty line for better UI
       config.model = await selectModelInteractively();
       console.log(""); // Empty line after selection
@@ -35,7 +35,13 @@ async function main() {
       config.port || (await findAvailablePort(DEFAULT_PORT_RANGE.start, DEFAULT_PORT_RANGE.end));
 
     // Start proxy server
-    const proxy = await createProxyServer(port, config.openrouterApiKey, config.model!);
+    const proxy = await createProxyServer(
+      port,
+      config.monitor ? undefined : config.openrouterApiKey!,
+      config.monitor ? undefined : config.model!,
+      config.monitor,
+      config.anthropicApiKey
+    );
 
     // Run Claude Code with proxy
     let exitCode = 0;

@@ -5,20 +5,27 @@ import { log } from "./logger.js";
 import type { ProxyServer } from "./types.js";
 
 /**
- * Create and start a Hono-based proxy server that translates Anthropic API to OpenRouter
+ * Create and start a Hono-based proxy server
+ * - In normal mode: translates Anthropic API to OpenRouter
+ * - In monitor mode: passes through to real Anthropic API with logging
+ *
  * Based on claude-code-proxy (https://github.com/kiyo-e/claude-code-proxy)
- * Simplified for OpenRouter usage with our custom model selection
  */
 export async function createProxyServer(
   port: number,
-  openrouterApiKey: string,
-  model: string
+  openrouterApiKey?: string,
+  model?: string,
+  monitorMode: boolean = false,
+  anthropicApiKey?: string
 ): Promise<ProxyServer> {
   const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
   const OPENROUTER_HEADERS = {
     "HTTP-Referer": "https://github.com/MadAppGang/claude-code",
     "X-Title": "Claudish - OpenRouter Proxy",
   };
+
+  const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+  const ANTHROPIC_COUNT_TOKENS_URL = "https://api.anthropic.com/v1/messages/count_tokens";
 
   // Create Hono app
   const app = new Hono();
@@ -34,24 +41,85 @@ export async function createProxyServer(
 
     return c.json({
       status: "ok",
-      message: "Claudish proxy server is running",
+      message: monitorMode
+        ? "Claudish monitor proxy - logging Anthropic API traffic"
+        : "Claudish proxy server is running",
       config: {
-        model,
+        mode: monitorMode ? "monitor" : "openrouter",
+        model: monitorMode ? "passthrough" : model,
         port,
-        upstream: "OpenRouter",
+        upstream: monitorMode ? "Anthropic" : "OpenRouter",
       },
     });
   });
 
   // Health check endpoint (alternative)
   app.get("/health", (c) => {
-    return c.json({ status: "ok", model, port });
+    return c.json({
+      status: "ok",
+      mode: monitorMode ? "monitor" : "openrouter",
+      model: monitorMode ? "passthrough" : model,
+      port,
+    });
   });
 
   // Token counting endpoint (Claude Code uses this)
   app.post("/v1/messages/count_tokens", async (c) => {
     try {
       const body = await c.req.json();
+
+      if (monitorMode) {
+        // Monitor mode: pass through to Anthropic
+        // Extract API key from request headers
+        const originalHeaders = c.req.header();
+        const extractedApiKey = originalHeaders["x-api-key"] || anthropicApiKey;
+
+        if (!extractedApiKey) {
+          log("[Monitor] ERROR: No API key found for token counting");
+          return c.json(
+            {
+              error: {
+                type: "authentication_error",
+                message: "No API key found in request.",
+              },
+            },
+            401
+          );
+        }
+
+        log("[Monitor] Token counting request - forwarding to Anthropic");
+        log("[Monitor] Request body:");
+        log(JSON.stringify(body, null, 2));
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          "anthropic-version": originalHeaders["anthropic-version"] || "2023-06-01",
+        };
+
+        // Forward authorization header (OAuth)
+        if (originalHeaders["authorization"]) {
+          headers["authorization"] = originalHeaders["authorization"];
+        }
+
+        // Forward x-api-key if present
+        if (extractedApiKey) {
+          headers["x-api-key"] = extractedApiKey;
+        }
+
+        const response = await fetch(ANTHROPIC_COUNT_TOKENS_URL, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        });
+
+        const result = await response.json();
+        log("[Monitor] Token counting response:");
+        log(JSON.stringify(result, null, 2));
+
+        return c.json(result, response.status as any);
+      }
+
+      // OpenRouter mode: estimate tokens (OpenRouter doesn't have token counting)
       log("[Proxy] Token counting request (estimating)");
 
       // Rough estimation: ~4 characters per token
@@ -86,8 +154,153 @@ export async function createProxyServer(
   // Main Anthropic Messages API endpoint
   app.post("/v1/messages", async (c) => {
     try {
-      log(`[Proxy] Processing messages request for model: ${model}`);
       const claudePayload = await c.req.json();
+
+      // MONITOR MODE: Pass through to real Anthropic API with logging
+      if (monitorMode) {
+        // Extract API key from Claude Code's request
+        const originalHeaders = c.req.header();
+        const extractedApiKey = originalHeaders["x-api-key"] || originalHeaders["authorization"] || anthropicApiKey;
+
+        // Log ALL headers to understand what Claude Code is sending
+        log("\n=== [MONITOR] Claude Code → Anthropic API Request ===");
+        log(`Headers received: ${JSON.stringify(originalHeaders, null, 2)}`);
+
+        if (!extractedApiKey) {
+          log("[Monitor] WARNING: No API key found in headers!");
+          log("[Monitor] Looking for: x-api-key or authorization header");
+          log("[Monitor] Headers present: " + Object.keys(originalHeaders).join(", "));
+          log("[Monitor] This request will fail at Anthropic API");
+          // Don't return error yet - let it pass through to see Anthropic's response
+        } else {
+          log(`API Key found: ${extractedApiKey.substring(0, 20)}...`);
+        }
+
+        log(`Request body:`);
+        log(JSON.stringify(claudePayload, null, 2));
+        log("=== End Request ===\n");
+
+        // Forward to Anthropic API - pass through ALL relevant headers
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          "anthropic-version": originalHeaders["anthropic-version"] || "2023-06-01",
+        };
+
+        // Forward authorization header (OAuth token)
+        if (originalHeaders["authorization"]) {
+          headers["authorization"] = originalHeaders["authorization"];
+          log(`[Monitor] Forwarding OAuth token: ${originalHeaders["authorization"].substring(0, 30)}...`);
+        }
+
+        // Forward x-api-key if present
+        if (originalHeaders["x-api-key"]) {
+          headers["x-api-key"] = originalHeaders["x-api-key"];
+          log(`[Monitor] Forwarding API key: ${originalHeaders["x-api-key"].substring(0, 20)}...`);
+        }
+
+        // Forward anthropic-beta header (important for OAuth and thinking mode)
+        if (originalHeaders["anthropic-beta"]) {
+          headers["anthropic-beta"] = originalHeaders["anthropic-beta"];
+        }
+
+        const anthropicResponse = await fetch(ANTHROPIC_API_URL, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(claudePayload),
+        });
+
+        const contentType = anthropicResponse.headers.get("content-type") || "";
+
+        // Handle streaming response
+        if (contentType.includes("text/event-stream")) {
+          log("[Monitor] Streaming response detected");
+
+          // Stream the response back to Claude Code while logging
+          return c.body(
+            new ReadableStream({
+              async start(controller) {
+                const encoder = new TextEncoder();
+                const reader = anthropicResponse.body?.getReader();
+
+                if (!reader) {
+                  throw new Error("Response body is not readable");
+                }
+
+                const decoder = new TextDecoder();
+                let buffer = "";
+                let eventLog = "";
+
+                log("\n=== [MONITOR] Anthropic API → Claude Code Response (Streaming) ===");
+
+                try {
+                  while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                      log("\n=== End Streaming Response ===\n");
+                      break;
+                    }
+
+                    // Pass through to Claude Code
+                    controller.enqueue(value);
+
+                    // Log the streamed data
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop() || "";
+
+                    for (const line of lines) {
+                      if (line.trim()) {
+                        eventLog += line + "\n";
+                      }
+                    }
+                  }
+
+                  // Log the complete event stream
+                  if (eventLog) {
+                    log(eventLog);
+                  }
+
+                  controller.close();
+                } catch (error) {
+                  log(`[Monitor] Streaming error: ${error}`);
+                  controller.close();
+                }
+              },
+            }),
+            {
+              headers: {
+                "Content-Type": anthropicResponse.headers.get("content-type") || "text/event-stream",
+                "Cache-Control": "no-cache",
+                Connection: "keep-alive",
+                "anthropic-version": anthropicResponse.headers.get("anthropic-version") || "2023-06-01",
+              },
+            }
+          );
+        }
+
+        // Handle non-streaming (JSON) response
+        const responseData = await anthropicResponse.json();
+        log("\n=== [MONITOR] Anthropic API → Claude Code Response (JSON) ===");
+        log(JSON.stringify(responseData, null, 2));
+        log("=== End Response ===\n");
+
+        // Pass through headers
+        const responseHeaders: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        const anthropicVersion = anthropicResponse.headers.get("anthropic-version");
+        if (anthropicVersion) {
+          responseHeaders["anthropic-version"] = anthropicVersion;
+        }
+
+        return c.json(responseData, {
+          status: anthropicResponse.status as any,
+          headers: responseHeaders,
+        });
+      }
+
+      // OPENROUTER MODE: Transform and forward
+      log(`[Proxy] Processing messages request for model: ${model}`);
 
       // Transform Claude format to OpenAI format
       const { claudeRequest, droppedParams } = transformOpenAIToClaude(claudePayload);
@@ -378,13 +591,23 @@ export async function createProxyServer(
             };
 
             // Track state
-            let textBlockStarted = false;
             let usage: any = null;
             let isClosed = false;
 
+            // Track content blocks with proper indices
+            let currentBlockIndex = 0;
+            let textBlockIndex = -1;
+            let textBlockStarted = false;
+
             // Track tool calls - map from tool index to tool state
-            const toolCalls = new Map<number, { id: string; name: string; args: string; blockIndex: number; started: boolean }>();
-            let nextBlockIndex = 0; // Track content block indices
+            const toolCalls = new Map<number, { id: string; name: string; args: string; blockIndex: number; started: boolean; closed: boolean }>();
+
+            // Detect if this is first turn (no tool results in messages)
+            // First turn: cache creation, subsequent: cache read
+            const hasToolResults = claudeRequest.messages?.some((msg: any) =>
+              Array.isArray(msg.content) && msg.content.some((block: any) => block.type === "tool_result")
+            );
+            const isFirstTurn = !hasToolResults;
 
             // Send initial events IMMEDIATELY (like 1rgs/claude-code-proxy does)
             // Don't wait for first chunk!
@@ -409,21 +632,30 @@ export async function createProxyServer(
 
             // Send content_block_start immediately (for index 0 text block)
             // Claude Code expects this IMMEDIATELY after message_start
+            textBlockIndex = currentBlockIndex++;
             sendSSE("content_block_start", {
               type: "content_block_start",
-              index: nextBlockIndex,
+              index: textBlockIndex,
               content_block: {
                 type: "text",
                 text: "",
               },
             });
             textBlockStarted = true;
-            nextBlockIndex++;
 
-            // Send ping (required by Claude Code)
+            // Send initial ping (required by Claude Code)
             sendSSE("ping", {
               type: "ping",
             });
+
+            // Send ping every 15 seconds to keep connection alive
+            const pingInterval = setInterval(() => {
+              if (!isClosed) {
+                sendSSE("ping", {
+                  type: "ping",
+                });
+              }
+            }, 15000);
 
             try {
               const reader = openrouterResponse.body?.getReader();
@@ -464,20 +696,39 @@ export async function createProxyServer(
                     if (textBlockStarted) {
                       sendSSE("content_block_stop", {
                         type: "content_block_stop",
-                        index: 0,
+                        index: textBlockIndex,
                       });
+                      textBlockStarted = false;
                     }
 
-                    // Close any open tool blocks
+                    // Close any open tool blocks (with JSON validation)
                     for (const [toolIndex, toolState] of toolCalls.entries()) {
-                      if (toolState.started) {
-                        log(`[Proxy] Closing tool block (from [DONE]): ${toolState.name} at index ${toolState.blockIndex}`);
+                      if (toolState.started && !toolState.closed) {
+                        // Validate JSON is complete
+                        if (toolState.args) {
+                          try {
+                            JSON.parse(toolState.args);
+                            log(`[Proxy] Tool ${toolState.name} JSON valid, closing from [DONE] at index ${toolState.blockIndex}`);
+                          } catch (e) {
+                            log(`[Proxy] WARNING: Tool ${toolState.name} has incomplete JSON at [DONE]!`);
+                            log(`[Proxy] Args: ${toolState.args.substring(0, 200)}...`);
+                          }
+                        }
+
                         sendSSE("content_block_stop", {
                           type: "content_block_stop",
                           index: toolState.blockIndex,
                         });
+                        toolState.closed = true;
                       }
                     }
+
+                    // Calculate cache metrics
+                    const inputTokens = usage?.prompt_tokens || 0;
+                    const outputTokens = usage?.completion_tokens || 0;
+
+                    // Estimate: 80% of input tokens go to/from cache
+                    const estimatedCacheTokens = Math.floor(inputTokens * 0.8);
 
                     sendSSE("message_delta", {
                       type: "message_delta",
@@ -485,15 +736,13 @@ export async function createProxyServer(
                         stop_reason: "end_turn",
                         stop_sequence: null,
                       },
-                      usage: usage
-                        ? {
-                            input_tokens: usage.prompt_tokens || 0,
-                            output_tokens: usage.completion_tokens || 0,
-                          }
-                        : {
-                            input_tokens: 0,
-                            output_tokens: 0,
-                          },
+                      usage: {
+                        input_tokens: inputTokens,
+                        output_tokens: outputTokens,
+                        // First turn: create cache, subsequent: read from cache
+                        cache_creation_input_tokens: isFirstTurn ? estimatedCacheTokens : 0,
+                        cache_read_input_tokens: isFirstTurn ? 0 : estimatedCacheTokens,
+                      },
                     });
 
                     sendSSE("message_stop", {
@@ -511,6 +760,7 @@ export async function createProxyServer(
                       controller.enqueue(encoder.encode('\n'));
                       controller.close();
                       isClosed = true;
+                      clearInterval(pingInterval);
                       log("[Proxy] Stream closed properly");
                     }
                     return;
@@ -533,7 +783,7 @@ export async function createProxyServer(
                       log(`[Proxy] Sending content delta: ${delta.content}`);
                       sendSSE("content_block_delta", {
                         type: "content_block_delta",
-                        index: 0,
+                        index: textBlockIndex,
                         delta: {
                           type: "text_delta",
                           text: delta.content,
@@ -553,13 +803,15 @@ export async function createProxyServer(
                         // First chunk: has name (and maybe id)
                         if (toolCall.function?.name) {
                           if (!toolState) {
-                            // Create new tool state
+                            // Create new tool state with next sequential block index
+                            const toolBlockIndex = currentBlockIndex++;
                             toolState = {
                               id: toolCall.id || `tool_${Date.now()}_${toolIndex}`,
                               name: toolCall.function.name,
                               args: "",
-                              blockIndex: nextBlockIndex++,
-                              started: false
+                              blockIndex: toolBlockIndex,
+                              started: false,
+                              closed: false
                             };
                             toolCalls.set(toolIndex, toolState);
                             log(`[Proxy] Starting tool call: ${toolState.name} at block index ${toolState.blockIndex}`);
@@ -571,7 +823,7 @@ export async function createProxyServer(
                             if (textBlockStarted) {
                               sendSSE("content_block_stop", {
                                 type: "content_block_stop",
-                                index: 0,
+                                index: textBlockIndex,
                               });
                               textBlockStarted = false;
                             }
@@ -609,14 +861,26 @@ export async function createProxyServer(
 
                     // Handle finish_reason for tool_calls
                     if (choice?.finish_reason === "tool_calls") {
-                      // Close all open tool blocks
+                      // Close all open tool blocks (with JSON validation)
                       for (const [toolIndex, toolState] of toolCalls.entries()) {
-                        if (toolState.started) {
-                          log(`[Proxy] Closing tool block: ${toolState.name} at index ${toolState.blockIndex}`);
+                        if (toolState.started && !toolState.closed) {
+                          // Validate JSON is complete before closing
+                          if (toolState.args) {
+                            try {
+                              JSON.parse(toolState.args);
+                              log(`[Proxy] Tool ${toolState.name} JSON valid, closing block at index ${toolState.blockIndex}`);
+                            } catch (e) {
+                              log(`[Proxy] WARNING: Tool ${toolState.name} has incomplete JSON!`);
+                              log(`[Proxy] Args: ${toolState.args.substring(0, 200)}...`);
+                              // Still close - OpenRouter finished, we'll send what we have
+                            }
+                          }
+
                           sendSSE("content_block_stop", {
                             type: "content_block_stop",
                             index: toolState.blockIndex,
                           });
+                          toolState.closed = true;
                         }
                       }
                     }
@@ -631,9 +895,15 @@ export async function createProxyServer(
               if (textBlockStarted) {
                 sendSSE("content_block_stop", {
                   type: "content_block_stop",
-                  index: 0,
+                  index: textBlockIndex,
                 });
+                textBlockStarted = false;
               }
+
+              // Calculate cache metrics
+              const finalInputTokens = usage?.prompt_tokens || 0;
+              const finalOutputTokens = usage?.completion_tokens || 0;
+              const finalCacheTokens = Math.floor(finalInputTokens * 0.8);
 
               sendSSE("message_delta", {
                 type: "message_delta",
@@ -641,15 +911,12 @@ export async function createProxyServer(
                   stop_reason: "end_turn",
                   stop_sequence: null,
                 },
-                usage: usage
-                  ? {
-                      input_tokens: usage.prompt_tokens || 0,
-                      output_tokens: usage.completion_tokens || 0,
-                    }
-                  : {
-                      input_tokens: 0,
-                      output_tokens: 0,
-                    },
+                usage: {
+                  input_tokens: finalInputTokens,
+                  output_tokens: finalOutputTokens,
+                  cache_creation_input_tokens: isFirstTurn ? finalCacheTokens : 0,
+                  cache_read_input_tokens: isFirstTurn ? 0 : finalCacheTokens,
+                },
               });
 
               sendSSE("message_stop", {
@@ -660,6 +927,7 @@ export async function createProxyServer(
                 controller.enqueue(encoder.encode('\n'));
                 controller.close();
                 isClosed = true;
+                clearInterval(pingInterval);
               }
             } catch (error) {
               log(`[Proxy] Streaming error: ${error}`);
@@ -673,8 +941,10 @@ export async function createProxyServer(
                 });
                 controller.close();
                 isClosed = true;
+                clearInterval(pingInterval);
               }
             } finally {
+              clearInterval(pingInterval);
               if (!isClosed) {
                 controller.close();
                 isClosed = true;
@@ -713,8 +983,14 @@ export async function createProxyServer(
     fetch: app.fetch,
   });
 
-  log(`[Proxy] Server started on http://127.0.0.1:${port}`);
-  log(`[Proxy] Routing to OpenRouter model: ${model}`);
+  if (monitorMode) {
+    log(`[Monitor] Server started on http://127.0.0.1:${port}`);
+    log("[Monitor] Mode: Passthrough to real Anthropic API");
+    log("[Monitor] All traffic will be logged for analysis");
+  } else {
+    log(`[Proxy] Server started on http://127.0.0.1:${port}`);
+    log(`[Proxy] Routing to OpenRouter model: ${model}`);
+  }
 
   return {
     port,

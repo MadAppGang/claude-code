@@ -107,17 +107,25 @@ export async function runClaudeWithProxy(
   }
 
   // Environment variables for Claude Code
-  const env = {
+  const env: Record<string, string> = {
     ...process.env,
     // Point Claude Code to our local proxy
     ANTHROPIC_BASE_URL: proxyUrl,
-    // Use existing ANTHROPIC_API_KEY from environment if available
-    // Otherwise use a placeholder (proxy handles real auth with OPENROUTER_API_KEY)
-    // Note: If prompt appears, select "Yes" - the key is not used (proxy intercepts all requests)
-    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || "sk-ant-api03-placeholder-not-used-proxy-handles-auth-with-openrouter-key-xxxxxxxxxxxxxxxxxxxxx",
     // Set active model ID for status line (actual OpenRouter model ID)
     [ENV.CLAUDISH_ACTIVE_MODEL_NAME]: modelId,
   };
+
+  // Handle API key based on mode
+  if (config.monitor) {
+    // Monitor mode: Don't set ANTHROPIC_API_KEY at all
+    // This allows Claude Code to use its native authentication
+    // Delete any placeholder keys from environment
+    delete env.ANTHROPIC_API_KEY;
+  } else {
+    // OpenRouter mode: Use placeholder to prevent Claude Code dialog
+    // The proxy will handle authentication with OPENROUTER_API_KEY
+    env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "sk-ant-api03-placeholder-not-used-proxy-handles-auth-with-openrouter-key-xxxxxxxxxxxxxxxxxxxxx";
+  }
 
   // Helper function to log messages (respects quiet flag)
   const log = (message: string) => {
