@@ -779,14 +779,16 @@ export async function createProxyServer(
                     const delta = choice?.delta;
 
                     // Send content deltas (text block already started in initial events)
-                    if (delta?.content) {
-                      log(`[Proxy] Sending content delta: ${delta.content}`);
+                    // Support both regular content and reasoning field (Grok, o1, etc.)
+                    const textContent = delta?.content || delta?.reasoning || "";
+                    if (textContent) {
+                      log(`[Proxy] Sending content delta: ${textContent}${delta?.reasoning ? ' (reasoning)' : ''}`);
                       sendSSE("content_block_delta", {
                         type: "content_block_delta",
                         index: textBlockIndex,
                         delta: {
                           type: "text_delta",
-                          text: delta.content,
+                          text: textContent,
                         },
                       });
                     }
