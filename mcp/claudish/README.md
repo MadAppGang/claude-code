@@ -529,8 +529,8 @@ bun tests/debug-snapshot.ts
 **Documentation:**
 - [Quick Start Guide](./QUICK_START_TESTING.md) - Get started with testing
 - [Snapshot Testing Guide](./SNAPSHOT_TESTING.md) - Complete testing documentation
-- [Implementation Details](./IMPLEMENTATION_COMPLETE.md) - Technical implementation summary
-- [Protocol Compliance Plan](./PROTOCOL_COMPLIANCE_PLAN.md) - Detailed compliance roadmap
+- [Implementation Details](./ai_docs/IMPLEMENTATION_COMPLETE.md) - Technical implementation summary
+- [Protocol Compliance Plan](./ai_docs/PROTOCOL_COMPLIANCE_PLAN.md) - Detailed compliance roadmap
 
 ### Install Globally
 

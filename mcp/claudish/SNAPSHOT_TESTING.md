@@ -406,10 +406,10 @@ Add to your CI pipeline:
 
 ## References
 
-- [Protocol Documentation](./PROTOCOL_SPECIFICATION.md)
-- [Monitor Mode Guide](./MONITOR_MODE_COMPLETE.md)
+- [Protocol Documentation](./ai_docs/PROTOCOL_SPECIFICATION.md)
+- [Monitor Mode Guide](./ai_docs/MONITOR_MODE_COMPLETE.md)
 - [Fixture README](./tests/fixtures/README.md)
-- [Streaming Protocol Explained](./STREAMING_PROTOCOL_EXPLAINED.md)
+- [Streaming Protocol Explained](./ai_docs/STREAMING_PROTOCOL_EXPLAINED.md)
 
 ---
 

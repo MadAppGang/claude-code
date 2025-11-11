@@ -114,8 +114,8 @@ bun tests/debug-snapshot.ts
 ## 📚 Documentation
 
 - **Full Testing Guide**: [SNAPSHOT_TESTING.md](./SNAPSHOT_TESTING.md)
-- **Implementation Details**: [IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md)
-- **Compliance Plan**: [PROTOCOL_COMPLIANCE_PLAN.md](./PROTOCOL_COMPLIANCE_PLAN.md)
+- **Implementation Details**: [ai_docs/IMPLEMENTATION_COMPLETE.md](./ai_docs/IMPLEMENTATION_COMPLETE.md)
+- **Compliance Plan**: [ai_docs/PROTOCOL_COMPLIANCE_PLAN.md](./ai_docs/PROTOCOL_COMPLIANCE_PLAN.md)
 - **Fixture Format**: [tests/fixtures/README.md](./tests/fixtures/README.md)
 
 ---
