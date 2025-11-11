@@ -276,16 +276,18 @@ function validateUsage(
   }
 
   // Check message_delta has usage
+  // According to real Claude Code protocol, message_delta should ONLY have output_tokens
   const messageDelta = events.find(e => e.event === "message_delta");
   if (!messageDelta?.data?.usage) {
     errors.push("message_delta missing usage field");
   } else {
     const usage = messageDelta.data.usage;
-    if (typeof usage.input_tokens !== "number") {
-      errors.push("message_delta usage.input_tokens must be a number");
-    }
     if (typeof usage.output_tokens !== "number") {
       errors.push("message_delta usage.output_tokens must be a number");
+    }
+    // input_tokens and cache tokens should NOT be in message_delta (only in message_start)
+    if (usage.input_tokens !== undefined) {
+      errors.push("message_delta should not contain input_tokens (only output_tokens per protocol)");
     }
   }
 

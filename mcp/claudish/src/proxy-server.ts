@@ -660,6 +660,13 @@ export async function createProxyServer(
             );
             const isFirstTurn = !hasToolResults;
 
+            // Estimate input tokens from request (for better status line accuracy)
+            // Simple estimation: ~4 chars per token
+            const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+            const requestJson = JSON.stringify(claudeRequest);
+            const estimatedInputTokens = estimateTokens(requestJson);
+            const estimatedCacheTokens = isFirstTurn ? Math.floor(estimatedInputTokens * 0.8) : 0;
+
             // Send initial events IMMEDIATELY (like 1rgs/claude-code-proxy does)
             // Don't wait for first chunk!
             sendSSE("message_start", {
@@ -673,10 +680,10 @@ export async function createProxyServer(
                 stop_reason: null,
                 stop_sequence: null,
                 usage: {
-                  input_tokens: 0,
-                  cache_creation_input_tokens: 0,
-                  cache_read_input_tokens: 0,
-                  output_tokens: 0
+                  input_tokens: estimatedInputTokens - estimatedCacheTokens,
+                  cache_creation_input_tokens: isFirstTurn ? estimatedCacheTokens : 0,
+                  cache_read_input_tokens: isFirstTurn ? 0 : estimatedCacheTokens,
+                  output_tokens: 1  // Start with 1 to avoid division by zero
                 },
               },
             });
@@ -781,13 +788,11 @@ export async function createProxyServer(
                       }
                     }
 
-                    // Calculate cache metrics
-                    const inputTokens = usage?.prompt_tokens || 0;
+                    // Get final token counts
                     const outputTokens = usage?.completion_tokens || 0;
 
-                    // Estimate: 80% of input tokens go to/from cache
-                    const estimatedCacheTokens = Math.floor(inputTokens * 0.8);
-
+                    // According to real Claude Code protocol, message_delta should ONLY contain output_tokens
+                    // All other usage fields (input_tokens, cache tokens) are in message_start
                     sendSSE("message_delta", {
                       type: "message_delta",
                       delta: {
@@ -795,11 +800,7 @@ export async function createProxyServer(
                         stop_sequence: null,
                       },
                       usage: {
-                        input_tokens: inputTokens,
-                        output_tokens: outputTokens,
-                        // First turn: create cache, subsequent: read from cache
-                        cache_creation_input_tokens: isFirstTurn ? estimatedCacheTokens : 0,
-                        cache_read_input_tokens: isFirstTurn ? 0 : estimatedCacheTokens,
+                        output_tokens: outputTokens,  // ONLY output_tokens per protocol
                       },
                     });
 
