@@ -32,12 +32,53 @@ Orchestrate a complete feature implementation workflow using specialized agents 
 - ALL planning → architect agent
 - ALL design reviews (UI fidelity) → designer agent
 - ALL UI implementation/fixes → ui-developer agent
-- ALL code reviews → reviewer + codex-reviewer agents
+- ALL code reviews → 3 parallel reviewers (Claude Sonnet + Grok + GPT-5 Codex via Claudish MCP)
 - ALL testing → test-architect agent
 - ALL cleanup → cleaner agent
-- OPTIONAL Codex UI expert review → ui-developer-codex agent
 
 If you find yourself about to use Write or Edit tools, STOP and delegate to the appropriate agent instead.
+
+## Configuration: Multi-Model Code Review (Optional)
+
+**NEW in v3.0.0**: Configure external AI models for multi-model code review via `.claude/settings.json`:
+
+```json
+{
+  "pluginSettings": {
+    "frontend": {
+      "reviewModels": ["x-ai/grok-code-fast-1", "openai/gpt-5-codex"]
+    }
+  }
+}
+```
+
+**Default Models** (if not configured):
+- `x-ai/grok-code-fast-1` - xAI's Grok (fast coding analysis)
+- `openai/gpt-5-codex` - OpenAI's GPT-5 Codex (advanced code analysis)
+
+**You can use ANY OpenRouter model ID!**
+
+Popular coding models from OpenRouter (as of 2025):
+- `x-ai/grok-code-fast-1` - xAI Grok (fast)
+- `openai/gpt-5-codex` - OpenAI GPT-5 Codex (advanced reasoning)
+- `deepseek/deepseek-chat` - DeepSeek (reasoning specialist)
+- `anthropic/claude-opus-4` - Claude Opus 4 (if you want another Claude perspective)
+- `google/gemini-2.0-flash-thinking-exp` - Google Gemini 2.0 (thinking mode)
+- `qwen/qwq-32b-preview` - Alibaba QwQ (reasoning)
+
+See full list at: https://openrouter.ai/models
+
+**Model ID Format**: Use the exact OpenRouter model ID (e.g., `provider/model-name`).
+
+**How Multi-Model Review Works:**
+1. **Primary Review** - Always run with Claude Sonnet (comprehensive, human-focused)
+2. **External Reviews** - Run in parallel with configured external models via Claudish MCP
+3. **Synthesis** - Combine findings from all reviewers for comprehensive coverage
+
+**To use external models:**
+- Ensure Claudish MCP server is configured in `mcp-servers/mcp-config.json`
+- Set `OPENROUTER_API_KEY` environment variable
+- Models run via OpenRouter API (costs apply based on OpenRouter pricing)
 
 ## Feature Request
 
@@ -308,8 +349,9 @@ Based on `workflow_type`, configure the workflow:
   - Designer agent validates visual fidelity of UI track work
   - API track skips design validation
 **PHASE 3**: Will run ALL THREE reviewers in parallel:
-  - frontend:reviewer (reviews both API and UI code, integration points)
-  - frontend:codex-reviewer (analyzes both API patterns and UI patterns)
+  - frontend:reviewer with Claude Sonnet (comprehensive code review)
+  - frontend:reviewer with Grok (fast coding analysis via Claudish MCP)
+  - frontend:reviewer with GPT-5 Codex (advanced code analysis via Claudish MCP)
   - frontend:tester (tests UI components that use the API integration)
 **PHASE 4**: Testing focused on both:
   - API tests: Unit tests for services, mock API responses
@@ -1144,24 +1186,35 @@ e. **Loop Until Tests Pass**:
 #### Workflow-Specific Review Strategy:
 
 **For API_FOCUSED workflows:**
-- Launch **TWO reviewers only** (code + codex) - **SKIP UI tester**
+- Launch **(1 + configured external models)** code reviewers - **SKIP UI tester**
+- Default: 3 reviewers (Claude Sonnet + Grok + GPT-5 Codex)
 - Review focus: API logic, type safety, error handling, data validation, HTTP patterns
-- Todo: Update "Launch ALL THREE reviewers" → "Launch TWO code reviewers"
+- Multi-model perspective: Get independent code reviews from different AI models
+- Configurable via `pluginSettings.frontend.reviewModels` in `.claude/settings.json`
 
 **For UI_FOCUSED workflows:**
-- Launch **ALL THREE reviewers** (code + codex + tester)
+- Launch **(1 + configured external models + 1 UI tester)** reviewers
+- Default: 4 reviewers (Claude Sonnet + Grok + GPT-5 Codex + UI tester)
 - Review focus: UI code quality, visual implementation, user interactions, browser testing
+- Multi-model perspective: Multiple code reviews + browser testing
 
 **For MIXED workflows:**
-- Launch **ALL THREE reviewers** (code + codex + tester)
+- Launch **(1 + configured external models + 1 UI tester)** reviewers
+- Default: 4 reviewers (Claude Sonnet + Grok + GPT-5 Codex + UI tester)
 - Review focus: Both API logic AND UI implementation, plus integration points
+- Multi-model perspective: Comprehensive coverage across all aspects
 
 ---
 
 1. **Prepare Review Context**:
+   - **Read Review Models Configuration**:
+     * Try to read `.claude/settings.json` to get `pluginSettings.frontend.reviewModels` array
+     * IF found: Use configured models (e.g., `["grok-fast", "code-review"]`)
+     * IF not found or empty: Use default models `["grok-fast", "code-review"]`
+     * Store as `external_review_models` array for use in parallel execution
    - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers in parallel" as in_progress
-     * If API_FOCUSED: Update todo text to "Launch TWO code reviewers in parallel"
-     * If UI_FOCUSED or MIXED: Keep as "Launch ALL THREE reviewers in parallel"
+     * If API_FOCUSED: Update todo text to "Launch X code reviewers in parallel (Claude + {external_review_models.length} external models)"
+     * If UI_FOCUSED or MIXED: Update todo text to "Launch X reviewers in parallel (Claude + {external_review_models.length} external models + UI tester)"
    - Run `git status` to identify all unstaged changes
    - Run `git diff` to capture the COMPLETE implementation changes
    - Read planning documentation from AI-DOCS folder to get 2-3 sentence summary
@@ -1171,33 +1224,38 @@ e. **Loop Until Tests Pass**:
 2. **Launch Reviewers in Parallel (Workflow-Adaptive)**:
 
    **IF `workflow_type` is "API_FOCUSED":**
-   - **CRITICAL**: Use a single message with TWO Task tool calls to run code reviews in parallel
+   - **CRITICAL**: Use a single message with (1 + external_review_models.length) Task tool calls to run code reviews in parallel with different models
    - **DO NOT launch UI tester** - no UI testing needed for API-only work
-   - Log: "🔍 Launching TWO code reviewers for API-focused implementation (UI tester skipped)"
+   - Log: "🔍 Launching {1 + external_review_models.length} code reviewers with multi-model analysis: Claude Sonnet + {external_review_models.join(', ')} (UI tester skipped for API-focused workflow)"
 
    **Parallel Execution for API_FOCUSED**:
    ```
-   Send a single message with TWO Task calls:
+   Send a single message with (1 + external_review_models.length) Task calls:
 
-   Task 1: Launch reviewer (with API focus)
-   Task 2: Launch codex-reviewer (with API focus)
+   Task 1: Launch reviewer (normal Claude Sonnet - no PROXY_MODE)
+   Task 2: Launch reviewer with PROXY_MODE: {external_review_models[0]} (e.g., grok-fast)
+   Task 3: Launch reviewer with PROXY_MODE: {external_review_models[1]} (e.g., code-review)
+   ... (repeat for each model in external_review_models array)
    ```
 
    **IF `workflow_type` is "UI_FOCUSED" or "MIXED":**
-   - **CRITICAL**: Use a single message with THREE Task tool calls to run all reviews in parallel
-   - Log: "🔍 Launching ALL THREE reviewers for UI/Mixed implementation"
+   - **CRITICAL**: Use a single message with (1 + external_review_models.length + 1) Task tool calls to run all reviews in parallel
+   - Log: "🔍 Launching {1 + external_review_models.length + 1} reviewers with multi-model analysis: Claude Sonnet + {external_review_models.join(', ')} + UI tester"
 
    **Parallel Execution for UI_FOCUSED or MIXED**:
    ```
-   Send a single message with THREE Task calls:
+   Send a single message with (1 + external_review_models.length + 1) Task calls:
 
-   Task 1: Launch reviewer
-   Task 2: Launch codex-reviewer
-   Task 3: Launch tester (UI testing)
+   Task 1: Launch reviewer (normal Claude Sonnet - no PROXY_MODE)
+   Task 2: Launch reviewer with PROXY_MODE: {external_review_models[0]} (e.g., grok-fast)
+   Task 3: Launch reviewer with PROXY_MODE: {external_review_models[1]} (e.g., code-review)
+   ... (repeat for each model in external_review_models array)
+   Task N: Launch tester (UI testing)
    ```
 
-   - **Reviewer 1 - Senior Code Reviewer (Human-Focused Review)**:
+   - **Reviewer 1 - Claude Sonnet Code Reviewer (Comprehensive Human-Focused Review)**:
      * Use Task tool with `subagent_type: frontend:reviewer`
+     * **DO NOT include PROXY_MODE directive** - this runs with normal Claude Sonnet
      * Provide context:
        - "Review all unstaged git changes from the current implementation"
        - Path to the original plan for reference (AI-DOCS/...)
@@ -1222,73 +1280,27 @@ e. **Loop Until Tests Pass**:
          * Responsive design implementation
          * User interaction patterns
 
-   - **Reviewer 2 - Codex Code Analyzer (Automated AI Review)**:
-     * Use Task tool with `subagent_type: frontend:codex-reviewer`
-     * **IMPORTANT**: This agent is a PROXY to Codex AI. Prepare a COMPLETE prompt with all context.
-     * Provide a fully prepared prompt containing:
-       ```
-       You are an expert code reviewer analyzing a TypeScript/React implementation.
+   - **Reviewers 2..N - External AI Code Analyzers (via Claudish MCP + OpenRouter)**:
+     * For EACH model in `external_review_models` array (e.g., ["grok-fast", "code-review"]):
+       - Use Task tool with `subagent_type: frontend:reviewer`
+       - **CRITICAL**: Start the prompt with `PROXY_MODE: {model_name}` directive
+       - The agent will automatically delegate to the external AI model via Claudish MCP
+       - Provide the same review context as Reviewer 1:
+         * Full prompt format (see Reviewer 1 above for structure)
+         * Same workflow type, planning context, focus areas
+         * Git diff output and review standards
+       - Format:
+         ```
+         PROXY_MODE: {model_name}
 
-       WORKFLOW TYPE: [API_FOCUSED | UI_FOCUSED | MIXED]
+         [Include all the same context and instructions as Reviewer 1]
+         ```
+     * Example for `external_review_models = ["grok-fast", "code-review"]`:
+       - Reviewer 2: PROXY_MODE: grok-fast (xAI Grok)
+       - Reviewer 3: PROXY_MODE: code-review (OpenAI GPT-5 Codex)
+     * The number of external reviewers = `external_review_models.length`
 
-       PLANNING CONTEXT:
-       [2-3 sentence summary from AI-DOCS planning files]
-
-       TECH STACK:
-       - TypeScript, Vite, Vitest
-       - TanStack Router, TanStack Query
-       - React, shadcn/ui components
-
-       REVIEW STANDARDS:
-       - KISS principle (simplicity above all)
-       - OWASP security best practices
-       - TypeScript and React best practices
-       - Code quality and maintainability
-       - Performance considerations
-
-       [IF API_FOCUSED - ADD THIS SECTION:]
-       SPECIFIC FOCUS FOR API-FOCUSED IMPLEMENTATION:
-       This is an API integration implementation. Pay special attention to:
-       - API client patterns (fetch, axios, TanStack Query)
-       - Type safety: request/response types match API schema
-       - Error handling: HTTP errors, network failures, timeout handling
-       - Loading states and race conditions
-       - Data validation and transformation
-       - Security: API tokens, input sanitization, XSS prevention
-       - Retry logic and error recovery
-       - Cache invalidation patterns
-
-       [IF UI_FOCUSED - ADD THIS SECTION:]
-       SPECIFIC FOCUS FOR UI-FOCUSED IMPLEMENTATION:
-       This is a UI/UX implementation. Pay special attention to:
-       - Component structure and reusability
-       - React patterns: hooks, composition, render optimization
-       - Accessibility: WCAG 2.1 AA compliance, ARIA attributes
-       - Responsive design: mobile-first, breakpoints
-       - User interaction: event handlers, form validation, feedback
-       - Visual consistency with design system
-
-       CODE TO REVIEW (complete git diff output):
-       [Paste COMPLETE git diff output here]
-
-       INSTRUCTIONS:
-       Analyze this code and categorize ALL findings as:
-       - CRITICAL: Security vulnerabilities, breaking bugs, must fix immediately
-       - MEDIUM: Code quality issues, performance concerns, should fix soon
-       - MINOR: Style issues, documentation improvements, nice to have
-
-       For EACH finding provide:
-       1. Severity level (CRITICAL/MEDIUM/MINOR)
-       2. File path and line number
-       3. Clear description of the issue
-       4. Specific recommendation to fix it
-       5. Example of correct implementation (if applicable)
-
-       Provide a comprehensive review with actionable feedback.
-       ```
-     * The agent will forward this complete prompt to Codex AI and return the results
-
-   - **Reviewer 3 - UI Manual Tester (Real Browser Testing)**:
+   - **Reviewer 4 - UI Manual Tester (Real Browser Testing)**:
      * **ONLY for UI_FOCUSED or MIXED workflows** - Skip for API_FOCUSED
      * Use Task tool with `subagent_type: frontend:tester`
      * Provide context:
@@ -1312,15 +1324,17 @@ e. **Loop Until Tests Pass**:
        - Overall assessment: PASS / FAIL / PARTIAL
 
 3. **Collect and Analyze Review Results** (Workflow-Adaptive):
-   - **IF API_FOCUSED**: Wait for TWO code reviewers to complete
-   - **IF UI_FOCUSED or MIXED**: Wait for ALL THREE reviewers to complete
+   - **IF API_FOCUSED**: Wait for (1 + external_review_models.length) code reviewers to complete (Claude Sonnet + external models)
+   - **IF UI_FOCUSED or MIXED**: Wait for (1 + external_review_models.length + 1) reviewers to complete (Claude Sonnet + external models + UI tester)
    - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers" as completed
    - **Update TodoWrite**: Mark "PHASE 3: Analyze review results" as in_progress
-   - **Senior Code Reviewer Feedback**: Document all findings and recommendations
-   - **Codex Analysis Feedback**: Document all automated findings
+   - **Claude Sonnet Reviewer Feedback**: Document comprehensive findings and recommendations
+   - **For EACH external model** in `external_review_models`:
+     * Document that model's findings and recommendations (via OpenRouter)
+     * Note the model name (e.g., "grok-fast review", "code-review results")
    - **IF UI_FOCUSED or MIXED**: **UI Manual Tester Feedback**: Document all testing results, UI bugs, and console errors
    - **IF API_FOCUSED**: Note that UI testing was skipped for API-only implementation
-   - **Combined Analysis**:
+   - **Combined Multi-Model Analysis**:
      * Merge and deduplicate issues from all reviewers
      * Categorize by severity (critical, major, minor)
      * Identify overlapping concerns (higher confidence when multiple reviewers find the same issue)

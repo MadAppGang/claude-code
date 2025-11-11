@@ -1,9 +1,11 @@
 # MCP Server Configuration
 
-The frontend plugin includes two MCP servers that auto-load when the plugin is enabled:
+The frontend plugin includes four MCP servers that auto-load when the plugin is enabled:
 
 - **Apidog** - API documentation and endpoint management
 - **Figma** - Design file access and component import
+- **Chrome DevTools** - Browser debugging and UI inspection
+- **Claudish** - External AI models via OpenRouter (Codex, Grok, GPT-5, etc.)
 
 ## How It Works
 
@@ -33,7 +35,8 @@ Create or edit `.claude/settings.local.json` in your project:
 {
   "env": {
     "APIDOG_API_TOKEN": "your-personal-token-here",
-    "FIGMA_ACCESS_TOKEN": "your-figma-token-here"
+    "FIGMA_ACCESS_TOKEN": "your-figma-token-here",
+    "OPENROUTER_API_KEY": "your-openrouter-key-here"
   }
 }
 ```
@@ -60,6 +63,8 @@ Add to `.claude/settings.json` (this gets committed):
 Run `/mcp` to see connected servers. You should see:
 - ✅ apidog (if APIDOG_API_TOKEN and APIDOG_PROJECT_ID are set)
 - ✅ figma (if FIGMA_ACCESS_TOKEN is set)
+- ✅ chrome-devtools (always available, no credentials required)
+- ✅ claudish (if OPENROUTER_API_KEY is set)
 
 ## Interactive Setup
 
@@ -95,6 +100,51 @@ The configuration is saved, so you won't be asked again.
 
 **Get your token:** https://www.figma.com/developers/api#access-tokens
 
+### Chrome DevTools
+
+**No configuration required** - Works out of the box!
+
+**What it does:**
+- Launch and control Chrome browser instances
+- Inspect DOM and CSS
+- Debug responsive layouts
+- Capture screenshots
+- Analyze performance
+- Test accessibility
+
+**Used by:**
+- `ui-manual-tester` agent
+- `browser-debugger` skill
+- `/implement` and `/validate-ui` commands
+
+### Claudish
+
+**Required:**
+- `OPENROUTER_API_KEY` (secret, personal) - Your OpenRouter API key
+
+**Get your key:** https://openrouter.ai/keys
+
+**What it does:**
+- Call external AI models (Codex, Grok, GPT-5, MiniMax, Qwen)
+- Get expert code reviews
+- Validate UI/UX designs
+- Technical analysis and architecture advice
+
+**Available models:**
+- `code-review` - OpenAI GPT-5 Codex
+- `ui-review` - OpenAI GPT-5 Codex
+- `design-review` - OpenAI GPT-5 Codex
+- `grok-fast` - xAI Grok (fast coding)
+- `minimax` - MiniMax M2 (high performance)
+- `qwen-vision` - Alibaba Qwen (vision-language)
+
+**Used by:**
+- `/implement` command (code review, design validation)
+- `/validate-ui` command (design validation)
+- Can be used by any agent for specialized tasks
+
+**See:** `/mcp/claudish-mcp/README.md` for detailed usage
+
 ## Configuration Patterns
 
 ### Pattern 1: Team Project + Personal Tokens (Recommended)
@@ -116,7 +166,8 @@ The configuration is saved, so you won't be asked again.
 {
   "env": {
     "APIDOG_API_TOKEN": "personal-token-abc",
-    "FIGMA_ACCESS_TOKEN": "figma-token-xyz"
+    "FIGMA_ACCESS_TOKEN": "figma-token-xyz",
+    "OPENROUTER_API_KEY": "sk-or-v1-..."
   }
 }
 ```
@@ -134,7 +185,8 @@ The configuration is saved, so you won't be asked again.
 {
   "env": {
     "APIDOG_API_TOKEN": "personal-token-abc",
-    "FIGMA_ACCESS_TOKEN": "figma-token-xyz"
+    "FIGMA_ACCESS_TOKEN": "figma-token-xyz",
+    "OPENROUTER_API_KEY": "sk-or-v1-..."
   }
 }
 ```
@@ -160,6 +212,7 @@ The configuration is saved, so you won't be asked again.
 APIDOG_API_TOKEN=personal-token-abc
 APIDOG_PROJECT_ID=team-project-123
 FIGMA_ACCESS_TOKEN=figma-token-xyz
+OPENROUTER_API_KEY=sk-or-v1-...
 ```
 
 **Add to `.gitignore`:**
@@ -173,7 +226,8 @@ FIGMA_ACCESS_TOKEN=figma-token-xyz
   "env": {
     "APIDOG_API_TOKEN": "${APIDOG_API_TOKEN}",
     "APIDOG_PROJECT_ID": "${APIDOG_PROJECT_ID}",
-    "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+    "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}",
+    "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}"
   }
 }
 ```

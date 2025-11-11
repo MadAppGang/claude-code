@@ -1,0 +1,31 @@
+{
+  "name": "@madappgang/claudish-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for calling external AI models (Codex, Grok, GPT-5, etc.) via OpenRouter",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": "./dist/index.js",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun --minify && chmod +x dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "hono": "^4.9.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "files": ["dist/"],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["mcp", "claude-code", "openrouter", "ai-models", "codex"],
+  "author": "Jack Rudenko <i@madappgang.com>",
+  "license": "MIT"
+}

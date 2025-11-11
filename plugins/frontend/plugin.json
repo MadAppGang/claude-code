@@ -1,7 +1,7 @@
 {
 	"name": "frontend",
-	"version": "2.9.0",
-	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5. Features modular best practices system (8 focused skills) for efficient context usage, production-ready patterns, intelligent workflow detection, Chrome DevTools MCP debugging, and modern SPA architecture guidance.",
+	"version": "3.0.0",
+	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5. Features multi-model code review (Claude Sonnet + configurable external AI models via Claudish MCP), modular best practices system (11 focused skills), intelligent workflow detection, Chrome DevTools MCP debugging, and modern SPA architecture guidance.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",
@@ -27,12 +27,9 @@
 		"./agents/api-analyst.md",
 		"./agents/cleaner.md",
 		"./agents/reviewer.md",
-		"./agents/codex-reviewer.md",
 		"./agents/designer.md",
-		"./agents/designer-codex.md",
 		"./agents/css-developer.md",
-		"./agents/ui-developer.md",
-		"./agents/ui-developer-codex.md"
+		"./agents/ui-developer.md"
 	],
 	"commands": [
 		"./commands/implement.md",

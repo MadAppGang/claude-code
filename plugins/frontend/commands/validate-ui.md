@@ -1,10 +1,10 @@
 ---
-description: Multi-agent orchestrated UI design validation with iterative fixes and optional Codex expert review
+description: Multi-agent orchestrated UI design validation with iterative fixes and optional external AI expert review
 ---
 
 ## Task
 
-**Multi-agent orchestration command** - coordinate between designer agent (reviews UI fidelity), ui-developer agent (fixes UI issues), and optional ui-developer-codex agent (expert third-party review) to iteratively validate and fix UI implementation against design references.
+**Multi-agent orchestration command** - coordinate between designer agent (reviews UI fidelity), ui-developer agent (fixes UI issues), and optional external AI models (GPT-5 Codex, Grok) for independent expert review via Claudish MCP to iteratively validate and fix UI implementation against design references.
 
 ### Phase 1: Gather User Inputs
 
@@ -20,9 +20,9 @@ Ask the user directly for the following information:
 2. **Component description** (what are you validating?)
    - Example: "user profile page", "main dashboard", "product card component"
 
-3. **Use Codex agent helper?** (yes or no)
-   - "yes" to enable Codex expert review on each iteration
-   - "no" to skip third-party review
+3. **Use external AI expert review?** (yes or no)
+   - "yes" to enable external AI model review (GPT-5 Codex via Claudish MCP) on each iteration
+   - "no" to use only Claude Sonnet designer review
 
 **Auto-detect reference type from user's input:**
 - Contains "figma.com" → Figma design
@@ -34,7 +34,7 @@ Ask the user directly for the following information:
 Parse the user's text responses:
 - Extract design reference (user's answer to question 1)
 - Extract component description (user's answer to question 2)
-- Extract Codex preference (user's answer to question 3: "yes" or "no")
+- Extract external AI review preference (user's answer to question 3: "yes" or "no")
 
 Auto-detect reference type from the reference string:
 - Contains "figma.com" → Figma design
@@ -71,7 +71,7 @@ Run up to **10 iterations** of the following sequence:
 
 #### Step 3.1: Launch Designer Agent(s) for Parallel Design Validation
 
-**IMPORTANT**: Launch designer and designer-codex agents IN PARALLEL using a SINGLE message with MULTIPLE Task tool calls.
+**IMPORTANT**: If external AI review is enabled, launch TWO designer agents IN PARALLEL using a SINGLE message with TWO Task tool calls (one normal, one with PROXY_MODE for external AI).
 
 **Designer Agent** (always runs):
 
@@ -119,21 +119,25 @@ Review the [Component Name] implementation against the design reference and prov
 Return detailed design review report.
 ```
 
-**Designer-Codex Agent** (if enabled):
+**External AI Designer Review** (if enabled):
 
-If user selected "Yes" for Codex review, launch designer-codex agent IN PARALLEL with designer agent:
+If user selected "Yes" for external AI review, launch designer agent WITH PROXY_MODE IN PARALLEL with the normal designer agent:
 
+Use Task tool with `subagent_type: frontend:designer` and start the prompt with:
 ```
-You are an expert UI/UX designer reviewing a component implementation against a reference design.
+PROXY_MODE: design-review
 
-CRITICAL INSTRUCTION: Be PRECISE and CRITICAL. Do not try to make everything look good.
-Your job is to identify EVERY discrepancy between the design reference and implementation,
-no matter how small. Focus on accuracy and design fidelity.
+Review the [Component Name] implementation against the design reference and provide a detailed design fidelity report.
 
-DESIGN CONTEXT:
-- Component: [Component Name]
-- Design Reference: [Figma URL | file path | remote URL]
-- Implementation URL: [Application URL]
+**CRITICAL**: Be PRECISE and CRITICAL. Do not try to make everything look good. Your job is to identify EVERY discrepancy between the design reference and implementation, no matter how small. Focus on accuracy and design fidelity.
+
+**Design Reference**: [Figma URL | file path | remote URL]
+**Component Description**: [user description, e.g., "user profile page"]
+**Implementation File(s)**: [found file paths, e.g., "src/components/UserProfile.tsx"]
+**Application URL**: [e.g., "http://localhost:5173" or staging URL]
+
+**Your Tasks:**
+[Same validation tasks as Designer Agent above - full design review with same criteria]
 
 VALIDATION CRITERIA:
 
