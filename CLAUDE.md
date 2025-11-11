@@ -12,8 +12,8 @@
 A complete Claude Code plugin marketplace with enterprise-level architecture:
 
 - **Plugin Marketplace** (`mag-claude-plugins`)
-- **Frontend Development Plugin** (v2.9.0) - Full-featured Sonnet-powered
-  - 13 Specialized Agents (including CSS Developer + Designer + Designer-Codex + UI Developer ecosystem)
+- **Frontend Development Plugin** (v3.1.0) - Full-featured Sonnet-powered
+  - 10 Specialized Agents (CSS Developer + Designer + UI Developer ecosystem with multi-model review)
   - 6 Slash Commands
   - **11 Modular Skills** (efficient context usage - load only what you need):
     - **core-principles** - Project structure, execution rules, authoritative sources
@@ -437,8 +437,31 @@ Include marketplace in project settings (requires folder trust):
 - Security best practices
 - Ready for distribution
 
+## Release Documentation
+
+**Version History:** See [CHANGELOG.md](./CHANGELOG.md) for all versions
+
+**Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
+
+**Current Versions:**
+- Frontend Plugin: **v3.1.0** (2025-11-11)
+- Code Analysis Plugin: **v1.1.0**
+- Bun Backend Plugin: **v1.2.0**
+
+**Latest Changes (v3.1.0):**
+- ✅ Replaced Claudish MCP with CLI-based external AI delegation
+- ✅ Added stdin support for large prompts (git diffs)
+- ✅ Simplified architecture: Agent → Bash → CLI → OpenRouter
+- ✅ No MCP configuration needed
+- ✅ 7 agents updated with new PROXY_MODE pattern
+- ✅ Maintained all multi-model review functionality
+
+**Git Tags:**
+- Frontend: `plugins/frontend/v3.1.0`
+- Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
+
 ---
 
 **Maintained by:** Jack Rudenko @ MadAppGang
-**Last Updated:** November 7, 2024
-**Version:** 2.9.0
+**Last Updated:** November 11, 2025
+**Version:** 3.1.0

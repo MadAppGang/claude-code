@@ -5,6 +5,186 @@ All notable changes to the MAG Claude Plugins project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2025-11-11
+
+### Changed
+
+#### Major Architectural Improvement: MCP to CLI Migration
+
+**Problem**: Claudish MCP server added unnecessary complexity requiring MCP configuration, server management, and additional tooling. Large prompts (like git diffs for code review) were difficult to pass through MCP tool calls.
+
+**Solution**: Replace MCP server with direct CLI execution via Bash tool using stdin for large prompts.
+
+#### Claudish CLI Enhancement
+
+**Added stdin support (`--stdin` flag):**
+- Implemented `readStdin()` function to handle piped input
+- Updated CLI argument parser with `--stdin` flag
+- Added comprehensive help documentation with stdin examples
+- Enables: `echo "$PROMPT" | npx claudish --stdin --model x-ai/grok-code-fast-1 --quiet`
+
+**Benefits:**
+- ✅ No size limits for prompts (handles large git diffs)
+- ✅ Standard Unix piping patterns
+- ✅ Better integration with shell scripts
+- ✅ Cleaner architecture
+
+#### Agent Updates (7 agents migrated to CLI approach)
+
+**Updated agents:**
+- `reviewer.md` - Senior code reviewer
+- `developer.md` - TypeScript frontend developer
+- `architect.md` - Frontend architecture planner
+- `designer.md` - UI/UX design reviewer
+- `css-developer.md` - CSS architecture specialist
+- `ui-developer.md` - Senior UI developer
+- `test-architect.md` - Test strategy and implementation
+
+**PROXY_MODE Pattern Changes:**
+- **Before**: Used `mcp__claudish__call_external_ai` MCP tool
+- **After**: Uses Bash tool with `npx claudish --stdin --model {model} --quiet`
+- **Maintained**: Same PROXY_MODE directive detection and delegation logic
+- **Improved**: Better handling of large prompts via stdin
+
+**Example PROXY_MODE workflow:**
+```markdown
+1. Agent detects: PROXY_MODE: x-ai/grok-code-fast-1
+2. Prepares full prompt (system context + task)
+3. Executes: echo "$PROMPT" | npx claudish --stdin --model x-ai/grok-code-fast-1 --quiet
+4. Returns external AI response with attribution
+5. Done - no local execution
+```
+
+#### Command Updates
+
+**/implement command:**
+- Updated multi-model code review from "Claudish MCP" to "Claudish CLI"
+- Changed setup verification from MCP server to CLI check
+- Updated documentation: `npx claudish --help` to verify installation
+
+**/validate-ui command:**
+- Updated design validation from "Claudish MCP" to "Claudish CLI"
+- Maintained same external AI validation functionality
+- Simplified setup instructions
+
+### Removed
+
+#### Claudish MCP Server (Complete Removal)
+
+**Deleted files:**
+- `mcp/claudish-mcp/.gitignore`
+- `mcp/claudish-mcp/README.md`
+- `mcp/claudish-mcp/biome.json`
+- `mcp/claudish-mcp/package.json`
+- `mcp/claudish-mcp/src/index.ts`
+- `mcp/claudish-mcp/tsconfig.json`
+
+**Configuration cleanup:**
+- Removed `claudish` entry from `mcp-config.json`
+- Removed `claudish` entry from `mcp-config.example.json`
+- Updated MCP servers README to remove Claudish MCP references
+- Removed MCP server verification step from documentation
+
+**Documentation updates:**
+- `plugins/frontend/DEPENDENCIES.md` - Changed from MCP setup to CLI setup
+- `plugins/frontend/mcp-servers/README.md` - Updated Claudish section
+- Deleted outdated `ai-docs/CODEX_AGENT_REPLACEMENT_STRATEGY.md`
+
+### Benefits
+
+#### Simpler Architecture
+- **Before**: Agent → MCP Tool Call → Claudish MCP Server → OpenRouter API
+- **After**: Agent → Bash Tool → npx claudish --stdin → OpenRouter API
+
+#### Developer Experience
+- ✅ **No MCP Configuration** - Just `npx claudish` works
+- ✅ **Faster Setup** - One less server to configure
+- ✅ **Better for Large Prompts** - stdin handles unlimited input size
+- ✅ **More Flexible** - CLI can be used standalone outside Claude Code
+- ✅ **Easier Debugging** - Direct command-line execution
+- ✅ **Simpler Maintenance** - One less moving part
+
+#### Performance
+- ✅ **Direct Execution** - No MCP protocol overhead
+- ✅ **Faster for API Tasks** - 30-40% improvement maintained from v2.8.0
+- ✅ **Better Token Efficiency** - No MCP message wrapping
+
+#### Cost
+- ✅ **Reduced Complexity** - Fewer failure points
+- ✅ **Lower Maintenance** - No MCP server updates needed
+- ✅ **Same OpenRouter Costs** - External AI pricing unchanged
+
+### Migration Guide
+
+**For users with Claudish MCP configured:**
+
+1. **Remove Claudish MCP from configuration:**
+   ```bash
+   # Edit .claude/mcp-servers/config.json (if exists)
+   # Remove "claudish" entry
+   ```
+
+2. **Verify Claudish CLI is available:**
+   ```bash
+   npx claudish --help
+   ```
+
+3. **Keep environment variable:**
+   ```bash
+   # OPENROUTER_API_KEY still required
+   export OPENROUTER_API_KEY="sk-or-v1-your-key"
+   ```
+
+4. **Update plugin:**
+   ```bash
+   /plugin marketplace update mag-claude-plugins
+   /plugin uninstall frontend@mag-claude-plugins
+   /plugin install frontend@mag-claude-plugins
+   ```
+
+**No changes needed for:**
+- ✅ `.claude/settings.json` plugin configuration
+- ✅ `pluginSettings.frontend.reviewModels` configuration
+- ✅ PROXY_MODE usage in agents (works exactly the same)
+- ✅ Multi-model code review functionality
+- ✅ External AI delegation features
+
+### Breaking Changes
+
+**None for end users.** External AI delegation works identically with PROXY_MODE. Only internal implementation changed from MCP to CLI.
+
+**For developers/contributors:**
+- Agents no longer use `mcp__claudish__call_external_ai` tool
+- Must use Bash tool with `npx claudish --stdin` pattern
+- See updated agent files for new PROXY_MODE implementation
+
+### Technical Details
+
+**Files Changed**: 46 files
+- **Lines Added**: ~6,346 lines (including Claudish improvements)
+- **Lines Removed**: ~1,754 lines (MCP server deletion)
+- **Net Change**: +4,592 lines
+
+**Git Tags**: `plugins/frontend/v3.1.0`
+
+**Commit**: `117378e3abf2544a73cbe8cd555f56b504b1fd83`
+
+### Testing
+
+**Verification checklist:**
+- ✅ Claudish CLI stdin support works with large inputs
+- ✅ All 7 agents properly detect PROXY_MODE directive
+- ✅ External AI delegation functions correctly via CLI
+- ✅ Multi-model code review works as expected
+- ✅ No MCP references remain in plugin code
+- ✅ Documentation updated comprehensively
+
+### Version
+
+**Frontend Plugin**: 3.0.0 → 3.1.0
+
+---
+
 ## [2.8.0] - 2025-11-06
 
 ### Added
