@@ -437,6 +437,7 @@ The complete guide includes:
 - **[Development Guide](./docs/development-guide.md)** - How to create plugins
 - **[Contributing Guide](./docs/contributing.md)** - How to contribute to the marketplace
 - **[Marketplace Reference](./docs/marketplace-reference.md)** - Technical schemas and structure
+- **[Version Validation](./docs/VALIDATION.md)** - Automated version validation system (prevents marketplace/plugin version mismatches)
 
 ### Technical Documentation
 
