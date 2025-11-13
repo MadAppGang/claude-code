@@ -1,6 +1,6 @@
 {
 	"name": "frontend",
-	"version": "3.3.1",
+	"version": "3.4.0",
 	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5. Features ultra-efficient agent orchestration with user validation loops, multi-model plan review (catch issues before coding), issue-specific debug flows (UI/Functional/Mixed), multi-model code review (Claude Sonnet + external AI via Claudish CLI), modular best practices (11 focused skills), intelligent workflow detection, and Chrome DevTools MCP debugging.",
 	"author": {
 		"name": "Jack Rudenko",

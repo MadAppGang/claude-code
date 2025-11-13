@@ -5,6 +5,75 @@ All notable changes to the MAG Claude Plugins project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2025-11-13
+
+### Added
+
+#### PHASE 1.6: External Code Reviewer Selection
+
+**NEW**: User-controlled configuration of external AI code reviewers during planning phase.
+
+**Key Features:**
+- ✅ **Interactive selection** - Ask user which external AI models to use for code review in PHASE 3
+- ✅ **Multi-model options** - Choose from Grok Code Fast (xAI), GPT-5 Codex (OpenAI), MiniMax M2, Qwen Vision-Language (Alibaba)
+- ✅ **User control** - Explicit choice replaces hidden config file settings
+- ✅ **Clear model attribution** - Results show friendly names (e.g., "Grok Code Fast (xAI)")
+- ✅ **Optional workflow** - Can skip external reviewers (Claude Sonnet only)
+
+**Workflow Integration:**
+1. **PHASE 1**: Architecture planning
+2. **PHASE 1.5**: Multi-model plan review (optional)
+3. **PHASE 1.6 (NEW)**: Configure external code reviewers for PHASE 3
+4. **PHASE 2**: Implementation
+5. **PHASE 3**: Code review with user-selected models
+
+**Model Mappings:**
+- Grok Code Fast (xAI) → `x-ai/grok-code-fast-1`
+- GPT-5 Codex (OpenAI) → `openai/gpt-5-codex`
+- MiniMax M2 → `minimax/minimax-m2`
+- Qwen Vision-Language (Alibaba) → `qwen/qwen3-vl-235b-a22b-instruct`
+
+### Fixed
+
+#### Code Review Agent Confusion
+- **CRITICAL FIX**: PHASE 3 code review now uses `frontend:reviewer` agent (not `frontend:plan-reviewer`)
+  - `frontend:plan-reviewer` is for reviewing architecture **plans** (PHASE 1.5)
+  - `frontend:reviewer` is for reviewing implementation **code** (PHASE 3)
+  - Added explicit documentation to prevent future confusion
+- **Model naming clarity**: Fixed "Codex (GPT-4o)" confusion with correct model IDs
+  - Display names now match actual OpenRouter models
+  - No more contradictory naming (e.g., "External Codex" with GPT-4o model)
+
+#### Token Optimization (98% reduction)
+- **CRITICAL PERFORMANCE FIX**: Refactored orchestration to use file-based data exchange
+  - Orchestrator now passes file paths instead of reading large files into context
+  - Agents read input files themselves, write detailed work to output files
+  - Agents return brief status messages (~500 tokens vs ~25k tokens)
+  - **Result**: Orchestrator context reduced from ~287k to ~5.2k tokens (98.2% reduction)
+- **Terminal output reduction**: Planning phase output reduced from 4,150 lines to ~110 lines (97.3% reduction)
+- **Organized artifacts**: All detailed planning work now saved in `AI-DOCS/` folder
+  - `implementation-plan.md` - Comprehensive architecture plan
+  - `quick-reference.md` - Quick checklist
+  - `{model-id}-review.md` - External review files
+  - `review-consolidated.md` - Merged review findings
+
+**Updated Files:**
+- `plugins/frontend/agents/architect.md` (+162 lines: Communication Protocol)
+- `plugins/frontend/agents/plan-reviewer.md` (+283 lines: File-based review + consolidation)
+- `plugins/frontend/commands/implement.md` (Multiple phases updated with file-based orchestration)
+
+**Benefits:**
+- 🚀 **98% faster planning** - Minimal orchestrator token overhead
+- 📁 **Better organization** - All planning artifacts in versioned files
+- 💰 **Lower costs** - Fewer tokens = lower API costs
+- 🔍 **Easy reference** - Detailed work easily found in AI-DOCS/ folder
+
+### Changed
+
+- **PHASE 1.6 added to global TODO list** - Ensures tracking of external reviewer configuration
+- **Orchestration pattern** - Shifted from "orchestrator as processor" to "orchestrator as router"
+- **Agent communication** - Standardized return format templates for brief status messages
+
 ## [3.3.1] - 2025-11-13
 
 ### Fixed

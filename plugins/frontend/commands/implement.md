@@ -152,6 +152,9 @@ TodoWrite with the following items:
 - content: "PHASE 1.5: User decision on plan revision"
   status: "pending"
   activeForm: "PHASE 1.5: Waiting for user decision on plan revision"
+- content: "PHASE 1.6: Configure external code reviewers for PHASE 3"
+  status: "pending"
+  activeForm: "PHASE 1.6: Configuring external code reviewers"
 - content: "PHASE 2: Launch developer for implementation"
   status: "pending"
   activeForm: "PHASE 2: Launching developer for implementation"
@@ -391,21 +394,71 @@ These will be referenced in subsequent phases to route execution correctly.
 1. **Launch Planning Agent**:
    - **Update TodoWrite**: Ensure "PHASE 1: Launch architect" is marked as in_progress
    - Use Task tool with `subagent_type: frontend:architect`
-   - Provide the feature request: $ARGUMENTS
+   - **CRITICAL**: Do NOT read large input files yourself - pass file paths to agent
+   - Provide concise prompt following this template:
+
+   ```
+   Create a comprehensive implementation plan for this feature.
+
+   FEATURE REQUEST:
+   ${ARGUMENTS}
+
+   WORKFLOW TYPE: ${workflow_type}
+
+   INPUT FILES TO READ (read these yourself using Read tool):
+   [List any relevant files the architect should read, e.g.:]
+   - API_COMPLIANCE_PLAN.md (if exists in current directory)
+   - ~/Downloads/spec.json (if user provided a spec file)
+   - Any other user-provided documentation files
+
+   OUTPUT FILES TO WRITE (use Write tool):
+   - AI-DOCS/implementation-plan.md (comprehensive detailed plan)
+   - AI-DOCS/quick-reference.md (quick checklist)
+
+   REQUIREMENTS:
+   - Perform gap analysis and ask clarifying questions first
+   - Create comprehensive plan with file paths, line numbers, code examples
+   - Include testing strategy, risk assessment, time estimates
+   - Write detailed plan to files (NO length restrictions)
+
+   RETURN FORMAT (use template from agent instructions):
+   - Status: COMPLETE | BLOCKED | NEEDS_CLARIFICATION
+   - Summary: 1-2 sentences
+   - Top 3 breaking changes
+   - Time estimate
+   - Files created
+   - DO NOT return full plan in message (write to files)
+   ```
+
    - Agent will perform gap analysis and ask clarifying questions
-   - Agent will create comprehensive plan in AI-DOCS/
+   - Agent will create comprehensive plan in AI-DOCS/implementation-plan.md
+   - Agent will return brief status summary ONLY (not full plan)
    - **Update TodoWrite**: Mark "PHASE 1: Launch architect" as completed
 
-2. **User Approval Gate**:
+2. **Present Plan to User**:
+   - Show the brief status summary from agent
+   - **DO NOT read AI-DOCS/implementation-plan.md yourself**
+   - Show user where to find the detailed plan:
+   ```markdown
+   ✅ PHASE 1 Complete: Architecture Plan Created
+
+   [Show brief status from agent here - it will include top breaking changes and estimate]
+
+   📄 **Detailed Plan**: AI-DOCS/implementation-plan.md
+   📄 **Quick Reference**: AI-DOCS/quick-reference.md
+
+   Please review the implementation plan before proceeding.
+   ```
+
+3. **User Approval Gate**:
    - **Update TodoWrite**: Mark "PHASE 1: User approval gate" as in_progress
-   - Present the plan to the user clearly
    - Use AskUserQuestion to ask: "Are you satisfied with this architecture plan?"
    - Options:
      * "Yes, proceed to implementation"
      * "Get AI review first (recommended)" - Triggers PHASE 1.5 multi-model plan review
      * "No, I have feedback" - Allows plan revision
 
-3. **Feedback Loop**:
+4. **Feedback Loop**:
    - IF user selects "No, I have feedback":
      * Collect specific feedback
      * **Update TodoWrite**: Add "PHASE 1 - Iteration X: Re-run planner with feedback" task
@@ -506,26 +559,14 @@ Use **AskUserQuestion** with **multiSelect: true**:
 
 ---
 
-#### Step 3: Prepare Plan Review Context
-
-**Collect context for reviewers:**
-
-1. **Find architecture plan file(s)** from AI-DOCS/ folder:
-   - Use Glob to find plan file(s): `AI-DOCS/*.md`
-   - Store the file path(s) (e.g., `AI-DOCS/api-compliance-implementation-plan.md`)
-   - **DO NOT read the file content** - agents can read it themselves
-
-2. **Prepare review prompt** with:
-   - Original feature request: `$ARGUMENTS`
-   - **Architecture plan file path(s)** (not content!)
-   - Workflow type: `workflow_type` (from STEP 0.5)
-   - Any additional constraints or requirements from the feature request
-
----
-
-#### Step 4: Launch Plan Reviewers in Parallel
+#### Step 3: Launch Plan Reviewers in Parallel
 
 **CRITICAL**: Launch ALL selected models in parallel using a **single message** with **multiple Task tool calls**.
+
+**Find architecture plan file** from AI-DOCS/ folder:
+   - Use Glob to find: `AI-DOCS/*implementation-plan.md` or `AI-DOCS/*.md`
+   - Store the file path (e.g., `AI-DOCS/implementation-plan.md`)
+   - **DO NOT read the file** - reviewers will read it themselves
 
 For EACH model in `plan_review_models`:
 
@@ -535,80 +576,42 @@ Use **Task tool** with `subagent_type: frontend:plan-reviewer`
 ```
 PROXY_MODE: {model_id}
 
-Review the architecture plan for the following feature and provide critical feedback.
+Review the architecture plan via {model_name} and provide critical feedback.
 
-**Feature Request:**
-{$ARGUMENTS}
+FEATURE REQUEST:
+${ARGUMENTS}
 
-**Architecture Plan File:**
-{file_path} (e.g., AI-DOCS/api-compliance-implementation-plan.md)
+WORKFLOW TYPE: ${workflow_type}
 
-Read this file to understand the complete architecture plan before reviewing.
+INPUT FILE (read this yourself using Read tool):
+- AI-DOCS/implementation-plan.md
 
-**Workflow Type:** {workflow_type}
+OUTPUT FILE (write detailed review here using Write tool):
+- AI-DOCS/{model-id}-review.md
+  (e.g., AI-DOCS/grok-review.md, AI-DOCS/codex-review.md)
 
-**Your Task:**
+REVIEW CRITERIA:
+- Architectural issues (design flaws, scalability, maintainability)
+- Missing considerations (edge cases, error handling, security)
+- Alternative approaches (better patterns, simpler solutions)
+- Technology choices (better tools, compatibility)
+- Implementation risks (complex areas, testing challenges)
 
-You are an expert software architect reviewing this implementation plan BEFORE any code is written. Your job is to identify:
+INSTRUCTIONS:
+- Be CRITICAL and THOROUGH
+- Prioritize by severity (CRITICAL / MEDIUM / LOW)
+- Provide actionable recommendations with code examples
+- If plan is solid, say so clearly (don't invent issues)
+- Write detailed review to AI-DOCS/{model-id}-review.md
+- Follow review format from agent instructions
 
-1. **Architectural Issues:**
-   - Design flaws or anti-patterns
-   - Scalability concerns
-   - Maintainability issues
-   - Coupling or cohesion problems
-
-2. **Missing Considerations:**
-   - Edge cases not addressed
-   - Error handling gaps
-   - Performance implications
-   - Security vulnerabilities
-   - Accessibility requirements (WCAG 2.1 AA)
-
-3. **Alternative Approaches:**
-   - Better patterns or architectures
-   - Simpler solutions
-   - More efficient implementations
-   - Industry best practices (React 19, TypeScript, modern frontend 2025)
-
-4. **Technology Choices:**
-   - Better libraries or tools
-   - Compatibility concerns
-   - Technical debt implications
-
-5. **Implementation Risks:**
-   - Complex areas that might cause problems
-   - Dependencies or integration points
-   - Testing challenges
-
-**IMPORTANT:**
-- Be CRITICAL and THOROUGH - this is the last chance to catch issues before implementation
-- Focus on HIGH-VALUE feedback that will save time/effort during implementation
-- Prioritize findings by severity (CRITICAL / MEDIUM / LOW)
-- Provide specific, actionable recommendations with code examples where helpful
-- If the plan is solid, say so clearly (don't invent issues)
-
-**Output Format:**
-
-## Overall Assessment
-[APPROVED ✅ | NEEDS REVISION ⚠️ | MAJOR CONCERNS ❌]
-
-## Critical Issues (Must Address Before Implementation)
-[List CRITICAL severity issues, or "None found"]
-- Issue: [description]
-  Recommendation: [specific fix]
-  Rationale: [why this matters]
-
-## Medium Priority Suggestions (Should Consider)
-[List MEDIUM severity suggestions, or "None"]
-
-## Low Priority Improvements (Nice to Have)
-[List LOW severity improvements, or "None"]
-
-## Strengths of This Plan
-[What the plan does well]
-
-## Overall Recommendation
-[Summary and next steps]
+RETURN FORMAT (use template from agent instructions):
+**DO NOT return full review in message**
+Return ONLY:
+- Verdict: APPROVED | NEEDS REVISION | MAJOR CONCERNS
+- Issues count: Critical/Medium/Low
+- Top concern (one sentence)
+- Review file path and line count
 ```
 
 **Example parallel execution** (if user selected Grok + Codex):
@@ -616,153 +619,93 @@ You are an expert software architect reviewing this implementation plan BEFORE a
 Send a single message with 2 Task calls:
 
 Task 1: frontend:plan-reviewer with PROXY_MODE: x-ai/grok-code-fast-1
+  Output: AI-DOCS/grok-review.md
+
 Task 2: frontend:plan-reviewer with PROXY_MODE: openai/gpt-5-codex
+  Output: AI-DOCS/codex-review.md
 
 Both run in parallel.
+Both return brief verdicts (~20 lines each).
 ```
 
 **Wait for ALL reviewers to complete** before proceeding.
 
+Each reviewer will return a brief verdict. **DO NOT read the review files yourself** - they will be consolidated in the next step.
+
 ---
 
-#### Step 5: Consolidate Multi-Model Feedback
+#### Step 4: Launch Consolidation Agent
 
 **Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as in_progress
 
-After all reviewers complete, consolidate their findings:
+**CRITICAL**: The orchestrator does NOT consolidate reviews - a consolidation agent does this work.
 
-**a. Extract findings from each model:**
-   - Critical issues (with descriptions and recommendations)
-   - Medium suggestions
-   - Low improvements
-   - Plan strengths
-   - Overall assessment (APPROVED / NEEDS REVISION / MAJOR CONCERNS)
+**Launch consolidation agent:**
 
-**b. Identify consensus issues:**
-   - Issues flagged by **2+ models** → **HIGHEST PRIORITY** (cross-model consensus = strong signal)
-   - Issues flagged by **1 model** → Still valuable, but lower confidence
+Use **Task tool** with `subagent_type: frontend:plan-reviewer`
 
-**c. Categorize by domain:**
-   - Architecture/Design
-   - Security
-   - Performance
-   - Maintainability
-   - Testing/Quality
-   - Technology Choices
-   - Edge Cases/Error Handling
+**Prompt:**
+```
+Consolidate multiple architecture plan reviews into a single report.
 
-**d. Deduplicate similar findings:**
-   - If multiple models identify the same issue, merge into one
-   - Note which models agreed (adds weight to the finding)
+MODE: CONSOLIDATION
 
-**e. Create consolidated severity levels:**
-   - **CRITICAL (Cross-Model)**: Multiple models flagged as critical → Must fix
-   - **CRITICAL (Single Model)**: One model flagged as critical → Should strongly consider
-   - **MEDIUM**: At least one model flagged as medium → Worth addressing
-   - **LOW**: Nice-to-have improvements
+INPUT FILES (read all of these yourself using Read tool):
+${plan_review_models.map(model => `- AI-DOCS/${model.id}-review.md`).join('\n')}
 
----
+MODELS REVIEWED:
+${plan_review_models.map(model => `- ${model.name} (${model.id})`).join('\n')}
 
-#### Step 6: Present Consolidated Feedback to User
+OUTPUT FILE (write consolidated report here using Write tool):
+- AI-DOCS/review-consolidated.md
 
-Present the following format:
+CONSOLIDATION REQUIREMENTS:
+1. Identify cross-model consensus (issues flagged by 2+ models = HIGH CONFIDENCE)
+2. Group all issues by severity (Critical/Medium/Low)
+3. Categorize by domain (Architecture, Security, Performance, etc.)
+4. Eliminate duplicate findings (merge similar issues, note which models flagged each)
+5. Provide overall recommendation (PROCEED / REVISE_FIRST / MAJOR_REWORK)
+6. Include dissenting opinions if models disagree
+7. Create executive summary with key findings
 
-```markdown
-# 🎯 PHASE 1.5: Multi-Model Plan Review Results
+FORMAT: Follow consolidation format from agent instructions
 
-**Models Consulted:** {plan_review_models.length} independent AI models
-- {Model 1 Name} ({model_id_1})
-- {Model 2 Name} ({model_id_2})
-...
-
----
-
-## 📊 Overall Assessment Summary
-
-**Model Consensus:**
-- ✅ APPROVED: {count} models
-- ⚠️ NEEDS REVISION: {count} models
-- ❌ MAJOR CONCERNS: {count} models
-
-**Recommendation:** [Based on majority vote and severity of issues]
-
----
-
-## 🚨 Critical Issues (Must Address)
-
-### Issue 1: [Title]
-**Flagged by:** {Grok, GPT-5 Codex} **[2/2 models - UNANIMOUS]**
-**Category:** [Architecture/Security/Performance/etc.]
-
-**Description:**
-[Consolidated description from all models that flagged this]
-
-**Current Plan Approach:**
-[What the plan currently says]
-
-**Recommended Change:**
-[Specific actionable fix, synthesized from model recommendations]
-
-**Rationale:**
-[Why this matters, what could go wrong if not addressed]
-
-**Example Code** (if applicable):
-```typescript
-// Recommended pattern
-[Code example from model feedback]
+RETURN FORMAT (use template from agent instructions):
+**DO NOT return full consolidated report in message**
+Return ONLY:
+- Models consulted count
+- Consensus verdict
+- Issues breakdown (Critical X, Medium Y, Low Z)
+- High-confidence issues count (flagged by 2+ models)
+- Recommendation (PROCEED / REVISE_FIRST / MAJOR_REWORK)
+- Report file path and line count
 ```
 
----
+**Wait for consolidation agent to complete**.
 
-### Issue 2: [Title]
-**Flagged by:** {GPT-5 Codex} **[1/2 models]**
-**Category:** [Category]
-
-[Same structure as above]
+The agent will return a brief summary (~25 lines). **DO NOT read AI-DOCS/review-consolidated.md yourself** - you'll present the brief summary to the user.
 
 ---
 
-## ⚠️ Medium Priority Suggestions
+#### Step 5: Present Consolidated Feedback to User
 
-[List medium issues with model attribution]
+Present the following simple format showing the brief summary from the consolidation agent:
 
-### Suggestion 1: [Title]
-**Flagged by:** {Model names}
-**Description:** [What could be improved]
-**Recommendation:** [How to improve]
+```markdown
+✅ PHASE 1.5 Complete: Multi-Model Plan Review
 
----
+[Show brief summary from consolidation agent here - it includes:]
+- Models consulted count
+- Consensus verdict
+- Issues breakdown
+- High-confidence issues
+- Recommendation
 
-## 💡 Low Priority Improvements
+📄 **Consolidated Report**: AI-DOCS/review-consolidated.md
+📄 **Individual Reviews**:
+${plan_review_models.map(model => `   - AI-DOCS/${model.id}-review.md (${model.name})`).join('\n')}
 
-[List nice-to-have improvements]
-
----
-
-## ✅ Plan Strengths (Validated by Models)
-
-[Things multiple models praised]
-- **Strength 1**: [Description] - Noted by {Model names}
-- **Strength 2**: [Description] - Noted by {Model names}
-
----
-
-## 📈 Summary
-
-**Total Issues Found:**
-- Critical: {count}
-- Medium: {count}
-- Low: {count}
-
-**Cross-Model Consensus:**
-- {count} issues flagged by multiple models (high confidence)
-- {count} issues flagged by single model (still valuable)
-
-**Overall Recommendation:**
-[Synthesized recommendation from all models - be clear about next steps]
-
-If NEEDS REVISION or MAJOR CONCERNS, emphasize the critical issues that should be addressed.
-If APPROVED, note that implementation can proceed with confidence.
+Please review the consolidated report to see detailed findings and recommendations.
 ```
 
 **Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as completed
@@ -801,14 +744,57 @@ Options:
 1. **Launch architect agent** to revise plan:
    - **Update TodoWrite**: Add "PHASE 1.5: Architect revising plan based on multi-model feedback"
    - Use Task tool with `subagent_type: frontend:architect`
-   - Provide:
-     * Original feature request
-     * Current architecture plan (from AI-DOCS)
-     * **Complete consolidated multi-model feedback**
-     * Instruction: "Revise the architecture plan addressing the critical and medium issues identified by multi-model review. Focus especially on issues flagged by multiple models (cross-model consensus)."
+   - **CRITICAL**: Do NOT read review files yourself - pass paths to architect
+   - Provide concise prompt following this template:
+
+   ```
+   Revise the implementation plan based on multi-model architecture review feedback.
+
+   ORIGINAL FEATURE REQUEST:
+   ${ARGUMENTS}
+
+   INPUT FILES (read these yourself using Read tool):
+   - AI-DOCS/implementation-plan.md (your original plan)
+   - AI-DOCS/review-consolidated.md (consolidated feedback from ${plan_review_models.length} AI models)
+   - AI-DOCS/*-review.md (individual reviews if you need more details)
+
+   OUTPUT FILES (write these using Write tool):
+   - AI-DOCS/implementation-plan.md (OVERWRITE with revised version)
+   - AI-DOCS/revision-summary.md (NEW - document what changed and why)
+
+   REVISION REQUIREMENTS:
+   - Address ALL critical issues from reviews
+   - Address medium issues if feasible
+   - Focus especially on cross-model consensus issues (flagged by 2+ models)
+   - Document why you made each change
+   - If you disagree with a review point, document why
+   - Update time estimates based on new complexity
+
+   RETURN FORMAT (use revision template from agent instructions):
+   - Status: COMPLETE
+   - Summary: 1-2 sentences
+   - Critical issues addressed count
+   - Medium issues addressed count
+   - Major changes (max 5)
+   - Updated time estimate
+   - Files updated
+   - DO NOT return full revised plan in message (write to files)
+   ```
 
 2. **After architect completes revision:**
-   - Present revised plan to user
+   - Show brief summary from architect
+   - **DO NOT read the revised plan yourself**
+   - Present to user:
+   ```markdown
+   ✅ Plan Revised Based on Multi-Model Feedback
+
+   [Show brief summary from architect here]
+
+   📄 **Revised Plan**: AI-DOCS/implementation-plan.md
+   📄 **Change Summary**: AI-DOCS/revision-summary.md
+
+   Please review the changes before proceeding.
+   ```
    - Use AskUserQuestion: "Are you satisfied with the revised architecture plan?"
    - Options: "Yes, proceed to implementation" / "No, I have more feedback"
 
@@ -908,7 +894,130 @@ Similar to code review models in PHASE 3, support configuration in `.claude/sett
 **If skipped:**
 - ✅ User explicitly chose to skip (or external AI unavailable)
 - ✅ All PHASE 1.5 todos marked as completed/skipped
-- ✅ Ready to proceed to PHASE 2
+- ✅ Ready to proceed to PHASE 1.6
+
+---
+
+### PHASE 1.6: Configure External Code Reviewers (Optional but Recommended)
+
+**NEW in v3.4.0**: Choose which external AI models will review your implementation code in PHASE 3. Getting multiple independent perspectives on code helps catch issues that a single reviewer might miss.
+
+**When to trigger**: After plan approval (whether via PHASE 1, 1.5, or 1.5b)
+
+**Purpose**: Let user decide which external AI models to use for code review in PHASE 3
+
+---
+
+#### Step 1: Ask User About External Code Reviewers
+
+**Update TodoWrite**: Mark "PHASE 1.6: Configure external code reviewers" as in_progress
+
+Present the external code reviewer selection introduction:
+
+```markdown
+## 🤖 External Code Reviewers Configuration
+
+Before starting implementation, let's configure which external AI models will review your code in PHASE 3.
+
+**Why use external code reviewers?**
+- ✅ Multiple independent perspectives catch more issues
+- ✅ Different AI models have different strengths (security, performance, patterns)
+- ✅ Cross-model consensus increases confidence in code quality
+- ✅ Helps identify issues before manual testing or deployment
+
+**Available AI models for code review:**
+- **Grok Code Fast (xAI)** - Fast code analysis with focus on modern patterns and efficiency
+- **GPT-5 Codex (OpenAI)** - Advanced reasoning for complex logic, edge cases, and architecture
+- **MiniMax M2** - High-performance analysis with strong pattern recognition
+- **Qwen Vision-Language (Alibaba)** - Multi-modal code understanding and optimization suggestions
+
+**Default**: Claude Sonnet (always runs) + your selected external models
+
+**Requirements**: Claudish CLI + OPENROUTER_API_KEY environment variable
+```
+
+Use **AskUserQuestion** with **multiSelect: true**:
+
+```json
+{
+  "questions": [{
+    "question": "Which external AI models would you like to review your implementation code in PHASE 3? (Select one or more, or select 'Other' to skip)",
+    "header": "Code Review",
+    "multiSelect": true,
+    "options": [
+      {
+        "label": "Grok Code Fast (xAI)",
+        "description": "Fast code analysis with modern patterns and efficiency focus"
+      },
+      {
+        "label": "GPT-5 Codex (OpenAI)",
+        "description": "Advanced reasoning for complex logic, edge cases, and architecture"
+      },
+      {
+        "label": "MiniMax M2",
+        "description": "High-performance analysis with strong pattern recognition"
+      },
+      {
+        "label": "Qwen Vision-Language (Alibaba)",
+        "description": "Multi-modal code understanding and optimization suggestions"
+      }
+    ]
+  }]
+}
+```
+
+**Map user selections to OpenRouter model IDs:**
+- "Grok Code Fast (xAI)" → `x-ai/grok-code-fast-1`
+- "GPT-5 Codex (OpenAI)" → `openai/gpt-5-codex`
+- "MiniMax M2" → `minimax/minimax-m2`
+- "Qwen Vision-Language (Alibaba)" → `qwen/qwen3-vl-235b-a22b-instruct`
+- "Other" (user skips) → Empty array `[]`
+
+**Store as `code_review_models` array** (e.g., `["x-ai/grok-code-fast-1", "openai/gpt-5-codex"]`)
+
+**If user selects "Other" (skip)**:
+- Set `code_review_models = []`
+- Log: "ℹ️ User chose to skip external code reviewers. Only Claude Sonnet will review in PHASE 3."
+- **Note**: User can still get thorough code review from Claude Sonnet alone
+
+**If user selects one or more models**:
+- Store model IDs in `code_review_models` array
+- Log: "✅ External code reviewers configured: ${code_review_models.length} models selected"
+- These will be used in PHASE 3 for parallel code review
+
+---
+
+#### Step 2: Update TODO List for PHASE 3
+
+Based on user selection and workflow type, update the PHASE 3 todos:
+
+**If `code_review_models.length > 0`:**
+```
+Update PHASE 3 todos:
+- "PHASE 3: Launch ${1 + code_review_models.length} code reviewers in parallel (Claude Sonnet + ${code_review_models.length} external models)"
+- "PHASE 3: Analyze review results from ${1 + code_review_models.length} reviewers"
+```
+
+**If `code_review_models.length === 0`:**
+```
+Update PHASE 3 todos:
+- "PHASE 3: Launch 1 code reviewer (Claude Sonnet only)"
+- "PHASE 3: Analyze review results"
+```
+
+**Update TodoWrite**: Mark "PHASE 1.6: Configure external code reviewers" as completed
+
+**Log summary**:
+```
+✅ PHASE 1.6 Complete: External Code Reviewers Configured
+
+Configuration:
+- Internal reviewer: Claude Sonnet (always runs)
+- External reviewers: ${code_review_models.length > 0 ? code_review_models.map(m => modelName(m)).join(', ') : 'None (skipped)'}
+- Total PHASE 3 reviewers: ${1 + code_review_models.length}
+
+These reviewers will analyze your implementation in PHASE 3 after the developer completes work.
+```
 
 ---
 
@@ -1699,32 +1808,34 @@ e. **Loop Until Tests Pass**:
 #### Workflow-Specific Review Strategy:
 
 **For API_FOCUSED workflows:**
-- Launch **(1 + configured external models)** code reviewers - **SKIP UI tester**
-- Default: 3 reviewers (Claude Sonnet + Grok + GPT-5 Codex)
+- Launch **(1 + user-selected external models)** code reviewers - **SKIP UI tester**
+- Example: 3 reviewers (Claude Sonnet + Grok Code Fast + GPT-4o)
 - Review focus: API logic, type safety, error handling, data validation, HTTP patterns
 - Multi-model perspective: Get independent code reviews from different AI models
-- Configurable via `pluginSettings.frontend.reviewModels` in `.claude/settings.json`
+- External models configured by user in PHASE 1.6
 
 **For UI_FOCUSED workflows:**
-- Launch **(1 + configured external models + 1 UI tester)** reviewers
-- Default: 4 reviewers (Claude Sonnet + Grok + GPT-5 Codex + UI tester)
+- Launch **(1 + user-selected external models + 1 UI tester)** reviewers
+- Example: 4 reviewers (Claude Sonnet + Grok Code Fast + GPT-4o + UI tester)
 - Review focus: UI code quality, visual implementation, user interactions, browser testing
 - Multi-model perspective: Multiple code reviews + browser testing
+- External models configured by user in PHASE 1.6
 
 **For MIXED workflows:**
-- Launch **(1 + configured external models + 1 UI tester)** reviewers
-- Default: 4 reviewers (Claude Sonnet + Grok + GPT-5 Codex + UI tester)
+- Launch **(1 + user-selected external models + 1 UI tester)** reviewers
+- Example: 4 reviewers (Claude Sonnet + Grok Code Fast + GPT-4o + UI tester)
 - Review focus: Both API logic AND UI implementation, plus integration points
 - Multi-model perspective: Comprehensive coverage across all aspects
+- External models configured by user in PHASE 1.6
 
 ---
 
 1. **Prepare Review Context**:
-   - **Read Review Models Configuration**:
-     * Try to read `.claude/settings.json` to get `pluginSettings.frontend.reviewModels` array
-     * IF found: Use configured models (e.g., `["grok-fast", "code-review"]`)
-     * IF not found or empty: Use default models `["grok-fast", "code-review"]`
-     * Store as `external_review_models` array for use in parallel execution
+   - **Use Code Review Models from PHASE 1.6**:
+     * Use the `code_review_models` array configured by user in PHASE 1.6
+     * This array contains OpenRouter model IDs (e.g., `["x-ai/grok-code-fast-1", "openai/gpt-4o"]`)
+     * IF array is empty: Only Claude Sonnet will review (user chose to skip external reviewers)
+     * Store as `external_review_models` for consistency in orchestration
    - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers in parallel" as in_progress
      * If API_FOCUSED: Update todo text to "Launch X code reviewers in parallel (Claude + {external_review_models.length} external models)"
      * If UI_FOCUSED or MIXED: Update todo text to "Launch X reviewers in parallel (Claude + {external_review_models.length} external models + UI tester)"
@@ -1793,25 +1904,31 @@ e. **Loop Until Tests Pass**:
          * Responsive design implementation
          * User interaction patterns
 
-   - **Reviewers 2..N - External AI Code Analyzers (via Claudish MCP + OpenRouter)**:
-     * For EACH model in `external_review_models` array (e.g., ["grok-fast", "code-review"]):
-       - Use Task tool with `subagent_type: frontend:reviewer`
-       - **CRITICAL**: Start the prompt with `PROXY_MODE: {model_name}` directive
-       - The agent will automatically delegate to the external AI model via Claudish MCP
+   - **Reviewers 2..N - External AI Code Analyzers (via Claudish CLI + OpenRouter)**:
+     * For EACH model in `external_review_models` array (e.g., ["x-ai/grok-code-fast-1", "openai/gpt-4o"]):
+       - Use Task tool with `subagent_type: frontend:reviewer` (**NOT** `frontend:plan-reviewer`)
+       - **CRITICAL**: Start the prompt with `PROXY_MODE: {model_id}` directive
+       - The agent will automatically delegate to the external AI model via Claudish CLI
        - Provide the same review context as Reviewer 1:
          * Full prompt format (see Reviewer 1 above for structure)
          * Same workflow type, planning context, focus areas
          * Git diff output and review standards
        - Format:
          ```
-         PROXY_MODE: {model_name}
+         PROXY_MODE: {model_id}
 
          [Include all the same context and instructions as Reviewer 1]
          ```
-     * Example for `external_review_models = ["grok-fast", "code-review"]`:
-       - Reviewer 2: PROXY_MODE: grok-fast (xAI Grok)
-       - Reviewer 3: PROXY_MODE: code-review (OpenAI GPT-5 Codex)
+     * Example for user selecting "Grok Code Fast" + "GPT-4o" in PHASE 1.6:
+       - `external_review_models = ["x-ai/grok-code-fast-1", "openai/gpt-4o"]`
+       - Reviewer 2: `PROXY_MODE: x-ai/grok-code-fast-1` → **Grok Code Fast (xAI)**
+       - Reviewer 3: `PROXY_MODE: openai/gpt-4o` → **GPT-4o (OpenAI)**
      * The number of external reviewers = `external_review_models.length`
+     * **Model Name Display**: When presenting results, show friendly names:
+       - `x-ai/grok-code-fast-1` → "Grok Code Fast (xAI)"
+       - `openai/gpt-4o` → "GPT-4o (OpenAI)"
+       - `anthropic/claude-opus-4-20250514` → "Claude Opus (Anthropic)"
+       - `qwen/qwq-32b-preview` → "Qwen Coder (Alibaba)"
 
    - **Reviewer 4 - UI Manual Tester (Real Browser Testing)**:
      * **ONLY for UI_FOCUSED or MIXED workflows** - Skip for API_FOCUSED
