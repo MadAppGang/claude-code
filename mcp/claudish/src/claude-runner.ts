@@ -1,4 +1,5 @@
-import type { Subprocess } from "bun";
+import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { writeFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -151,19 +152,21 @@ export async function runClaudeWithProxy(
     log(`[claudish] Arguments: ${claudeArgs.join(" ")}\n`);
   }
 
-  // Spawn claude CLI process
-  const proc = Bun.spawn(["claude", ...claudeArgs], {
+  // Spawn claude CLI process using Node.js child_process (works on both Node.js and Bun)
+  const proc = spawn("claude", claudeArgs, {
     env,
-    stdout: "inherit", // Stream to parent stdout
-    stderr: "inherit", // Stream to parent stderr
-    stdin: "inherit", // Allow user input
+    stdio: "inherit", // Stream stdin/stdout/stderr to parent
   });
 
   // Handle process termination signals (includes cleanup)
   setupSignalHandlers(proc, tempSettingsPath, config.quiet);
 
   // Wait for claude to exit
-  const exitCode = await proc.exited;
+  const exitCode = await new Promise<number>((resolve) => {
+    proc.on("exit", (code) => {
+      resolve(code ?? 1);
+    });
+  });
 
   // Clean up temporary settings file
   try {
@@ -178,7 +181,7 @@ export async function runClaudeWithProxy(
 /**
  * Setup signal handlers to gracefully shutdown
  */
-function setupSignalHandlers(proc: Subprocess, tempSettingsPath: string, quiet: boolean): void {
+function setupSignalHandlers(proc: ChildProcess, tempSettingsPath: string, quiet: boolean): void {
   const signals: NodeJS.Signals[] = ["SIGINT", "SIGTERM", "SIGHUP"];
 
   for (const signal of signals) {
@@ -203,12 +206,16 @@ function setupSignalHandlers(proc: Subprocess, tempSettingsPath: string, quiet: 
  */
 export async function checkClaudeInstalled(): Promise<boolean> {
   try {
-    const proc = Bun.spawn(["which", "claude"], {
-      stdout: "pipe",
-      stderr: "pipe",
+    const proc = spawn("which", ["claude"], {
+      stdio: "ignore",
     });
 
-    const exitCode = await proc.exited;
+    const exitCode = await new Promise<number>((resolve) => {
+      proc.on("exit", (code) => {
+        resolve(code ?? 1);
+      });
+    });
+
     return exitCode === 0;
   } catch {
     return false;

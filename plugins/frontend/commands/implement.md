@@ -140,6 +140,18 @@ TodoWrite with the following items:
 - content: "PHASE 1: User approval gate - wait for plan approval"
   status: "pending"
   activeForm: "PHASE 1: Waiting for user approval of architecture plan"
+- content: "PHASE 1.5: Ask user about multi-model plan review preference"
+  status: "pending"
+  activeForm: "PHASE 1.5: Asking about plan review preference"
+- content: "PHASE 1.5: Run multi-model plan review (if enabled)"
+  status: "pending"
+  activeForm: "PHASE 1.5: Running multi-model plan review"
+- content: "PHASE 1.5: Consolidate and present multi-model feedback"
+  status: "pending"
+  activeForm: "PHASE 1.5: Consolidating multi-model feedback"
+- content: "PHASE 1.5: User decision on plan revision"
+  status: "pending"
+  activeForm: "PHASE 1.5: Waiting for user decision on plan revision"
 - content: "PHASE 2: Launch developer for implementation"
   status: "pending"
   activeForm: "PHASE 2: Launching developer for implementation"
@@ -398,8 +410,523 @@ These will be referenced in subsequent phases to route execution correctly.
      * Repeat approval gate
    - IF user satisfied:
      * **Update TodoWrite**: Mark "PHASE 1: User approval gate" as completed
-     * Proceed to Phase 2
+     * Proceed to Phase 1.5
    - **DO NOT proceed without user approval**
+
+---
+
+### PHASE 1.5: Multi-Model Plan Review (Optional)
+
+**NEW in v3.2.0**: Get independent perspectives from external AI models on your architecture plan before implementation begins. This phase helps identify architectural issues, missing considerations, and alternative approaches when changes are still cheap.
+
+**When to use**: After user approves the architecture plan (PHASE 1) but before implementation starts (PHASE 2).
+
+---
+
+#### Step 1: Ask User About Plan Review Preference
+
+**Update TodoWrite**: Mark "PHASE 1.5: Ask user about plan review preference" as in_progress
+
+Present the following to the user:
+
+```markdown
+## 🤖 Multi-Model Plan Review Available
+
+The architecture plan has been approved and is ready for implementation.
+
+Before we begin, would you like **external AI models** to review the plan for potential improvements, blindspots, or alternative approaches?
+
+**Benefits of multi-model plan review:**
+- ✅ Independent perspectives from different AI models with different strengths
+- ✅ Identify architectural issues early (cheaper to fix in planning than implementation)
+- ✅ Cross-model consensus increases confidence in the plan
+- ✅ May suggest optimizations or patterns you haven't considered
+- ✅ Catch edge cases or security concerns before coding
+
+**Available AI models for review:**
+- **Grok Code Fast** (xAI) - Fast coding analysis and implementation efficiency
+- **GPT-5 Codex** (OpenAI) - Advanced reasoning for architecture and system design
+- **MiniMax M2** - High-performance analysis with strong pattern recognition
+- **Qwen Vision-Language** (Alibaba) - Multi-modal understanding, good for UX
+
+**Requirements**: Claudish CLI + OPENROUTER_API_KEY environment variable
+```
+
+Use **AskUserQuestion**:
+```
+Do you want multi-model AI review of the architecture plan?
+
+This is optional but recommended for complex features.
+
+Options:
+- "Yes - Review the plan with external AI models"
+- "No - Skip plan review and proceed to implementation"
+```
+
+**Store response as `plan_review_enabled`**
+
+**Update TodoWrite**: Mark "PHASE 1.5: Ask user about plan review preference" as completed
+
+---
+
+#### Step 2: If Enabled - Select Models (Multi-Select)
+
+**IF `plan_review_enabled` is FALSE:**
+- Log: "User chose to skip multi-model plan review. Proceeding to PHASE 2 (Implementation)."
+- **Update TodoWrite**: Mark all PHASE 1.5 todos as "completed" with note "Skipped by user preference"
+- **Skip to PHASE 2**
+
+**IF `plan_review_enabled` is TRUE:**
+
+**Update TodoWrite**: Mark "PHASE 1.5: Run multi-model plan review" as in_progress
+
+Use **AskUserQuestion** with **multiSelect: true**:
+
+```json
+{
+  "questions": [{
+    "question": "Which AI models would you like to review the architecture plan? (Select one or more)",
+    "header": "Plan Review",
+    "multiSelect": true,
+    "options": [
+      {
+        "label": "Grok Code Fast (xAI)",
+        "description": "Fast coding analysis with focus on implementation efficiency and modern patterns"
+      },
+      {
+        "label": "GPT-5 Codex (OpenAI)",
+        "description": "Advanced reasoning for architecture decisions, edge cases, and system design"
+      },
+      {
+        "label": "MiniMax M2",
+        "description": "High-performance analysis with strong pattern recognition and optimization insights"
+      },
+      {
+        "label": "Qwen Vision-Language (Alibaba)",
+        "description": "Multi-modal understanding, particularly good for UX and visual architecture"
+      }
+    ]
+  }]
+}
+```
+
+**Map user selections to OpenRouter model IDs:**
+- "Grok Code Fast (xAI)" → `x-ai/grok-code-fast-1`
+- "GPT-5 Codex (OpenAI)" → `openai/gpt-5-codex`
+- "MiniMax M2" → `minimax/minimax-m2`
+- "Qwen Vision-Language (Alibaba)" → `qwen/qwen3-vl-235b-a22b-instruct`
+
+**If user selects "Other"**: Allow custom OpenRouter model ID input
+
+**Store as `plan_review_models` array** (e.g., `["x-ai/grok-code-fast-1", "openai/gpt-5-codex"]`)
+
+---
+
+#### Step 3: Prepare Plan Review Context
+
+**Collect context for reviewers:**
+
+1. **Read architecture plan** from AI-DOCS/ folder:
+   - Use Glob to find plan file(s): `AI-DOCS/*.md`
+   - Read complete plan content
+
+2. **Prepare review prompt** with:
+   - Original feature request: `$ARGUMENTS`
+   - Complete architecture plan text
+   - Workflow type: `workflow_type` (from STEP 0.5)
+   - Tech stack information (extracted from plan)
+   - Any constraints or requirements mentioned
+
+---
+
+#### Step 4: Launch Plan Reviewers in Parallel
+
+**CRITICAL**: Launch ALL selected models in parallel using a **single message** with **multiple Task tool calls**.
+
+For EACH model in `plan_review_models`:
+
+Use **Task tool** with `subagent_type: frontend:plan-reviewer`
+
+**Prompt format:**
+```
+PROXY_MODE: {model_id}
+
+Review the architecture plan for the following feature and provide critical feedback.
+
+**Feature Request:**
+{$ARGUMENTS}
+
+**Architecture Plan:**
+{Complete plan text from AI-DOCS}
+
+**Workflow Type:** {workflow_type}
+
+**Tech Stack:** {Extracted from plan}
+
+**Your Task:**
+
+You are an expert software architect reviewing this implementation plan BEFORE any code is written. Your job is to identify:
+
+1. **Architectural Issues:**
+   - Design flaws or anti-patterns
+   - Scalability concerns
+   - Maintainability issues
+   - Coupling or cohesion problems
+
+2. **Missing Considerations:**
+   - Edge cases not addressed
+   - Error handling gaps
+   - Performance implications
+   - Security vulnerabilities
+   - Accessibility requirements (WCAG 2.1 AA)
+
+3. **Alternative Approaches:**
+   - Better patterns or architectures
+   - Simpler solutions
+   - More efficient implementations
+   - Industry best practices (React 19, TypeScript, modern frontend 2025)
+
+4. **Technology Choices:**
+   - Better libraries or tools
+   - Compatibility concerns
+   - Technical debt implications
+
+5. **Implementation Risks:**
+   - Complex areas that might cause problems
+   - Dependencies or integration points
+   - Testing challenges
+
+**IMPORTANT:**
+- Be CRITICAL and THOROUGH - this is the last chance to catch issues before implementation
+- Focus on HIGH-VALUE feedback that will save time/effort during implementation
+- Prioritize findings by severity (CRITICAL / MEDIUM / LOW)
+- Provide specific, actionable recommendations with code examples where helpful
+- If the plan is solid, say so clearly (don't invent issues)
+
+**Output Format:**
+
+## Overall Assessment
+[APPROVED ✅ | NEEDS REVISION ⚠️ | MAJOR CONCERNS ❌]
+
+## Critical Issues (Must Address Before Implementation)
+[List CRITICAL severity issues, or "None found"]
+- Issue: [description]
+  Recommendation: [specific fix]
+  Rationale: [why this matters]
+
+## Medium Priority Suggestions (Should Consider)
+[List MEDIUM severity suggestions, or "None"]
+
+## Low Priority Improvements (Nice to Have)
+[List LOW severity improvements, or "None"]
+
+## Strengths of This Plan
+[What the plan does well]
+
+## Overall Recommendation
+[Summary and next steps]
+```
+
+**Example parallel execution** (if user selected Grok + Codex):
+```
+Send a single message with 2 Task calls:
+
+Task 1: frontend:plan-reviewer with PROXY_MODE: x-ai/grok-code-fast-1
+Task 2: frontend:plan-reviewer with PROXY_MODE: openai/gpt-5-codex
+
+Both run in parallel.
+```
+
+**Wait for ALL reviewers to complete** before proceeding.
+
+---
+
+#### Step 5: Consolidate Multi-Model Feedback
+
+**Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as in_progress
+
+After all reviewers complete, consolidate their findings:
+
+**a. Extract findings from each model:**
+   - Critical issues (with descriptions and recommendations)
+   - Medium suggestions
+   - Low improvements
+   - Plan strengths
+   - Overall assessment (APPROVED / NEEDS REVISION / MAJOR CONCERNS)
+
+**b. Identify consensus issues:**
+   - Issues flagged by **2+ models** → **HIGHEST PRIORITY** (cross-model consensus = strong signal)
+   - Issues flagged by **1 model** → Still valuable, but lower confidence
+
+**c. Categorize by domain:**
+   - Architecture/Design
+   - Security
+   - Performance
+   - Maintainability
+   - Testing/Quality
+   - Technology Choices
+   - Edge Cases/Error Handling
+
+**d. Deduplicate similar findings:**
+   - If multiple models identify the same issue, merge into one
+   - Note which models agreed (adds weight to the finding)
+
+**e. Create consolidated severity levels:**
+   - **CRITICAL (Cross-Model)**: Multiple models flagged as critical → Must fix
+   - **CRITICAL (Single Model)**: One model flagged as critical → Should strongly consider
+   - **MEDIUM**: At least one model flagged as medium → Worth addressing
+   - **LOW**: Nice-to-have improvements
+
+---
+
+#### Step 6: Present Consolidated Feedback to User
+
+Present the following format:
+
+```markdown
+# 🎯 PHASE 1.5: Multi-Model Plan Review Results
+
+**Models Consulted:** {plan_review_models.length} independent AI models
+- {Model 1 Name} ({model_id_1})
+- {Model 2 Name} ({model_id_2})
+...
+
+---
+
+## 📊 Overall Assessment Summary
+
+**Model Consensus:**
+- ✅ APPROVED: {count} models
+- ⚠️ NEEDS REVISION: {count} models
+- ❌ MAJOR CONCERNS: {count} models
+
+**Recommendation:** [Based on majority vote and severity of issues]
+
+---
+
+## 🚨 Critical Issues (Must Address)
+
+### Issue 1: [Title]
+**Flagged by:** {Grok, GPT-5 Codex} **[2/2 models - UNANIMOUS]**
+**Category:** [Architecture/Security/Performance/etc.]
+
+**Description:**
+[Consolidated description from all models that flagged this]
+
+**Current Plan Approach:**
+[What the plan currently says]
+
+**Recommended Change:**
+[Specific actionable fix, synthesized from model recommendations]
+
+**Rationale:**
+[Why this matters, what could go wrong if not addressed]
+
+**Example Code** (if applicable):
+```typescript
+// Recommended pattern
+[Code example from model feedback]
+```
+
+---
+
+### Issue 2: [Title]
+**Flagged by:** {GPT-5 Codex} **[1/2 models]**
+**Category:** [Category]
+
+[Same structure as above]
+
+---
+
+## ⚠️ Medium Priority Suggestions
+
+[List medium issues with model attribution]
+
+### Suggestion 1: [Title]
+**Flagged by:** {Model names}
+**Description:** [What could be improved]
+**Recommendation:** [How to improve]
+
+---
+
+## 💡 Low Priority Improvements
+
+[List nice-to-have improvements]
+
+---
+
+## ✅ Plan Strengths (Validated by Models)
+
+[Things multiple models praised]
+- **Strength 1**: [Description] - Noted by {Model names}
+- **Strength 2**: [Description] - Noted by {Model names}
+
+---
+
+## 📈 Summary
+
+**Total Issues Found:**
+- Critical: {count}
+- Medium: {count}
+- Low: {count}
+
+**Cross-Model Consensus:**
+- {count} issues flagged by multiple models (high confidence)
+- {count} issues flagged by single model (still valuable)
+
+**Overall Recommendation:**
+[Synthesized recommendation from all models - be clear about next steps]
+
+If NEEDS REVISION or MAJOR CONCERNS, emphasize the critical issues that should be addressed.
+If APPROVED, note that implementation can proceed with confidence.
+```
+
+**Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as completed
+
+---
+
+#### Step 7: Ask User About Plan Revision
+
+**Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as in_progress
+
+Use **AskUserQuestion**:
+
+```
+Based on multi-model plan review, would you like to revise the architecture plan?
+
+Summary:
+- {critical_count} critical issues found
+- {medium_count} medium suggestions
+- {low_count} low-priority improvements
+- Overall consensus: {APPROVED | NEEDS REVISION | MAJOR CONCERNS}
+
+Options:
+- "Yes - Revise the plan based on this feedback"
+- "No - Proceed with current plan as-is"
+- "Let me review the feedback in detail first"
+```
+
+**Store response as `plan_revision_decision`**
+
+---
+
+#### Step 8: Handle User Decision
+
+**IF "Yes - Revise the plan":**
+
+1. **Launch architect agent** to revise plan:
+   - **Update TodoWrite**: Add "PHASE 1.5: Architect revising plan based on multi-model feedback"
+   - Use Task tool with `subagent_type: frontend:architect`
+   - Provide:
+     * Original feature request
+     * Current architecture plan (from AI-DOCS)
+     * **Complete consolidated multi-model feedback**
+     * Instruction: "Revise the architecture plan addressing the critical and medium issues identified by multi-model review. Focus especially on issues flagged by multiple models (cross-model consensus)."
+
+2. **After architect completes revision:**
+   - Present revised plan to user
+   - Use AskUserQuestion: "Are you satisfied with the revised architecture plan?"
+   - Options: "Yes, proceed to implementation" / "No, I have more feedback"
+
+3. **Optional - Ask about second review round:**
+   - If significant changes were made, ask: "Would you like another round of multi-model review on the revised plan?"
+   - If yes, loop back to Step 2 (select models)
+   - If no, proceed
+
+4. **Once user approves revised plan:**
+   - **Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as completed
+   - Proceed to PHASE 2 (Implementation)
+
+**IF "No - Proceed with current plan as-is":**
+
+1. Log: "User chose to proceed with original plan despite multi-model feedback"
+2. **Document acknowledged issues** (for transparency in final report):
+   - Which issues were identified but not addressed
+   - User's rationale for proceeding anyway (if provided)
+3. **Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as completed
+4. Proceed to PHASE 2 (Implementation)
+
+**IF "Let me review first":**
+
+1. Pause workflow
+2. Wait for user to analyze the feedback
+3. User can return and choose option 1 or 2 above
+
+---
+
+#### Error Handling for PHASE 1.5
+
+**If Claudish/OpenRouter is not available:**
+- Detect error during first agent launch (connection failure, missing API key, etc.)
+- Log: "⚠️ External AI models unavailable. Claudish CLI or OPENROUTER_API_KEY not configured."
+- Inform user:
+  ```
+  Multi-model plan review requires:
+  - Claudish CLI installed (npx claudish --version)
+  - OPENROUTER_API_KEY environment variable set
+
+  Skipping plan review and proceeding to implementation.
+  ```
+- **Update TodoWrite**: Mark PHASE 1.5 todos as "Skipped - External AI unavailable"
+- Continue to PHASE 2
+
+**If some models fail but others succeed:**
+- Use successful model responses
+- Note in consolidated report: "⚠️ {Model Name} review failed - using results from {N} successful models"
+- Continue with partial review results
+
+**If all models fail:**
+- Log all errors for debugging
+- Inform user: "All external AI model reviews failed. Errors: [summary]"
+- Ask: "Would you like to proceed without multi-model review or abort?"
+- Act based on user choice
+
+---
+
+#### Configuration Support (Optional - Future Enhancement)
+
+Similar to code review models in PHASE 3, support configuration in `.claude/settings.json`:
+
+```json
+{
+  "pluginSettings": {
+    "frontend": {
+      "planReviewModels": ["x-ai/grok-code-fast-1", "openai/gpt-5-codex"],
+      "autoEnablePlanReview": false
+    }
+  }
+}
+```
+
+**Behavior:**
+- If `planReviewModels` configured AND `autoEnablePlanReview: true`:
+  - Skip Step 1 (asking user)
+  - Skip Step 2 (model selection)
+  - Use configured models automatically
+- If `planReviewModels` configured but `autoEnablePlanReview: false`:
+  - Ask user in Step 1
+  - If yes, use configured models (skip Step 2)
+- If not configured:
+  - Use interactive flow (Steps 1-2 as described above)
+
+---
+
+#### PHASE 1.5 Success Criteria
+
+**Phase is complete when:**
+1. ✅ User was asked about plan review preference
+2. ✅ If enabled: Selected AI models reviewed the plan in parallel
+3. ✅ If enabled: Multi-model feedback was consolidated and presented clearly with cross-model consensus highlighted
+4. ✅ User made decision (revise plan or proceed as-is)
+5. ✅ If revision requested: Architect revised plan and user approved the revision
+6. ✅ Ready to proceed to PHASE 2 (Implementation)
+
+**If skipped:**
+- ✅ User explicitly chose to skip (or external AI unavailable)
+- ✅ All PHASE 1.5 todos marked as completed/skipped
+- ✅ Ready to proceed to PHASE 2
+
+---
 
 ### PHASE 2: Implementation (developer)
 
@@ -1867,25 +2394,29 @@ e. **Loop Until Tests Pass**:
 
 The command is complete when:
 1. ✅ User approved the architecture plan (Phase 1 gate)
-2. ✅ Implementation follows the approved plan
-3. ✅ **IF UI_FOCUSED or MIXED**: Manual testing instructions generated by implementation agent
-4. ✅ **IF UI_FOCUSED or MIXED**: ALL UI components match design specifications (Phase 2.5 gate - if Figma present)
-5. ✅ **IF UI_FOCUSED or MIXED with Figma**: UI validation complete
+2. ✅ **PHASE 1.5 (Multi-Model Plan Review)** completed:
+   - If enabled: External AI models reviewed the plan and feedback was consolidated
+   - User made decision (revised plan based on feedback OR proceeded as-is)
+   - If skipped: User explicitly chose to skip OR external AI unavailable
+3. ✅ Implementation follows the approved plan
+4. ✅ **IF UI_FOCUSED or MIXED**: Manual testing instructions generated by implementation agent
+5. ✅ **IF UI_FOCUSED or MIXED**: ALL UI components match design specifications (Phase 2.5 gate - if Figma present)
+6. ✅ **IF UI_FOCUSED or MIXED with Figma**: UI validation complete
    - If manual validation enabled: User manually validated UI components
    - If fully automated: Designer agents validated UI components
-6. ✅ **Code review approvals (Phase 3 gate)**:
+7. ✅ **Code review approvals (Phase 3 gate)**:
    - **IF API_FOCUSED**: TWO reviewers approved (code + codex) - UI tester skipped
    - **IF UI_FOCUSED or MIXED**: ALL THREE reviewers approved (code + codex + tester)
-7. ✅ **IF UI_FOCUSED or MIXED**: Manual UI testing passed with no critical issues
-8. ✅ **IF API_FOCUSED**: API integration tested (no UI testing needed)
-9. ✅ All automated tests written and passing (Phase 4 gate)
+8. ✅ **IF UI_FOCUSED or MIXED**: Manual UI testing passed with no critical issues
+9. ✅ **IF API_FOCUSED**: API integration tested (no UI testing needed)
+10. ✅ All automated tests written and passing (Phase 4 gate)
    - **IF API_FOCUSED**: API service tests, integration tests, error scenarios
    - **IF UI_FOCUSED**: Component tests, interaction tests, accessibility tests
    - **IF MIXED**: Both API and UI test coverage
-10. ✅ User approved the final implementation (Phase 5 gate)
-11. ✅ Project cleanup completed successfully
-12. ✅ Comprehensive workflow-specific summary provided
-13. ✅ User acknowledges completion
+11. ✅ User approved the final implementation (Phase 5 gate)
+12. ✅ Project cleanup completed successfully
+13. ✅ Comprehensive workflow-specific summary provided
+14. ✅ User acknowledges completion
 
 **CRITICAL WORKFLOW NOTES**:
 - **API_FOCUSED workflows**: Phase 2.5 (design validation) is completely skipped. UI tester is skipped in Phase 3. Success depends on API logic quality, not visual fidelity.

@@ -5,6 +5,70 @@ All notable changes to the MAG Claude Plugins project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-11-13
+
+### Added
+
+#### Multi-Model Plan Review (PHASE 1.5)
+
+**NEW**: Get independent perspectives from external AI models on architecture plans before implementation begins. Catch architectural issues, missing considerations, and edge cases early when changes are cheap.
+
+**Key Features:**
+- ✅ **Optional user-controlled workflow** - Ask user after plan approval, before implementation
+- ✅ **Multi-model selection** - Choose from Grok, GPT-5 Codex, MiniMax M2, Qwen Vision-Language (or custom OpenRouter models)
+- ✅ **Parallel execution** - All selected models review simultaneously for efficiency
+- ✅ **Cross-model consensus** - Highlights issues flagged by multiple models (high confidence)
+- ✅ **Consolidated feedback** - Synthesizes findings with severity levels (Critical/Medium/Low)
+- ✅ **Plan revision loop** - Option to revise architecture plan based on feedback
+- ✅ **Graceful degradation** - Handles missing API keys, model failures, user opt-out
+
+**Workflow Integration** (in `/implement` command):
+1. **PHASE 1**: Architect creates plan → User approves
+2. **PHASE 1.5 (NEW)**:
+   - Ask user: "Want multi-model plan review?"
+   - If yes: User selects AI models (multi-select)
+   - Launch plan-reviewer agents in parallel (one per model)
+   - Consolidate feedback with cross-model consensus
+   - Present synthesized report to user
+   - User decides: Revise plan OR proceed as-is
+3. **PHASE 2**: Implementation begins
+
+**New Agent:**
+- `plan-reviewer` - Specialized agent for reviewing architecture plans via external AI models
+  - Supports PROXY_MODE for delegation to OpenRouter models
+  - Evaluates: Architectural issues, missing considerations, alternative approaches, technology choices, implementation risks
+  - Output format: APPROVED ✅ | NEEDS REVISION ⚠️ | MAJOR CONCERNS ❌
+
+**Benefits:**
+- 🎯 **Early issue detection** - Fix architectural problems before writing code
+- 🤝 **Multi-model wisdom** - Different AI models bring different perspectives
+- 📊 **Consensus validation** - Issues flagged by multiple models = high confidence
+- 💰 **Cost effective** - Reviewing plans is cheaper than refactoring code
+- 🔒 **User control** - Fully optional, user chooses models and whether to revise
+
+**Configuration Support** (future enhancement):
+```json
+{
+  "pluginSettings": {
+    "frontend": {
+      "planReviewModels": ["x-ai/grok-code-fast-1", "openai/gpt-5-codex"],
+      "autoEnablePlanReview": false
+    }
+  }
+}
+```
+
+**Updated Files:**
+- `plugins/frontend/agents/plan-reviewer.md` (NEW)
+- `plugins/frontend/commands/implement.md` (added PHASE 1.5)
+- `plugins/frontend/plugin.json` (added plan-reviewer agent, updated description)
+
+**Success Criteria Updated:**
+- Added PHASE 1.5 completion check to Success Criteria section
+- Workflow now includes plan review validation
+
+---
+
 ## [3.1.1] - 2025-11-11
 
 ### Changed

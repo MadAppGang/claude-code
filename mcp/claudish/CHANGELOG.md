@@ -1,5 +1,139 @@
 # Changelog
 
+## [1.3.0] - 2025-11-12
+
+### 🎉 Major: Cross-Platform Compatibility
+
+**Universal Runtime Support**: Claudish now works with **both Node.js and Bun!**
+
+#### What Changed
+
+**Architecture Refactor:**
+- ✅ Replaced `Bun.serve()` with `@hono/node-server` (works on both runtimes)
+- ✅ Replaced `Bun.spawn()` with Node.js `child_process.spawn()` (cross-platform)
+- ✅ Changed shebang from `#!/usr/bin/env bun` to `#!/usr/bin/env node`
+- ✅ Updated build target from `--target bun` to `--target node`
+- ✅ Added `@hono/node-server` dependency for universal server compatibility
+
+**Package Updates:**
+- ✅ Added engine requirement: `node: ">=18.0.0"`
+- ✅ Maintained Bun support: `bun: ">=1.0.0"`
+- ✅ Both runtimes fully supported and tested
+
+### ✨ Feature: Interactive API Key Prompt
+
+**Easier Onboarding**: API key now prompted interactively when missing!
+
+#### What Changed
+
+**User Experience Improvements:**
+- ✅ Interactive mode now prompts for OpenRouter API key if not set in environment
+- ✅ Similar UX to model selector - clean, simple readline-based prompt
+- ✅ Validates API key format (warns if doesn't start with `sk-or-v1-`)
+- ✅ Session-only usage - not saved to disk for security
+- ✅ Non-interactive mode still requires env variable (fails fast with clear error)
+
+**Implementation:**
+- Added `promptForApiKey()` function in `src/simple-selector.ts`
+- Updated `src/cli.ts` to allow missing API key in interactive mode
+- Updated `src/index.ts` to prompt before model selection
+- Proper stdin cleanup to avoid interference with Claude Code
+
+#### Benefits
+
+**For New Users:**
+- 🎯 **Zero setup for first try** - Just run `claudish` and paste API key when prompted
+- 🎯 **No env var hunting** - Don't need to know how to set environment variables
+- 🎯 **Instant feedback** - See if API key works immediately
+
+**For Everyone:**
+- 🎯 **Better security** - Can use temporary keys without saving to env
+- 🎯 **Multi-account switching** - Easy to try different API keys
+- 🎯 **Consistent UX** - Similar to model selector prompt
+
+#### Usage
+
+```bash
+# Before (required env var):
+export OPENROUTER_API_KEY=sk-or-v1-...
+claudish
+
+# After (optional env var):
+claudish  # Will prompt: "Enter your OpenRouter API key:"
+# Paste key, press Enter, done!
+
+# Still works with env var (no prompt):
+export OPENROUTER_API_KEY=sk-or-v1-...
+claudish  # Skips prompt, uses env var
+```
+
+#### Benefits
+
+**For Users:**
+- 🎯 **Use with npx** - No installation required! `npx claudish@latest "prompt"`
+- 🎯 **Use with bunx** - Also works! `bunx claudish@latest "prompt"`
+- 🎯 **Install with npm** - Standard Node.js install: `npm install -g claudish`
+- 🎯 **Install with bun** - Faster alternative: `bun install -g claudish`
+- 🎯 **Universal compatibility** - Works everywhere Node.js 18+ runs
+- 🎯 **No Bun required** - But Bun still works (and is faster!)
+
+**Technical:**
+- ✅ **Single codebase** - No runtime-specific branches
+- ✅ **Same performance** - Both runtimes deliver full functionality
+- ✅ **Zero breaking changes** - All existing usage patterns work
+- ✅ **Production tested** - Verified with both `node` and `bun` execution
+
+#### Migration Guide
+
+**No changes needed!** All existing usage works identically:
+
+```bash
+# All of these work in v1.3.0:
+claudish "prompt"                                    # Works with node or bun
+npx claudish@latest "prompt"                         # NEW: npx support
+bunx claudish@latest "prompt"                        # NEW: bunx support
+node dist/index.js "prompt"                          # Direct node execution
+bun dist/index.js "prompt"                           # Direct bun execution
+```
+
+#### Technical Implementation
+
+**Server:**
+```typescript
+// Before (Bun-only):
+const server = Bun.serve({ port, fetch: app.fetch });
+
+// After (Universal):
+import { serve } from '@hono/node-server';
+const server = serve({ fetch: app.fetch, port });
+```
+
+**Process Spawning:**
+```typescript
+// Before (Bun-only):
+const proc = Bun.spawn(["claude", ...args], { ... });
+await proc.exited;
+
+// After (Universal):
+import { spawn } from 'node:child_process';
+const proc = spawn("claude", args, { ... });
+await new Promise((resolve) => proc.on("exit", resolve));
+```
+
+#### Verification
+
+Tested and working:
+- ✅ `npx claudish@latest --help` (Node.js)
+- ✅ `bunx claudish@latest --help` (Bun)
+- ✅ `node dist/index.js --help`
+- ✅ `bun dist/index.js --help`
+- ✅ Interactive mode with model selector
+- ✅ Single-shot mode with prompts
+- ✅ Proxy server functionality
+- ✅ All flags and options
+
+---
+
 ## [1.2.1] - 2025-11-11
 
 ### Fixed

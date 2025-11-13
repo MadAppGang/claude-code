@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { serve } from "@hono/node-server";
 import { writeFileSync } from "node:fs";
 import { transformOpenAIToClaude, removeUriFormat } from "./transform.js";
 import { log, isLoggingEnabled, maskCredential, logStructured } from "./logger.js";
@@ -1355,12 +1356,11 @@ export async function createProxyServer(
     }
   });
 
-  // Start server with Bun
-  const server = Bun.serve({
+  // Start server with @hono/node-server (works on both Node.js and Bun)
+  const server = serve({
+    fetch: app.fetch,
     port,
     hostname: "127.0.0.1",
-    idleTimeout: 255,
-    fetch: app.fetch,
   });
 
   if (monitorMode) {
@@ -1376,7 +1376,12 @@ export async function createProxyServer(
     port,
     url: `http://127.0.0.1:${port}`,
     shutdown: async () => {
-      server.stop();
+      await new Promise<void>((resolve, reject) => {
+        server.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
       log("[Proxy] Server stopped");
     },
   };

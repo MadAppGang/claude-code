@@ -6,6 +6,9 @@
 
 ## Features
 
+- ✅ **Cross-platform** - Works with both Node.js and Bun (v1.3.0+)
+- ✅ **Universal compatibility** - Use with `npx` or `bunx` - no installation required
+- ✅ **Interactive setup** - Prompts for API key and model if not provided (zero config!)
 - ✅ **Monitor mode** - Proxy to real Anthropic API and log all traffic (for debugging)
 - ✅ **Protocol compliance** - 1:1 compatibility with Claude Code communication protocol
 - ✅ **Snapshot testing** - Comprehensive test suite with 13/13 passing tests
@@ -22,62 +25,73 @@
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) - JavaScript runtime
+- **Node.js 18+** or **Bun 1.0+** - JavaScript runtime (either works!)
 - [Claude Code](https://claude.com/claude-code) - Claude CLI must be installed
 - [OpenRouter API Key](https://openrouter.ai/keys) - Free tier available
 
 ### Install Claudish
 
-**IMPORTANT: Claudish requires Bun runtime for optimal performance.**
+**✨ NEW in v1.3.0: Universal compatibility! Works with both Node.js and Bun.**
 
-**Option 1: Install from npm (recommended)**
+**Option 1: Use without installing (recommended)**
 
 ```bash
-# Install globally (requires Bun in PATH)
-npm install -g claudish
+# With Node.js (works everywhere)
+npx claudish@latest --model x-ai/grok-code-fast-1 "your prompt"
 
-# Or use bunx (recommended - always uses Bun)
-bunx claudish --version
+# With Bun (faster execution)
+bunx claudish@latest --model openai/gpt-5-codex "your prompt"
 ```
 
-**Option 2: Install from source**
+**Option 2: Install globally**
+
+```bash
+# With npm (Node.js)
+npm install -g claudish
+
+# With Bun (faster)
+bun install -g claudish
+```
+
+**Option 3: Install from source**
 
 ```bash
 cd mcp/claudish
-bun install
-bun run build
-bun link
+bun install        # or: npm install
+bun run build      # or: npm run build
+bun link           # or: npm link
 ```
 
-**Why Bun?** Claudish is built with Bun and runs 10x faster than Node.js for proxy operations. The shebang `#!/usr/bin/env bun` ensures it always runs with Bun, but Bun must be installed on your system.
+**Performance Note:** While Claudish works with both runtimes, Bun offers faster startup times. Both provide identical functionality.
 
 ## Quick Start
 
-### 1. Set up environment
+### Option 1: Interactive Mode (Easiest)
 
 ```bash
-# Copy example env file
-cp .env.example .env
+# Just run it - will prompt for API key and model
+claudish
 
-# Add your OpenRouter API key
-export OPENROUTER_API_KEY=sk-or-v1-...
-
-# Recommended: Set placeholder to avoid Claude Code's API key prompt
-export ANTHROPIC_API_KEY=sk-ant-api03-placeholder
+# Enter your OpenRouter API key when prompted
+# Select a model from the list
+# Start coding!
 ```
 
-### 2. Run claudish
+### Option 2: With Environment Variables
 
 ```bash
-# Basic usage (auto-approve enabled by default)
+# Set up environment
+export OPENROUTER_API_KEY=sk-or-v1-...
+export ANTHROPIC_API_KEY=sk-ant-api03-placeholder
+
+# Run with specific task
 claudish "implement user authentication"
 
-# Use specific model
+# Or with specific model
 claudish --model openai/gpt-5-codex "add tests"
-
-# Fully autonomous mode (auto-approve + dangerous)
-claudish --dangerous "refactor codebase"
 ```
+
+**Note:** In interactive mode, if `OPENROUTER_API_KEY` is not set, you'll be prompted to enter it. This makes first-time usage super simple!
 
 ## Usage
 
@@ -107,13 +121,15 @@ claudish [OPTIONS] <claude-args...>
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `OPENROUTER_API_KEY` | Your OpenRouter API key | ✅ Yes |
+| `OPENROUTER_API_KEY` | Your OpenRouter API key | ⚡ **Optional in interactive mode** (will prompt if not set)<br>✅ **Required in non-interactive mode** |
 | `ANTHROPIC_API_KEY` | Placeholder to prevent Claude Code dialog (not used for auth) | ✅ **Required** |
 | `CLAUDISH_MODEL` | Default model to use | ❌ No |
 | `CLAUDISH_PORT` | Default proxy port | ❌ No |
 | `CLAUDISH_ACTIVE_MODEL_NAME` | Automatically set by claudish to show active model in status line (read-only) | ❌ No |
 
-**Important:** You MUST set `ANTHROPIC_API_KEY=sk-ant-api03-placeholder` (or any value). Without it, Claude Code will show a dialog, and if you select "No", it will bypass the proxy and use real Anthropic API. Claudish now enforces this requirement.
+**Important Notes:**
+- **NEW in v1.3.0:** In interactive mode, if `OPENROUTER_API_KEY` is not set, you'll be prompted to enter it
+- You MUST set `ANTHROPIC_API_KEY=sk-ant-api03-placeholder` (or any value). Without it, Claude Code will show a dialog
 
 ## Available Models
 

@@ -3,6 +3,70 @@ import { MODEL_INFO } from "./config.js";
 import { OPENROUTER_MODELS, type OpenRouterModel } from "./types.js";
 
 /**
+ * Prompt user for OpenRouter API key interactively
+ * Uses readline with proper stdin cleanup
+ */
+export async function promptForApiKey(): Promise<string> {
+  return new Promise((resolve) => {
+    console.log("\n\x1b[1m\x1b[36mOpenRouter API Key Required\x1b[0m\n");
+    console.log("\x1b[2mGet your free API key from: https://openrouter.ai/keys\x1b[0m\n");
+    console.log("Enter your OpenRouter API key:");
+    console.log("\x1b[2m(it will not be saved, only used for this session)\x1b[0m\n");
+
+    const rl = createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      terminal: false, // CRITICAL: Don't use terminal mode to avoid stdin interference
+    });
+
+    let apiKey: string | null = null;
+
+    rl.on("line", (input) => {
+      const trimmed = input.trim();
+
+      if (!trimmed) {
+        console.log("\x1b[31mError: API key cannot be empty\x1b[0m");
+        return;
+      }
+
+      // Basic validation: should start with sk-or-v1- (OpenRouter format)
+      if (!trimmed.startsWith("sk-or-v1-")) {
+        console.log("\x1b[33mWarning: OpenRouter API keys usually start with 'sk-or-v1-'\x1b[0m");
+        console.log("\x1b[2mContinuing anyway...\x1b[0m");
+      }
+
+      apiKey = trimmed;
+      rl.close();
+    });
+
+    rl.on("close", () => {
+      // CRITICAL: Only resolve AFTER readline has fully closed
+      if (apiKey) {
+        // Force stdin to clean state
+        process.stdin.pause();
+        process.stdin.removeAllListeners("data");
+        process.stdin.removeAllListeners("end");
+        process.stdin.removeAllListeners("error");
+        process.stdin.removeAllListeners("readable");
+
+        // Ensure not in raw mode
+        if (process.stdin.isTTY && process.stdin.setRawMode) {
+          process.stdin.setRawMode(false);
+        }
+
+        // Wait for stdin to fully detach
+        setTimeout(() => {
+          resolve(apiKey);
+        }, 200);
+      } else {
+        console.error("\x1b[31mError: API key is required\x1b[0m");
+        process.exit(1);
+      }
+    });
+  });
+}
+
+/**
  * Simple console-based model selector (no Ink/React)
  * Uses readline which properly cleans up stdin
  */

@@ -1,9 +1,9 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 import { checkClaudeInstalled, runClaudeWithProxy } from "./claude-runner.js";
 import { parseArgs } from "./cli.js";
 import { DEFAULT_PORT_RANGE } from "./config.js";
-import { selectModelInteractively } from "./simple-selector.js";
+import { selectModelInteractively, promptForApiKey } from "./simple-selector.js";
 import { initLogger, getLogFilePath } from "./logger.js";
 import { findAvailablePort } from "./port-manager.js";
 import { createProxyServer } from "./proxy-server.js";
@@ -42,6 +42,12 @@ async function main() {
       console.error("Error: Claude Code CLI is not installed");
       console.error("Install it from: https://claude.com/claude-code");
       process.exit(1);
+    }
+
+    // Prompt for OpenRouter API key if not set (interactive mode only, not monitor mode)
+    if (config.interactive && !config.monitor && !config.openrouterApiKey) {
+      config.openrouterApiKey = await promptForApiKey();
+      console.log(""); // Empty line after input
     }
 
     // Show interactive model selector ONLY in interactive mode when model not specified

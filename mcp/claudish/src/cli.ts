@@ -114,6 +114,12 @@ export function parseArgs(args: string[]): ClaudishConfig {
     i++;
   }
 
+  // Determine if this will be interactive mode BEFORE API key check
+  // If no prompt provided and not explicitly interactive, default to interactive mode
+  if (!config.claudeArgs || config.claudeArgs.length === 0) {
+    config.interactive = true;
+  }
+
   // Handle API keys based on mode
   if (config.monitor) {
     // Monitor mode: extracts API key from Claude Code's requests
@@ -135,11 +141,21 @@ export function parseArgs(args: string[]): ClaudishConfig {
     // OpenRouter mode: requires OpenRouter API key
     const apiKey = process.env[ENV.OPENROUTER_API_KEY];
     if (!apiKey) {
-      console.error("Error: OPENROUTER_API_KEY environment variable is required");
-      console.error("Get your API key from: https://openrouter.ai/keys");
-      process.exit(1);
+      // In interactive mode, we'll prompt for it later
+      // In non-interactive mode, it's required now
+      if (!config.interactive) {
+        console.error("Error: OPENROUTER_API_KEY environment variable is required");
+        console.error("Get your API key from: https://openrouter.ai/keys");
+        console.error("");
+        console.error("Set it now:");
+        console.error("  export OPENROUTER_API_KEY='sk-or-v1-...'");
+        process.exit(1);
+      }
+      // Will be prompted for in interactive mode
+      config.openrouterApiKey = undefined;
+    } else {
+      config.openrouterApiKey = apiKey;
     }
-    config.openrouterApiKey = apiKey;
 
     // Require ANTHROPIC_API_KEY to prevent Claude Code dialog
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -154,11 +170,6 @@ export function parseArgs(args: string[]): ClaudishConfig {
       console.error("Note: This key is NOT used for auth - claudish uses OPENROUTER_API_KEY");
       process.exit(1);
     }
-  }
-
-  // If no prompt provided and not explicitly interactive, default to interactive mode
-  if (!config.claudeArgs || config.claudeArgs.length === 0) {
-    config.interactive = true;
   }
 
   // Set default for quiet mode if not explicitly set
@@ -179,7 +190,7 @@ export function parseArgs(args: string[]): ClaudishConfig {
  * Print version information
  */
 function printVersion(): void {
-  console.log("claudish version 1.2.1");
+  console.log("claudish version 1.3.0");
 }
 
 /**

@@ -6,6 +6,298 @@ See [CHANGELOG.md](./CHANGELOG.md) for version history.
 
 ---
 
+## Frontend Plugin v3.2.0 (2025-11-13)
+
+**Tag:** `plugins/frontend/v3.2.0`
+
+### 🎯 Overview
+
+**Multi-Model Plan Review** - Get independent perspectives from external AI models on architecture plans *before* implementation begins. This release adds an optional PHASE 1.5 to the `/implement` command, allowing users to catch architectural issues, missing considerations, and edge cases early when changes are cheap.
+
+**Key Innovation:** Review plans with multiple AI models in parallel, highlight cross-model consensus (high confidence), and optionally revise the plan based on consolidated feedback.
+
+### ✨ What's New
+
+#### Multi-Model Plan Review (PHASE 1.5)
+
+**Workflow Integration:**
+
+```
+PHASE 1: Architect creates plan → User approves
+    ↓
+PHASE 1.5 (NEW): Multi-Model Plan Review
+    1. Ask user: "Want multi-model plan review?"
+    2. If yes: User selects AI models (multi-select UI)
+    3. Launch plan-reviewer agents in parallel (one per model)
+    4. Consolidate feedback with cross-model consensus
+    5. Present synthesized report to user
+    6. User decides: Revise plan OR proceed as-is
+    ↓
+PHASE 2: Implementation begins
+```
+
+**Supported AI Models:**
+- **Grok Code Fast** (xAI) - Fast coding analysis, implementation efficiency
+- **GPT-5 Codex** (OpenAI) - Advanced reasoning, edge cases, system design
+- **MiniMax M2** - High-performance analysis, pattern recognition
+- **Qwen Vision-Language** (Alibaba) - Multi-modal understanding, UX focus
+- **Custom models** - Any OpenRouter model ID
+
+**Key Features:**
+
+1. **User-Controlled Workflow**
+   - Fully optional (user can skip)
+   - Multi-select model chooser (pick 1+ models)
+   - User decides whether to revise plan based on feedback
+
+2. **Parallel Multi-Model Execution**
+   - All selected models review simultaneously
+   - Efficient use of time (parallel, not sequential)
+   - Independent perspectives reduce bias
+
+3. **Cross-Model Consensus**
+   - Issues flagged by **multiple models** = **HIGHEST PRIORITY**
+   - Shows which models agreed (e.g., "Flagged by: Grok, GPT-5 Codex [2/3 models - HIGH CONFIDENCE]")
+   - Single-model findings still valuable but noted as lower confidence
+
+4. **Consolidated Feedback Presentation**
+   - **Critical Issues** (must address before implementation)
+   - **Medium Suggestions** (should consider)
+   - **Low Improvements** (nice to have)
+   - **Plan Strengths** (validated by models)
+   - Overall assessment: APPROVED ✅ | NEEDS REVISION ⚠️ | MAJOR CONCERNS ❌
+
+5. **Plan Revision Loop**
+   - Option to re-launch architect with multi-model feedback
+   - Architect addresses critical and medium issues
+   - User approves revised plan
+   - Optional second review round on revised plan
+
+6. **Graceful Degradation**
+   - Handles missing OPENROUTER_API_KEY
+   - Handles Claudish CLI not installed
+   - Handles individual model failures (uses successful ones)
+   - Allows user opt-out at any time
+
+**New Agent: `plan-reviewer`**
+
+- Specialized for reviewing architecture plans via external AI models
+- Supports PROXY_MODE for OpenRouter model delegation
+- Evaluates:
+  - **Architectural Issues**: Design flaws, anti-patterns, scalability, maintainability
+  - **Missing Considerations**: Edge cases, error handling, security, accessibility, performance
+  - **Alternative Approaches**: Better patterns, simpler solutions, modern best practices
+  - **Technology Choices**: Library appropriateness, compatibility, technical debt
+  - **Implementation Risks**: Complex areas, testing challenges, integration points
+- Output format: Structured report with severity levels and actionable recommendations
+
+**Updated `/implement` Command:**
+
+- Added PHASE 1.5 section (8 steps, comprehensive)
+- Updated todo list initialization (Step 0)
+- Updated Success Criteria to include PHASE 1.5 validation
+- Added configuration support documentation (future enhancement)
+- Error handling for missing API keys, model failures, partial successes
+
+### 🚀 Benefits
+
+| Benefit | Description |
+|---------|-------------|
+| 🎯 **Early Issue Detection** | Fix architectural problems before writing code (10x cheaper) |
+| 🤝 **Multi-Model Wisdom** | Different AI models bring different perspectives and catch different issues |
+| 📊 **Consensus Validation** | Issues flagged by multiple models = high confidence signal |
+| 💰 **Cost Effective** | Reviewing 1-page plan is cheaper than refactoring 1000 lines of code |
+| 🔒 **User Control** | Fully optional, user chooses models and whether to revise |
+| ⚡ **Parallel Efficiency** | All models review simultaneously (not sequential) |
+| 🛡️ **Risk Reduction** | Catch edge cases, security issues, performance bottlenecks early |
+
+### 📦 Updated Files
+
+**New:**
+- `plugins/frontend/agents/plan-reviewer.md` - Plan review agent
+
+**Modified:**
+- `plugins/frontend/commands/implement.md` - Added PHASE 1.5 (500+ lines)
+- `plugins/frontend/plugin.json` - Added plan-reviewer, updated description
+- `CHANGELOG.md` - v3.2.0 entry
+- `RELEASES.md` - This file
+- `CLAUDE.md` - Updated with v3.2.0 information
+
+### 🔧 Configuration (Optional)
+
+**Future Enhancement** - Configure default models and auto-enable:
+
+```json
+{
+  "pluginSettings": {
+    "frontend": {
+      "planReviewModels": ["x-ai/grok-code-fast-1", "openai/gpt-5-codex"],
+      "autoEnablePlanReview": false
+    }
+  }
+}
+```
+
+**Behavior:**
+- If `autoEnablePlanReview: true` → Skip asking user, use configured models automatically
+- If `autoEnablePlanReview: false` → Ask user, use configured models if yes
+- If not configured → Interactive model selection (default)
+
+### 📋 Requirements
+
+**To use multi-model plan review:**
+1. Claudish CLI installed: `npx claudish --version`
+2. OpenRouter API key: `export OPENROUTER_API_KEY=your-key`
+3. Claude Code plugin: Frontend v3.2.0+
+
+**If requirements not met:**
+- Workflow gracefully skips PHASE 1.5
+- Logs helpful message about missing requirements
+- Implementation proceeds normally
+
+### 🎬 Example Usage
+
+**Scenario:** User wants to implement a new user management feature.
+
+```
+1. User runs: /implement "Create user management feature with CRUD operations"
+
+2. PHASE 1: Architect creates comprehensive plan
+   - Gap analysis
+   - Architecture design
+   - Implementation roadmap
+   - User approves plan ✅
+
+3. PHASE 1.5: Multi-Model Plan Review (NEW!)
+
+   Orchestrator: "🤖 Multi-Model Plan Review Available
+
+   Before we begin, would you like external AI models to review the plan?"
+
+   User: "Yes - Review the plan with external AI models"
+
+   Orchestrator: "Which AI models? (Select one or more)"
+
+   User selects: [✓] Grok Code Fast, [✓] GPT-5 Codex
+
+   Orchestrator launches 2 plan-reviewer agents in parallel...
+
+   Results:
+   - Grok: NEEDS REVISION ⚠️ (found 2 critical, 3 medium issues)
+   - GPT-5 Codex: NEEDS REVISION ⚠️ (found 3 critical, 2 medium issues)
+
+   Cross-Model Consensus:
+   - Issue #1: "Missing authorization checks on delete endpoint"
+     [FLAGGED BY: Grok, GPT-5 Codex - 2/2 models - UNANIMOUS]
+   - Issue #2: "No rate limiting on user creation"
+     [FLAGGED BY: GPT-5 Codex - 1/2 models]
+
+   Orchestrator: "Based on multi-model review, revise the plan?"
+
+   User: "Yes - Revise based on feedback"
+
+   Orchestrator re-launches architect with consolidated feedback...
+   Architect addresses all critical issues...
+
+   User approves revised plan ✅
+
+4. PHASE 2: Implementation begins with improved plan
+```
+
+### 🎓 When to Use Plan Review
+
+**Recommended for:**
+- ✅ Complex features with many moving parts
+- ✅ Critical features (authentication, payments, security)
+- ✅ Features involving new technologies or patterns
+- ✅ Features with significant architectural decisions
+- ✅ When you're uncertain about approach
+- ✅ High-risk features that are expensive to refactor
+
+**Skip for:**
+- ❌ Simple UI tweaks
+- ❌ Minor bug fixes
+- ❌ Well-understood patterns you've used many times
+- ❌ Quick prototypes/experiments
+- ❌ When speed is more important than quality
+
+### 📊 Success Metrics
+
+**Updated Success Criteria:**
+
+The `/implement` command now requires PHASE 1.5 completion:
+
+```
+1. ✅ User approved the architecture plan (Phase 1 gate)
+2. ✅ PHASE 1.5 (Multi-Model Plan Review) completed:
+   - If enabled: External AI models reviewed and feedback consolidated
+   - User decided: Revised plan OR proceeded as-is
+   - If skipped: User explicitly skipped OR external AI unavailable
+3. ✅ Implementation follows the approved plan
+[... rest of criteria ...]
+```
+
+### 🔄 Migration from v3.1.1
+
+**No breaking changes!** Fully backward compatible.
+
+1. **Update plugin** (if globally installed):
+   ```bash
+   /plugin marketplace add MadAppGang/claude-code
+   /plugin install frontend@mag-claude-plugins
+   ```
+
+2. **Enable in project** (recommended for teams):
+   ```json
+   // .claude/settings.json
+   {
+     "enabledPlugins": {
+       "frontend@mag-claude-plugins": true
+     }
+   }
+   ```
+
+3. **Set up OpenRouter** (if you want plan review):
+   ```bash
+   export OPENROUTER_API_KEY=your-key-here
+   ```
+
+4. **That's it!** Next time you run `/implement`, you'll see PHASE 1.5 option
+
+**Existing behavior preserved:**
+- If you skip plan review → Works exactly like v3.1.1
+- If OpenRouter not configured → Skips automatically, no errors
+- All other phases unchanged
+
+### 🐛 Known Limitations
+
+1. **OpenRouter API required** - No offline plan review (needs external models)
+2. **Cost consideration** - Multi-model reviews use OpenRouter API (costs apply based on model pricing)
+3. **Model availability** - Some models may be unavailable or deprecated on OpenRouter
+4. **English only** - External AI models work best with English prompts
+
+### 📚 Additional Resources
+
+- **CLAUDE.md** - Updated with v3.2.0 information and plan review workflow
+- **CHANGELOG.md** - Detailed changelog entry
+- **Plugin Documentation** - See `/implement` command for complete PHASE 1.5 workflow
+- **Claudish CLI** - See mcp/claudish/README.md for OpenRouter model catalog
+
+### 🏷️ Git Tag
+
+```bash
+git tag -a plugins/frontend/v3.2.0 -m "Frontend Plugin v3.2.0 - Multi-Model Plan Review (PHASE 1.5)"
+git push origin plugins/frontend/v3.2.0
+```
+
+### 👥 Credits
+
+**Developed by:** Jack Rudenko @ MadAppGang
+**License:** MIT
+**Repository:** https://github.com/MadAppGang/claude-code
+
+---
+
 ## Frontend Plugin v3.1.1 (2025-11-11)
 
 **Tag:** `plugins/frontend/v3.1.1`
