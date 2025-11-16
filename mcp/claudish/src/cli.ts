@@ -1,5 +1,6 @@
-import { ENV, MODEL_INFO } from "./config.js";
-import { OPENROUTER_MODELS, type ClaudishConfig } from "./types.js";
+import { ENV } from "./config.js";
+import type { ClaudishConfig } from "./types.js";
+import { loadModelInfo, getAvailableModels } from "./model-loader.js";
 
 /**
  * Parse CLI arguments and environment variables
@@ -295,8 +296,11 @@ MORE INFO:
 function printAvailableModels(): void {
   console.log("\nAvailable OpenRouter Models (in priority order):\n");
 
-  for (const model of OPENROUTER_MODELS) {
-    const info = MODEL_INFO[model];
+  const models = getAvailableModels();
+  const modelInfo = loadModelInfo();
+
+  for (const model of models) {
+    const info = modelInfo[model];
     console.log(`  ${model}`);
     console.log(`    ${info.name} - ${info.description}`);
     console.log("");

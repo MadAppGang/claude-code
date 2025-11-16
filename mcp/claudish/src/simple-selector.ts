@@ -1,6 +1,6 @@
 import { createInterface } from "readline";
-import { MODEL_INFO } from "./config.js";
-import { OPENROUTER_MODELS, type OpenRouterModel } from "./types.js";
+import type { OpenRouterModel } from "./types.js";
+import { loadModelInfo, getAvailableModels } from "./model-loader.js";
 
 /**
  * Prompt user for OpenRouter API key interactively
@@ -71,12 +71,17 @@ export async function promptForApiKey(): Promise<string> {
  * Uses readline which properly cleans up stdin
  */
 export async function selectModelInteractively(): Promise<OpenRouterModel | string> {
+  // Load models at function start so they're available throughout
+  const models = getAvailableModels();
+  const modelInfo = loadModelInfo();
+
   return new Promise((resolve) => {
     console.log("\n\x1b[1m\x1b[36mSelect an OpenRouter model:\x1b[0m\n");
 
     // Display models
-    OPENROUTER_MODELS.forEach((model, index) => {
-      const info = MODEL_INFO[model as keyof typeof MODEL_INFO];
+
+    models.forEach((model, index) => {
+      const info = modelInfo[model as keyof typeof modelInfo];
       const displayName = info ? info.name : model;
       const description = info ? info.description : "Custom model entry";
       const provider = info ? info.provider : "";
@@ -90,7 +95,7 @@ export async function selectModelInteractively(): Promise<OpenRouterModel | stri
       console.log("");
     });
 
-    console.log(`\x1b[2mEnter number (1-${OPENROUTER_MODELS.length}) or 'q' to quit:\x1b[0m`);
+    console.log(`\x1b[2mEnter number (1-${models.length}) or 'q' to quit:\x1b[0m`);
 
     const rl = createInterface({
       input: process.stdin,
@@ -111,12 +116,12 @@ export async function selectModelInteractively(): Promise<OpenRouterModel | stri
 
       // Parse selection
       const selection = parseInt(trimmed, 10);
-      if (isNaN(selection) || selection < 1 || selection > OPENROUTER_MODELS.length) {
-        console.log(`\x1b[31mInvalid selection. Please enter 1-${OPENROUTER_MODELS.length}\x1b[0m`);
+      if (isNaN(selection) || selection < 1 || selection > models.length) {
+        console.log(`\x1b[31mInvalid selection. Please enter 1-${models.length}\x1b[0m`);
         return;
       }
 
-      const model = OPENROUTER_MODELS[selection - 1];
+      const model = models[selection - 1];
 
       // Handle custom model
       if (model === "custom") {
