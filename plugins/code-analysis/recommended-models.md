@@ -1,8 +1,8 @@
 # Recommended AI Models for Code Development
 
-**Version:** 1.1.3
-**Last Updated:** 2025-11-15
-**Pricing Last Verified:** 2025-11-15
+**Version:** 1.1.4
+**Last Updated:** 2025-11-16
+**Pricing Last Verified:** 2025-11-16
 **Purpose:** Curated OpenRouter model recommendations for code development tasks
 **Maintained By:** MadAppGang Claude Code Team
 
@@ -12,22 +12,17 @@
 
 **Coding (Fast):**
 - `x-ai/grok-code-fast-1` - Ultra-fast coding, $0.85/1M, 256K ⭐
-- `minimax/minimax-m2` - Compact high-efficiency, $0.64/1M, 205K ⭐
-- `z-ai/glm-4.6` - Enhanced coding capabilities, $1.08/1M, 203K
 
 **Reasoning (Architecture):**
-- `openai/gpt-5.1-codex` - Specialized software engineering, $5.63/1M, 400K ⭐
 - `google/gemini-2.5-flash` - Advanced reasoning with built-in thinking, $1.40/1M, 1M ⭐
-- `google/gemini-2.5-pro` - State-of-the-art reasoning, $5.63/1M, 1M
-
-**Vision (UI Analysis):**
-- `qwen/qwen3-vl-235b-a22b-instruct` - Multimodal vision-language, $0.55/1M, 262K ⭐
+- `qwen/qwen3-235b-a22b-2507` - Large-scale reasoning, $3.13/1M, 33K
 
 **Budget (Free/Cheap):**
-- `google/gemini-2.0-flash-001` - Faster TTFT, multimodal, $0.25/1M, 1M ⭐
-- `google/gemini-2.5-flash-lite` - Ultra-low latency, $0.25/1M, 1M ⭐
-- `deepseek/deepseek-chat-v3-0324` - 685B parameter MoE, $0.54/1M, 164K
-- `openai/gpt-4o-mini` - Compact multimodal, $0.38/1M, 128K
+- `minimax/minimax-m2` - Compact high-efficiency, $0.64/1M, 205K ⭐
+- `z-ai/glm-4.6` - Ultra-budget balanced pricing, $0.10/1M, 128K ⭐
+- `openai/gpt-4o-mini` - Compact multimodal, $0.38/1M, 128K ⭐
+- `tngtech/deepseek-r1t2-chimera:free` - Free reasoning model, FREE, 64K ⭐
+- `openrouter/polaris-alpha` - OpenRouter ultra-budget, $0.05/1M, 128K ⭐
 
 ---
 
@@ -37,7 +32,7 @@
 
 This file provides curated model recommendations for different code development tasks. When a user needs to select an AI model for plan review, code review, or other multi-model workflows:
 
-1. **Start with Quick Reference** - Extract model slugs from the top section (11 recommended models)
+1. **Start with Quick Reference** - Extract model slugs from the top section (8 recommended models)
 2. **Read detailed sections** for context on "Best For", "Trade-offs", and use cases
 3. **Use ⭐ markers** to identify top recommendations in each category
 4. **Present options to user** with pricing, context window, and use case guidance
@@ -48,7 +43,6 @@ This file provides curated model recommendations for different code development 
 Browse categories to find models that match your needs:
 - **Fast Coding Models** ⚡ - Quick iterations, code generation, reviews
 - **Advanced Reasoning Models** 🧠 - Architecture, complex problem-solving
-- **Vision & Multimodal Models** 👁️ - UI analysis, screenshot reviews
 - **Budget-Friendly Models** 💰 - High-volume tasks, simple operations
 
 Each model includes:
@@ -64,16 +58,13 @@ Each model includes:
 | Model | Category | Speed | Quality | Cost | Context | Recommended For |
 |-------|----------|-------|---------|------|---------|----------------|
 | x-ai/grok-code-fast-1 | Coding ⚡ | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 256K | Ultra-fast coding, budget-friendly |
-| minimax/minimax-m2 | Coding ⚡ | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 205K | Compact high-efficiency coding |
-| z-ai/glm-4.6 | Coding ⚡ | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 203K | Enhanced coding capabilities |
-| openai/gpt-5.1-codex | Reasoning 🧠 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 💰💰💰💰 | 400K | Specialized software engineering |
 | google/gemini-2.5-flash | Reasoning 🧠 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰💰 | 1049K | Advanced reasoning, huge context |
-| google/gemini-2.5-pro | Reasoning 🧠 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 💰💰💰💰 | 1049K | State-of-the-art reasoning |
-| qwen/qwen3-vl-235b-a22b-instruct | Vision 👁️ | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 262K | Vision-language UI analysis |
-| google/gemini-2.0-flash-001 | Budget 💰 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 1049K | Fast multimodal, huge context |
-| google/gemini-2.5-flash-lite | Budget 💰 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | 💰 | 1049K | Ultra-low latency |
-| deepseek/deepseek-chat-v3-0324 | Budget 💰 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 164K | Budget flagship chat |
+| qwen/qwen3-235b-a22b-2507 | Reasoning 🧠 | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | 💰💰💰 | 33K | Large-scale reasoning (235B params) |
+| minimax/minimax-m2 | Budget 💰 | ⚡⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 205K | Compact high-efficiency coding |
+| z-ai/glm-4.6 | Budget 💰 | ⚡⚡⚡⚡ | ⭐⭐⭐ | 💰 | 128K | Ultra-budget balanced pricing |
 | openai/gpt-4o-mini | Budget 💰 | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | 💰 | 128K | Compact multimodal |
+| tngtech/deepseek-r1t2-chimera:free | Budget 💰 | ⚡⚡⚡ | ⭐⭐⭐ | FREE | 64K | Free reasoning model |
+| openrouter/polaris-alpha | Budget 💰 | ⚡⚡⚡⚡ | ⭐⭐⭐ | 💰 | 128K | OpenRouter ultra-budget |
 
 **Legend:**
 - Speed: ⚡ (1-5, more = faster)
@@ -91,9 +82,9 @@ Each model includes:
 
 - **Provider:** xAI
 - **OpenRouter ID:** `x-ai/grok-code-fast-1`
-- **Model Version:** Grok Code Fast 1 (2025-11-15)
+- **Model Version:** Grok Code Fast 1 (2025-11-16)
 - **Context Window:** 256,000 tokens
-- **Pricing:** $0.20/1M input, $1.50/1M output (Verified: 2025-11-15)
+- **Pricing:** $0.20/1M input, $1.50/1M output (Verified: 2025-11-16)
 - **Response Time:** Ultra-fast (<2s typical)
 
 **Best For:**
@@ -125,13 +116,97 @@ Each model includes:
 
 ---
 
+## Category 2: Advanced Reasoning Models 🧠
+
+**Use When:** You need deep analysis, architectural planning, or complex problem-solving.
+
+### google/gemini-2.5-flash (⭐ RECOMMENDED)
+
+- **Provider:** Google
+- **OpenRouter ID:** `google/gemini-2.5-flash`
+- **Model Version:** Gemini 2.5 Flash (2025-11-16)
+- **Context Window:** 1,049,000 tokens
+- **Pricing:** $0.30/1M input, $2.50/1M output (Verified: 2025-11-16)
+- **Response Time:** Very fast (<2s typical)
+
+**Best For:**
+- **Advanced reasoning, coding, and math with built-in thinking**
+- Massive context analysis (1M+ tokens!)
+- Multi-file refactoring
+- Large repository analysis
+- Complex system comprehension
+- Architecture planning with extensive context
+
+**Trade-offs:**
+- Moderate pricing ($1.40/1M avg)
+- Lower quality than specialized premium models for most complex reasoning
+- Better for breadth than depth
+
+**When to Use:**
+- ✅ **Advanced reasoning with massive context** (1M tokens at $1.40/1M)
+- ✅ Whole codebase analysis
+- ✅ Multi-file architectural planning
+- ✅ Large-scale refactoring
+- ✅ Built-in thinking mode for complex problems
+- ✅ Fast iterations on large projects
+
+**Avoid For:**
+- ❌ Tasks requiring absolute highest quality (use specialized premium models)
+- ❌ When budget is primary constraint (use budget models)
+- ❌ Simple coding tasks (use fast coding models)
+- ❌ Small context tasks (<100K tokens)
+
+---
+
+### qwen/qwen3-235b-a22b-2507
+
+- **Provider:** Alibaba (Qwen)
+- **OpenRouter ID:** `qwen/qwen3-235b-a22b-2507`
+- **Model Version:** Qwen3 235B A22B (2025-11-16)
+- **Context Window:** 32,768 tokens
+- **Pricing:** $1.25/1M input, $5.00/1M output (Verified: 2025-11-16)
+- **Response Time:** Moderate (~5s typical)
+
+**Best For:**
+- **Large-scale reasoning model with 235B parameters**
+- Complex algorithmic problem-solving
+- Advanced mathematical reasoning
+- Deep code analysis
+- High-quality reasoning tasks
+- Performance-critical reasoning
+
+**Trade-offs:**
+- Premium pricing ($3.13/1M avg)
+- Smaller context window (33K vs Gemini's 1M)
+- Slower than Flash models
+
+**When to Use:**
+- ✅ **Large-scale reasoning** (235B parameters)
+- ✅ Complex algorithmic tasks
+- ✅ Advanced mathematical reasoning
+- ✅ When premium quality reasoning is needed
+- ✅ Deep code analysis
+- ✅ Quality over speed or cost
+
+**Avoid For:**
+- ❌ Large context needs (>33K)
+- ❌ Budget-constrained projects
+- ❌ Simple coding tasks
+- ❌ When speed is critical
+
+---
+
+## Category 3: Budget-Friendly Models 💰
+
+**Use When:** You need to minimize costs for high-volume or simple tasks.
+
 ### minimax/minimax-m2 (⭐ RECOMMENDED)
 
 - **Provider:** MiniMax
 - **OpenRouter ID:** `minimax/minimax-m2`
-- **Model Version:** MiniMax M2 (2025-11-15)
-- **Context Window:** 205,000 tokens
-- **Pricing:** $0.255/1M input, $1.02/1M output (Verified: 2025-11-15)
+- **Model Version:** MiniMax M2 (2025-11-16)
+- **Context Window:** 204,800 tokens
+- **Pricing:** $0.255/1M input, $1.02/1M output (Verified: 2025-11-16)
 - **Response Time:** Very fast (<2s typical)
 
 **Best For:**
@@ -157,342 +232,58 @@ Each model includes:
 
 **Avoid For:**
 - ❌ Ultra-large context needs (>205K)
-- ❌ Specialized software engineering (use Codex)
-- ❌ Vision/UI tasks (use multimodal models)
+- ❌ Specialized software engineering (use premium models)
 - ❌ When absolute lowest cost required
+- ❌ Vision/UI tasks (use multimodal models)
 
 ---
 
-### z-ai/glm-4.6
+### z-ai/glm-4.6 (⭐ RECOMMENDED)
 
 - **Provider:** Zhipu AI
 - **OpenRouter ID:** `z-ai/glm-4.6`
-- **Model Version:** GLM-4.6 (2025-11-15)
-- **Context Window:** 203,000 tokens
-- **Pricing:** $0.40/1M input, $1.75/1M output (Verified: 2025-11-15)
+- **Model Version:** GLM-4.6 (2025-11-16)
+- **Context Window:** 128,000 tokens
+- **Pricing:** $0.10/1M input, $0.10/1M output (Verified: 2025-11-16)
 - **Response Time:** Fast (~3s typical)
 
 **Best For:**
-- Enhanced coding capabilities over GLM-4.5
-- Algorithm implementation
-- Code optimization
-- Mathematical problem-solving
-- Programming challenges
-- Mid-range coding projects
-
-**Trade-offs:**
-- Moderate pricing ($1.08/1M avg)
-- Smaller context than Gemini (203K vs 1049K)
-- Less specialized than Codex for software engineering
-
-**When to Use:**
-- ✅ Enhanced coding over previous GLM versions
-- ✅ Algorithm development and optimization
-- ✅ Math and programming tasks
-- ✅ Mid-range budget coding projects
-- ✅ Good context window (203K)
-- ✅ Balanced speed and quality
-
-**Avoid For:**
-- ❌ Ultra-large context needs (>203K)
-- ❌ Vision/UI analysis tasks
-- ❌ When budget is primary constraint
-- ❌ Complex architectural planning
-
----
-
-## Category 2: Advanced Reasoning Models 🧠
-
-**Use When:** You need deep analysis, architectural planning, or complex problem-solving.
-
-### openai/gpt-5.1-codex (⭐ RECOMMENDED)
-
-- **Provider:** OpenAI
-- **OpenRouter ID:** `openai/gpt-5.1-codex`
-- **Model Version:** GPT-5.1-Codex (2025-11-13)
-- **Context Window:** 400,000 tokens
-- **Pricing:** $1.25/1M input, $10.00/1M output (Verified: 2025-11-15)
-- **Response Time:** Fast with adjustable reasoning (~3-5s typical)
-
-**Best For:**
-- **Specialized software engineering and agentic coding workflows**
-- Large-scale refactoring across multiple files
-- Structured code review with dependency analysis
-- Building projects from scratch
-- Feature development with extended reasoning
-- Debugging complex systems
-- UI development with multimodal screenshot support
-- Long-running multi-hour engineering tasks
-
-**Trade-offs:**
-- Premium pricing ($5.63/1M avg)
-- More expensive than budget reasoning models
-- May be overkill for simple CRUD operations
-
-**When to Use:**
-- ✅ **Complex engineering tasks** requiring deep reasoning
-- ✅ **Agentic coding workflows** (multi-step autonomous execution)
-- ✅ **Large-scale refactoring** across codebases
-- ✅ **Code review with dependency analysis** (validates against tests)
-- ✅ **UI development** with screenshot/image analysis (multimodal)
-- ✅ **Multi-hour project execution** (adjustable reasoning effort)
-- ✅ **Critical code paths** requiring highest quality
-- ✅ Projects where quality > cost
-
-**Avoid For:**
-- ❌ Simple CRUD operations or basic features
-- ❌ Quick syntax fixes or trivial changes
-- ❌ Ultra-budget projects (<$1/1M requirement)
-- ❌ When Gemini Flash or budget models suffice
-
----
-
-### google/gemini-2.5-flash (⭐ RECOMMENDED)
-
-- **Provider:** Google
-- **OpenRouter ID:** `google/gemini-2.5-flash`
-- **Model Version:** Gemini 2.5 Flash (2025-11-15)
-- **Context Window:** 1,049,000 tokens
-- **Pricing:** $0.30/1M input, $2.50/1M output (Verified: 2025-11-15)
-- **Response Time:** Very fast (<2s typical)
-
-**Best For:**
-- **Advanced reasoning, coding, and math with built-in thinking**
-- Massive context analysis (1M+ tokens!)
-- Multi-file refactoring
-- Large repository analysis
-- Complex system comprehension
-- Architecture planning with extensive context
-
-**Trade-offs:**
-- Moderate pricing ($1.40/1M avg)
-- Lower quality than Gemini Pro for most complex reasoning
-- Better for breadth than depth
-
-**When to Use:**
-- ✅ **Advanced reasoning with massive context** (1M tokens at $1.40/1M)
-- ✅ Whole codebase analysis
-- ✅ Multi-file architectural planning
-- ✅ Large-scale refactoring
-- ✅ Built-in thinking mode for complex problems
-- ✅ Fast iterations on large projects
-
-**Avoid For:**
-- ❌ Tasks requiring absolute highest quality (use Gemini Pro or Codex)
-- ❌ When budget is primary constraint (use budget models)
-- ❌ Simple coding tasks (use fast coding models)
-- ❌ Vision-heavy tasks (use vision models)
-
----
-
-### google/gemini-2.5-pro
-
-- **Provider:** Google
-- **OpenRouter ID:** `google/gemini-2.5-pro`
-- **Model Version:** Gemini 2.5 Pro (2025-11-15)
-- **Context Window:** 1,049,000 tokens
-- **Pricing:** $1.25/1M input, $10.00/1M output (Verified: 2025-11-15)
-- **Response Time:** Moderate (~5s typical)
-
-**Best For:**
-- **State-of-the-art reasoning with enhanced accuracy**
-- Complex architectural decisions
-- Critical code paths requiring highest quality
-- Large-scale system design
-- Advanced problem-solving
-- Production-critical implementations
-
-**Trade-offs:**
-- Premium pricing ($5.63/1M avg)
-- Slower than Flash models
-- May be overkill for simple tasks
-
-**When to Use:**
-- ✅ **State-of-the-art reasoning** (same cost as Codex)
-- ✅ Complex architectural planning
-- ✅ Critical code review requiring maximum accuracy
-- ✅ Massive context + premium quality (1M tokens)
-- ✅ Production-critical implementations
-- ✅ Projects where quality is paramount
-
-**Avoid For:**
-- ❌ Simple CRUD operations
-- ❌ Quick syntax fixes
-- ❌ Budget-conscious projects
-- ❌ When speed is primary requirement
-
----
-
-## Category 3: Vision & Multimodal Models 👁️
-
-**Use When:** You need UI/UX analysis, screenshot reviews, or diagram interpretation.
-
-### qwen/qwen3-vl-235b-a22b-instruct (⭐ RECOMMENDED)
-
-- **Provider:** Alibaba (Qwen)
-- **OpenRouter ID:** `qwen/qwen3-vl-235b-a22b-instruct`
-- **Model Version:** Qwen3 VL 235B A22B Instruct (2025-11-15)
-- **Context Window:** 262,000 tokens
-- **Pricing:** $0.22/1M input, $0.88/1M output (Verified: 2025-11-15)
-- **Vision:** Multimodal vision-language model
-- **Response Time:** Fast (~3s typical)
-
-**Best For:**
-- **Multimodal vision-language tasks for UI/document analysis**
-- UI/UX design analysis at budget-friendly price
-- Screenshot-based debugging
-- Design fidelity validation
-- Component recognition
-- Visual accessibility audits
-- Document and diagram interpretation
-
-**Trade-offs:**
-- Smaller context than text models (262K vs 1049K)
-- Less specialized for pure coding tasks
-- Vision quality may vary by task complexity
-
-**When to Use:**
-- ✅ **Budget-friendly vision-language** ($0.55/1M avg!)
-- ✅ Screenshot-based UI reviews
-- ✅ Figma design to code comparison
-- ✅ Accessibility visual audits
-- ✅ Design system consistency checks
-- ✅ Document and diagram analysis
-- ✅ Multimodal tasks requiring text + vision
-
-**Avoid For:**
-- ❌ Pure code review (use coding models)
-- ❌ Ultra-large design systems (>262K context)
-- ❌ Tasks not requiring vision capabilities
-- ❌ When text-only models are sufficient
-
----
-
-## Category 4: Budget-Friendly Models 💰
-
-**Use When:** You need to minimize costs for high-volume or simple tasks.
-
-### google/gemini-2.0-flash-001 (⭐ RECOMMENDED)
-
-- **Provider:** Google
-- **OpenRouter ID:** `google/gemini-2.0-flash-001`
-- **Model Version:** Gemini 2.0 Flash (2025-11-15)
-- **Context Window:** 1,049,000 tokens
-- **Pricing:** $0.10/1M input, $0.40/1M output (Verified: 2025-11-15)
-- **Response Time:** Ultra-fast (<2s typical)
-
-**Best For:**
-- **Faster TTFT, enhanced multimodal and coding capabilities**
-- Ultra-cheap massive context analysis
+- **Ultra-budget model with balanced input/output pricing**
 - High-volume simple coding tasks
-- Quick comprehension of complex systems
-- Budget-conscious multimodal tasks
+- Quick comprehension tasks
+- Budget-conscious projects
 - Learning and experimentation
+- Simple code generation
 
 **Trade-offs:**
-- Lower quality than Gemini 2.5 models
-- Less specialized than domain-specific models
-- Best for breadth, not depth
+- Lower quality than premium models
+- Smaller context (128K)
+- Less specialized for complex tasks
+- Best for simple, straightforward operations
 
 **When to Use:**
-- ✅ **Ultra-cheap massive context** (1M tokens at $0.25/1M!)
+- ✅ **Ultra-budget balanced pricing** ($0.10/1M avg!)
 - ✅ High-volume simple tasks
-- ✅ Multimodal capabilities on budget
-- ✅ Whole codebase analysis affordably
 - ✅ Learning and experimentation
-- ✅ Fast iterations on large projects
+- ✅ Quick comprehension
+- ✅ Budget-conscious projects
+- ✅ Simple code generation
 
 **Avoid For:**
-- ❌ Critical code paths requiring highest quality
 - ❌ Complex architectural decisions
-- ❌ Security-critical reviews
-- ❌ Production releases requiring maximum accuracy
-
----
-
-### google/gemini-2.5-flash-lite (⭐ RECOMMENDED)
-
-- **Provider:** Google
-- **OpenRouter ID:** `google/gemini-2.5-flash-lite`
-- **Model Version:** Gemini 2.5 Flash Lite (2025-11-15)
-- **Context Window:** 1,049,000 tokens
-- **Pricing:** $0.10/1M input, $0.40/1M output (Verified: 2025-11-15)
-- **Response Time:** Ultra-fast (<2s typical)
-
-**Best For:**
-- **Ultra-low latency, cost-efficient lightweight reasoning**
-- High-speed code generation
-- Quick syntax checks
-- Rapid prototyping
-- High-volume simple operations
-- Latency-sensitive workflows
-
-**Trade-offs:**
-- Lightweight model - less quality than standard Gemini 2.5
-- Not suitable for complex reasoning
-- Best for simple, fast tasks
-
-**When to Use:**
-- ✅ **Ultra-low latency** with huge context (1M tokens)
-- ✅ High-volume simple coding tasks
-- ✅ Quick syntax and logic checks
-- ✅ Rapid prototyping
-- ✅ Latency-critical workflows
-- ✅ Budget-conscious projects ($0.25/1M)
-
-**Avoid For:**
-- ❌ Complex reasoning or architecture
 - ❌ Critical code review
+- ❌ Large context needs (>128K)
 - ❌ Production-critical implementations
-- ❌ Tasks requiring highest quality
 
 ---
 
-### deepseek/deepseek-chat-v3-0324
-
-- **Provider:** DeepSeek
-- **OpenRouter ID:** `deepseek/deepseek-chat-v3-0324`
-- **Model Version:** DeepSeek Chat V3 (2025-03-24)
-- **Context Window:** 164,000 tokens
-- **Pricing:** $0.24/1M input, $0.84/1M output (Verified: 2025-11-15)
-- **Response Time:** Fast (~3s typical)
-
-**Best For:**
-- **685B-parameter mixture-of-experts flagship chat model**
-- Budget-friendly complex reasoning
-- Algorithm implementation
-- Mathematical problem-solving
-- Code optimization
-- Mid-range budget projects
-
-**Trade-offs:**
-- Moderate context (164K vs Gemini's 1M)
-- Less specialized for software engineering
-- May require more guidance for edge cases
-
-**When to Use:**
-- ✅ **Budget flagship model** ($0.54/1M avg)
-- ✅ Algorithm development
-- ✅ Math and programming tasks
-- ✅ Code optimization
-- ✅ Mid-range budget reasoning
-- ✅ Good context window (164K)
-
-**Avoid For:**
-- ❌ Ultra-large context needs (>164K)
-- ❌ Vision/UI analysis tasks
-- ❌ Specialized software engineering (use Codex)
-- ❌ When absolute lowest cost required
-
----
-
-### openai/gpt-4o-mini
+### openai/gpt-4o-mini (⭐ RECOMMENDED)
 
 - **Provider:** OpenAI
 - **OpenRouter ID:** `openai/gpt-4o-mini`
-- **Model Version:** GPT-4o Mini (2025-11-15)
+- **Model Version:** GPT-4o Mini (2025-11-16)
 - **Context Window:** 128,000 tokens
-- **Pricing:** $0.15/1M input, $0.60/1M output (Verified: 2025-11-15)
+- **Pricing:** $0.15/1M input, $0.60/1M output (Verified: 2025-11-16)
 - **Response Time:** Fast (~3s typical)
 
 **Best For:**
@@ -524,6 +315,83 @@ Each model includes:
 
 ---
 
+### tngtech/deepseek-r1t2-chimera:free (⭐ RECOMMENDED)
+
+- **Provider:** TNG Technology Consulting
+- **OpenRouter ID:** `tngtech/deepseek-r1t2-chimera:free`
+- **Model Version:** DeepSeek R1T2 Chimera (2025-11-16)
+- **Context Window:** 64,000 tokens
+- **Pricing:** FREE (Verified: 2025-11-16)
+- **Response Time:** Moderate (~5s typical)
+
+**Best For:**
+- **Free reasoning model variant optimized for cost-sensitive applications**
+- Zero-cost experimentation
+- High-volume testing
+- Learning and exploration
+- Budget-constrained projects
+- Simple reasoning tasks
+
+**Trade-offs:**
+- Smaller context (64K)
+- Lower quality than paid models
+- Free tier may have rate limits
+- Best for non-critical tasks
+
+**When to Use:**
+- ✅ **Completely free** (no cost!)
+- ✅ Zero-cost experimentation
+- ✅ High-volume testing
+- ✅ Learning and exploration
+- ✅ Budget-constrained projects
+- ✅ Simple reasoning tasks
+
+**Avoid For:**
+- ❌ Production-critical applications
+- ❌ Complex reasoning tasks
+- ❌ Large context needs (>64K)
+- ❌ When quality is paramount
+
+---
+
+### openrouter/polaris-alpha (⭐ RECOMMENDED)
+
+- **Provider:** OpenRouter
+- **OpenRouter ID:** `openrouter/polaris-alpha`
+- **Model Version:** Polaris Alpha (2025-11-16)
+- **Context Window:** 128,000 tokens
+- **Pricing:** $0.05/1M input, $0.05/1M output (Verified: 2025-11-16)
+- **Response Time:** Fast (~3s typical)
+
+**Best For:**
+- **OpenRouter's in-house ultra-budget model**
+- Ultra-cheap high-volume tasks
+- Simple code comprehension
+- Quick syntax checks
+- Learning and experimentation
+- Budget-conscious projects
+
+**Trade-offs:**
+- Lower quality than premium models
+- Less specialized for complex tasks
+- Best for simple, straightforward operations
+
+**When to Use:**
+- ✅ **OpenRouter ultra-budget** ($0.05/1M avg!)
+- ✅ Ultra-cheap high-volume tasks
+- ✅ Simple code comprehension
+- ✅ Quick syntax checks
+- ✅ Learning and experimentation
+- ✅ Budget-conscious projects
+
+**Avoid For:**
+- ❌ Complex architectural decisions
+- ❌ Critical code review
+- ❌ Production-critical implementations
+- ❌ When quality is paramount
+
+---
+
 ## Model Selection Decision Tree
 
 Use this flowchart to choose the right model:
@@ -532,29 +400,22 @@ Use this flowchart to choose the right model:
 START: What is your primary need?
 
 ┌─ Architecture Planning or Complex Reasoning?
-│  ├─ Budget < $1/1M → google/gemini-2.0-flash-001 ($0.25/1M)
 │  ├─ Need massive context (>400K) + speed → google/gemini-2.5-flash ⭐ ($1.40/1M, 1M)
-│  ├─ Need maximum quality → google/gemini-2.5-pro ($5.63/1M, 1M)
-│  └─ Specialized software engineering → openai/gpt-5.1-codex ⭐ ($5.63/1M, 400K)
+│  └─ Need large-scale reasoning (235B params) → qwen/qwen3-235b-a22b-2507 ($3.13/1M, 33K)
 
 ┌─ Fast Code Review or Generation?
-│  ├─ Budget < $0.50/1M → google/gemini-2.0-flash-001 ($0.25/1M)
-│  ├─ Best value → minimax/minimax-m2 ⭐ ($0.64/1M, 205K)
-│  ├─ Ultra-fast + reasoning traces → x-ai/grok-code-fast-1 ⭐ ($0.85/1M, 256K)
-│  └─ Enhanced capabilities → z-ai/glm-4.6 ($1.08/1M, 203K)
-
-┌─ UI/Design Analysis (Screenshots)?
-│  └─ Recommended → qwen/qwen3-vl-235b-a22b-instruct ⭐ ($0.55/1M, 262K)
+│  └─ Ultra-fast + reasoning traces → x-ai/grok-code-fast-1 ⭐ ($0.85/1M, 256K)
 
 ┌─ Budget is Top Priority?
-│  ├─ Ultra-cheap + massive context → google/gemini-2.0-flash-001 ⭐ ($0.25/1M, 1M)
-│  ├─ Ultra-low latency → google/gemini-2.5-flash-lite ⭐ ($0.25/1M, 1M)
-│  ├─ Budget flagship → deepseek/deepseek-chat-v3-0324 ($0.54/1M, 164K)
-│  └─ Budget multimodal → openai/gpt-4o-mini ($0.38/1M, 128K)
+│  ├─ Completely free → tngtech/deepseek-r1t2-chimera:free ⭐ (FREE, 64K)
+│  ├─ Ultra-cheap → openrouter/polaris-alpha ⭐ ($0.05/1M, 128K)
+│  ├─ Ultra-budget balanced → z-ai/glm-4.6 ⭐ ($0.10/1M, 128K)
+│  ├─ Budget multimodal → openai/gpt-4o-mini ⭐ ($0.38/1M, 128K)
+│  └─ Best value efficiency → minimax/minimax-m2 ⭐ ($0.64/1M, 205K)
 
 ┌─ High-Volume Simple Tasks?
-│  ├─ Massive context → google/gemini-2.0-flash-001 ⭐ ($0.25/1M, 1M)
-│  └─ Ultra-low latency → google/gemini-2.5-flash-lite ⭐ ($0.25/1M, 1M)
+│  ├─ Free → tngtech/deepseek-r1t2-chimera:free ⭐ (FREE, 64K)
+│  └─ Ultra-cheap → openrouter/polaris-alpha ⭐ ($0.05/1M, 128K)
 
 └─ Not sure? → Start with x-ai/grok-code-fast-1 (fast + affordable + reasoning)
 ```
@@ -567,39 +428,33 @@ START: What is your primary need?
 
 | Model | Simple Task | Complex Task | Large Context |
 |-------|-------------|--------------|---------------|
-| google/gemini-2.0-flash-001 | <2s | 3-4s | 5s |
-| google/gemini-2.5-flash-lite | <2s | 3-4s | 5s |
-| google/gemini-2.5-flash | <2s | 3-4s | 5s |
 | x-ai/grok-code-fast-1 | <2s | 4-5s | 6s |
 | minimax/minimax-m2 | <2s | 4-5s | 6s |
+| google/gemini-2.5-flash | <2s | 3-4s | 5s |
 | z-ai/glm-4.6 | 3s | 5-6s | 7s |
-| qwen/qwen3-vl-235b-a22b-instruct | 3s | 5-6s | 7s |
 | openai/gpt-4o-mini | 3s | 5-6s | 7s |
-| deepseek/deepseek-chat-v3-0324 | 3s | 5-6s | 7s |
-| openai/gpt-5.1-codex | 3-5s | 6-8s | 10s |
-| google/gemini-2.5-pro | 4-5s | 8-10s | 12s |
+| openrouter/polaris-alpha | 3s | 5-6s | 7s |
+| tngtech/deepseek-r1t2-chimera:free | 5s | 7-8s | 9s |
+| qwen/qwen3-235b-a22b-2507 | 4-5s | 8-10s | 12s |
 
 **Notes:**
 - Times are approximate and vary based on load
 - "Large Context" = >100K tokens
 - Reasoning models may be slower for chain-of-thought
-- Vision models have additional processing time for images
+- Free models may have additional queuing time
 
 ### Cost Comparison (Per 1M Tokens)
 
 | Model | Input | Output | Average (1:1 ratio) |
 |-------|-------|--------|---------------------|
-| google/gemini-2.0-flash-001 | $0.10 | $0.40 | $0.25 |
-| google/gemini-2.5-flash-lite | $0.10 | $0.40 | $0.25 |
+| tngtech/deepseek-r1t2-chimera:free | FREE | FREE | FREE |
+| openrouter/polaris-alpha | $0.05 | $0.05 | $0.05 |
+| z-ai/glm-4.6 | $0.10 | $0.10 | $0.10 |
 | openai/gpt-4o-mini | $0.15 | $0.60 | $0.38 |
-| deepseek/deepseek-chat-v3-0324 | $0.24 | $0.84 | $0.54 |
-| qwen/qwen3-vl-235b-a22b-instruct | $0.22 | $0.88 | $0.55 |
 | minimax/minimax-m2 | $0.255 | $1.02 | $0.64 |
 | x-ai/grok-code-fast-1 | $0.20 | $1.50 | $0.85 |
-| z-ai/glm-4.6 | $0.40 | $1.75 | $1.08 |
 | google/gemini-2.5-flash | $0.30 | $2.50 | $1.40 |
-| google/gemini-2.5-pro | $1.25 | $10.00 | $5.63 |
-| openai/gpt-5.1-codex | $1.25 | $10.00 | $5.63 |
+| qwen/qwen3-235b-a22b-2507 | $1.25 | $5.00 | $3.13 |
 
 **Notes:**
 - Prices from OpenRouter (subject to change)
@@ -609,21 +464,17 @@ START: What is your primary need?
 ### Quality vs Cost Analysis
 
 **Best Value for Code Review:**
-1. **google/gemini-2.0-flash-001** - Massive context at ultra-low cost ($0.25/1M)
-2. **google/gemini-2.5-flash-lite** - Ultra-low latency + huge context ($0.25/1M)
-3. **qwen/qwen3-vl-235b-a22b-instruct** - Budget vision-language ($0.55/1M)
+1. **tngtech/deepseek-r1t2-chimera:free** - Free reasoning model (FREE)
+2. **openrouter/polaris-alpha** - OpenRouter ultra-budget ($0.05/1M)
+3. **z-ai/glm-4.6** - Ultra-budget balanced pricing ($0.10/1M)
 4. **minimax/minimax-m2** - High-efficiency coding ($0.64/1M)
 
-**Best Quality (Cost No Object):**
-1. **openai/gpt-5.1-codex** - Specialized software engineering ($5.63/1M)
-2. **google/gemini-2.5-pro** - State-of-the-art reasoning ($5.63/1M)
-3. **google/gemini-2.5-flash** - Advanced reasoning + massive context ($1.40/1M)
+**Best Quality:**
+1. **qwen/qwen3-235b-a22b-2507** - Large-scale reasoning (235B params, $3.13/1M)
+2. **google/gemini-2.5-flash** - Advanced reasoning + massive context ($1.40/1M)
 
 **Best for Massive Context:**
-1. **google/gemini-2.5-pro** - 1M tokens at $5.63/1M (premium quality)
-2. **google/gemini-2.5-flash** - 1M tokens at $1.40/1M (fast reasoning)
-3. **google/gemini-2.0-flash-001** - 1M tokens at $0.25/1M (ultra-budget)
-4. **google/gemini-2.5-flash-lite** - 1M tokens at $0.25/1M (ultra-latency)
+1. **google/gemini-2.5-flash** - 1M tokens at $1.40/1M (fast reasoning)
 
 ---
 
@@ -643,7 +494,6 @@ Use Read tool to load: ${CLAUDE_PLUGIN_ROOT}/recommended-models.md
 **Step 2:** Extract recommended reasoning models
 
 From section "Advanced Reasoning Models 🧠", extract models marked with ⭐:
-- openai/gpt-5.1-codex (specialized software engineering - $5.63/1M)
 - google/gemini-2.5-flash (advanced reasoning + massive context - $1.40/1M)
 
 **Step 3:** Present options to user
@@ -653,8 +503,8 @@ AskUserQuestion with these options:
 "Select AI models for architecture plan review:
 
 **Recommended (Advanced Reasoning):**
-• openai/gpt-5.1-codex - Specialized software engineering ($5.63/1M)
 • google/gemini-2.5-flash - Advanced reasoning, 1M context ($1.40/1M)
+• qwen/qwen3-235b-a22b-2507 - Large-scale reasoning, 235B params ($3.13/1M)
 
 **Fast & Affordable:**
 • x-ai/grok-code-fast-1 - Ultra-fast architectural feedback ($0.85/1M)
@@ -680,20 +530,20 @@ Which models would you like to use? (select 1-3 or skip)"
 ${CLAUDE_PLUGIN_ROOT}/recommended-models.md → "Budget-Friendly Models"
 
 **Extract budget models:**
-- google/gemini-2.0-flash-001 ($0.25/1M) - Ultra-cheap massive context
-- google/gemini-2.5-flash-lite ($0.25/1M) - Ultra-low latency
-- deepseek/deepseek-chat-v3-0324 ($0.54/1M) - Budget flagship
+- tngtech/deepseek-r1t2-chimera:free (FREE) - Free reasoning model
+- openrouter/polaris-alpha ($0.05/1M) - OpenRouter ultra-budget
+- z-ai/glm-4.6 ($0.10/1M) - Ultra-budget balanced pricing
 
 **Run 3 parallel reviews:**
 1. Claude Sonnet (internal, comprehensive)
-2. Gemini 2.0 Flash (external, ultra-cheap)
-3. DeepSeek Chat V3 (external, budget flagship)
+2. DeepSeek R1T2 Chimera (external, free)
+3. Polaris Alpha (external, ultra-cheap)
 
 **Total cost for 100K token review:**
 - Claude Sonnet: ~$1.80
-- Gemini 2.0 Flash: ~$0.025
-- DeepSeek Chat V3: ~$0.054
-- **Grand Total: ~$1.88** (vs $9.00 for 3x Sonnet)
+- DeepSeek R1T2 Chimera: FREE
+- Polaris Alpha: ~$0.005
+- **Grand Total: ~$1.81** (vs $9.00 for 3x Sonnet)
 ```
 
 ### Example 3: Vision Task Model Selection
@@ -703,20 +553,17 @@ ${CLAUDE_PLUGIN_ROOT}/recommended-models.md → "Budget-Friendly Models"
 ```markdown
 ## UI Design Validation
 
-**Read recommendations:**
-${CLAUDE_PLUGIN_ROOT}/recommended-models.md → "Vision & Multimodal Models"
-
 **Task:** Compare Figma design screenshot to implemented UI
 
 **Recommended model:**
-qwen/qwen3-vl-235b-a22b-instruct
-- Multimodal vision-language model (235B parameters)
-- 262K token context
-- Budget-friendly vision ($0.55/1M)
+openai/gpt-4o-mini
+- Compact multimodal model (text + images)
+- 128K token context
+- Budget-friendly multimodal ($0.38/1M)
 - Strong UI analysis capabilities
 
 **Run with Claudish:**
-npx claudish --model qwen/qwen3-vl-235b-a22b-instruct --stdin --quiet < prompt.txt
+npx claudish --model openai/gpt-4o-mini --stdin --quiet < prompt.txt
 ```
 
 ---

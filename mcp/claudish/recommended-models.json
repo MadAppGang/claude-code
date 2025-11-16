@@ -1,12 +1,12 @@
 {
-  "version": "1.1.3",
+  "version": "1.1.4",
   "lastUpdated": "2025-11-16",
   "source": "shared/recommended-models.md",
   "models": [
     {
       "id": "x-ai/grok-code-fast-1",
-      "name": "Grok Code Fast",
-      "description": "xAI's fast coding model - ultra-fast coding, budget-friendly",
+      "name": "Grok Code Fast 1",
+      "description": "Speedy and economical reasoning model that excels at agentic coding with visible reasoning traces",
       "provider": "xAI",
       "category": "coding",
       "priority": 1,
@@ -19,12 +19,27 @@
       "recommended": true
     },
     {
+      "id": "google/gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "description": "State-of-the-art workhorse model for advanced reasoning, coding, mathematics with built-in thinking capabilities",
+      "provider": "Google",
+      "category": "reasoning",
+      "priority": 3,
+      "pricing": {
+        "input": "$0.30/1M",
+        "output": "$2.50/1M",
+        "average": "$1.40/1M"
+      },
+      "context": "1049K",
+      "recommended": true
+    },
+    {
       "id": "minimax/minimax-m2",
       "name": "MiniMax M2",
-      "description": "MiniMax's high-performance model - compact high-efficiency coding",
+      "description": "Compact high-efficiency model optimized for end-to-end coding and agentic workflows",
       "provider": "MiniMax",
-      "category": "coding",
-      "priority": 2,
+      "category": "budget",
+      "priority": 6,
       "pricing": {
         "input": "$0.255/1M",
         "output": "$1.02/1M",
@@ -35,128 +50,23 @@
     },
     {
       "id": "z-ai/glm-4.6",
-      "name": "GLM-4.6",
-      "description": "Zhipu AI's advanced model - enhanced coding capabilities",
+      "name": "GLM 4.6",
+      "description": "Ultra-budget model with balanced input/output pricing",
       "provider": "Zhipu AI",
-      "category": "coding",
-      "priority": 3,
-      "pricing": {
-        "input": "$0.40/1M",
-        "output": "$1.75/1M",
-        "average": "$1.08/1M"
-      },
-      "context": "203K",
-      "recommended": false
-    },
-    {
-      "id": "openai/gpt-5.1-codex",
-      "name": "GPT-5.1 Codex",
-      "description": "OpenAI's specialized software engineering model",
-      "provider": "OpenAI",
-      "category": "reasoning",
-      "priority": 4,
-      "pricing": {
-        "input": "$1.25/1M",
-        "output": "$10.00/1M",
-        "average": "$5.63/1M"
-      },
-      "context": "400K",
-      "recommended": true
-    },
-    {
-      "id": "google/gemini-2.5-flash",
-      "name": "Gemini 2.5 Flash",
-      "description": "Google's advanced reasoning with built-in thinking",
-      "provider": "Google",
-      "category": "reasoning",
-      "priority": 5,
-      "pricing": {
-        "input": "$0.30/1M",
-        "output": "$2.50/1M",
-        "average": "$1.40/1M"
-      },
-      "context": "1049K",
-      "recommended": true
-    },
-    {
-      "id": "google/gemini-2.5-pro",
-      "name": "Gemini 2.5 Pro",
-      "description": "Google's state-of-the-art reasoning model",
-      "provider": "Google",
-      "category": "reasoning",
-      "priority": 6,
-      "pricing": {
-        "input": "$1.25/1M",
-        "output": "$10.00/1M",
-        "average": "$5.63/1M"
-      },
-      "context": "1049K",
-      "recommended": false
-    },
-    {
-      "id": "qwen/qwen3-vl-235b-a22b-instruct",
-      "name": "Qwen3 VL 235B",
-      "description": "Alibaba's multimodal vision-language model for UI analysis",
-      "provider": "Alibaba",
-      "category": "vision",
-      "priority": 7,
-      "pricing": {
-        "input": "$0.22/1M",
-        "output": "$0.88/1M",
-        "average": "$0.55/1M"
-      },
-      "context": "262K",
-      "recommended": true
-    },
-    {
-      "id": "google/gemini-2.0-flash-001",
-      "name": "Gemini 2.0 Flash",
-      "description": "Google's faster TTFT, multimodal model",
-      "provider": "Google",
-      "category": "budget",
-      "priority": 8,
-      "pricing": {
-        "input": "$0.10/1M",
-        "output": "$0.40/1M",
-        "average": "$0.25/1M"
-      },
-      "context": "1049K",
-      "recommended": true
-    },
-    {
-      "id": "google/gemini-2.5-flash-lite",
-      "name": "Gemini 2.5 Flash Lite",
-      "description": "Google's ultra-low latency model",
-      "provider": "Google",
-      "category": "budget",
-      "priority": 9,
-      "pricing": {
-        "input": "$0.10/1M",
-        "output": "$0.40/1M",
-        "average": "$0.25/1M"
-      },
-      "context": "1049K",
-      "recommended": true
-    },
-    {
-      "id": "deepseek/deepseek-chat-v3-0324",
-      "name": "DeepSeek Chat V3",
-      "description": "DeepSeek's 685B parameter MoE flagship chat model",
-      "provider": "DeepSeek",
       "category": "budget",
       "priority": 10,
       "pricing": {
-        "input": "$0.24/1M",
-        "output": "$0.84/1M",
-        "average": "$0.54/1M"
+        "input": "$0.10/1M",
+        "output": "$0.10/1M",
+        "average": "$0.10/1M"
       },
-      "context": "164K",
-      "recommended": false
+      "context": "128K",
+      "recommended": true
     },
     {
       "id": "openai/gpt-4o-mini",
-      "name": "GPT-4o Mini",
-      "description": "OpenAI's compact multimodal model",
+      "name": "GPT-4o-mini",
+      "description": "OpenAI's efficient mini model for cost-effective general-purpose tasks",
       "provider": "OpenAI",
       "category": "budget",
       "priority": 11,
@@ -166,7 +76,52 @@
         "average": "$0.38/1M"
       },
       "context": "128K",
+      "recommended": true
+    },
+    {
+      "id": "tngtech/deepseek-r1t2-chimera:free",
+      "name": "DeepSeek R1T2 Chimera",
+      "description": "Free reasoning model variant optimized for cost-sensitive applications",
+      "provider": "TNG Technology Consulting",
+      "category": "budget",
+      "priority": 12,
+      "pricing": {
+        "input": "FREE",
+        "output": "FREE",
+        "average": "FREE"
+      },
+      "context": "64K",
+      "recommended": true
+    },
+    {
+      "id": "qwen/qwen3-235b-a22b-2507",
+      "name": "Qwen3 235B A22B Instruct",
+      "description": "Large-scale reasoning model from Alibaba with 235B parameters",
+      "provider": "Alibaba",
+      "category": "reasoning",
+      "priority": 15,
+      "pricing": {
+        "input": "$1.25/1M",
+        "output": "$5.00/1M",
+        "average": "$3.13/1M"
+      },
+      "context": "33K",
       "recommended": false
+    },
+    {
+      "id": "openrouter/polaris-alpha",
+      "name": "Polaris Alpha",
+      "description": "OpenRouter's in-house ultra-budget model",
+      "provider": "OpenRouter",
+      "category": "budget",
+      "priority": 20,
+      "pricing": {
+        "input": "$0.05/1M",
+        "output": "$0.05/1M",
+        "average": "$0.05/1M"
+      },
+      "context": "128K",
+      "recommended": true
     }
   ]
 }
