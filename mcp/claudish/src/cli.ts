@@ -121,7 +121,13 @@ export function parseArgs(args: string[]): ClaudishConfig {
       printHelp();
       process.exit(0);
     } else if (arg === "--list-models") {
-      printAvailableModels();
+      // Check if --json flag is present anywhere in the args
+      const hasJsonFlag = args.includes("--json");
+      if (hasJsonFlag) {
+        printAvailableModelsJSON();
+      } else {
+        printAvailableModels();
+      }
       process.exit(0);
     } else {
       // All remaining args go to claude CLI
@@ -231,6 +237,7 @@ OPTIONS:
   --audit-costs            Show cost analysis report
   --reset-costs            Reset accumulated cost statistics
   --list-models            List available OpenRouter models
+  --list-models --json     Output model list in JSON format
   --version                Show version information
   -h, --help               Show this help message
 
@@ -294,6 +301,7 @@ EXAMPLES:
 
 AVAILABLE MODELS:
   Run: claudish --list-models
+  JSON output: claudish --list-models --json
 
 MORE INFO:
   GitHub: https://github.com/MadAppGang/claude-code
@@ -320,4 +328,43 @@ function printAvailableModels(): void {
   console.log("Set default with: export CLAUDISH_MODEL=<model>");
   console.log("               or: export ANTHROPIC_MODEL=<model>");
   console.log("Or use: claudish --model <model> ...\n");
+}
+
+/**
+ * Print available models in JSON format
+ */
+function printAvailableModelsJSON(): void {
+  const jsonPath = join(__dirname, "../recommended-models.json");
+
+  try {
+    const jsonContent = readFileSync(jsonPath, "utf-8");
+    const data = JSON.parse(jsonContent);
+
+    // Output clean JSON to stdout
+    console.log(JSON.stringify(data, null, 2));
+  } catch (error) {
+    // If JSON file doesn't exist, construct from model info
+    const models = getAvailableModels();
+    const modelInfo = loadModelInfo();
+
+    const output = {
+      version: VERSION,
+      lastUpdated: new Date().toISOString().split('T')[0],
+      source: "runtime",
+      models: models
+        .filter(m => m !== 'custom')
+        .map(modelId => {
+          const info = modelInfo[modelId];
+          return {
+            id: modelId,
+            name: info.name,
+            description: info.description,
+            provider: info.provider,
+            priority: info.priority
+          };
+        })
+    };
+
+    console.log(JSON.stringify(output, null, 2));
+  }
 }

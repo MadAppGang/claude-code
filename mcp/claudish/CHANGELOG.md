@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.8.0] - 2025-11-19
+
+### Added
+- ✅ **JSON Output for Model List** - `--list-models --json` returns machine-readable JSON
+  - Enables programmatic access to model metadata
+  - Returns complete model information: id, name, description, provider, category, priority, pricing, context
+  - Clean JSON output (no extra logging) for easy parsing
+  - Order-independent flags: `--list-models --json` OR `--json --list-models`
+  - Supports integration with Claude Code commands for dynamic model selection
+
+### Changed
+- Enhanced `--list-models` command with optional JSON output format
+- Updated help text to document new `--list-models --json` option
+
+### Technical Details
+- New function: `printAvailableModelsJSON()` in `src/cli.ts`
+- Reads from `recommended-models.json` and outputs complete structure
+- Preserves all existing text mode behavior (zero regression)
+- Graceful fallback to runtime-generated model info if JSON file unavailable
+
+### Benefits
+- **Dynamic Integration** - Claude Code commands can query Claudish for latest model recommendations
+- **Single Source of Truth** - Claudish owns the model list, commands query it dynamically
+- **No Manual Updates** - Commands always get fresh model data from Claudish
+- **Programmatic Access** - Easy to parse with `jq` or JSON parsers
+- **Future-Proof** - JSON API enables integration with other tools
+
+### Example Usage
+```bash
+# Text output (existing behavior)
+claudish --list-models
+
+# JSON output (new feature)
+claudish --list-models --json
+
+# Parse with jq
+claudish --list-models --json | jq '.models[0].id'
+# Output: x-ai/grok-code-fast-1
+
+# Count models
+claudish --list-models --json | jq '.models | length'
+# Output: 7
+```
+
+---
+
 ## [1.5.0] - 2025-11-16
 
 ### Added
