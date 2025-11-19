@@ -181,16 +181,21 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
       <steps>
         <step>Check Claudish CLI availability: npx claudish --version</step>
         <step>If Claudish available, check OPENROUTER_API_KEY environment variable</step>
-        <step>Present model selection with up to 9 external + 1 embedded:
-          - x-ai/grok-code-fast-1 (fast coding)
-          - google/gemini-2.5-flash (fast and affordable)
-          - google/gemini-2.5-pro (advanced reasoning)
-          - deepseek/deepseek-chat (reasoning specialist)
-          - openai/gpt-5-codex (advanced analysis)
-          - anthropic/claude-sonnet-4.5 (different perspective)
+        <step>Query available models dynamically from Claudish:
+          - Run: npx claudish --list-models --json
+          - Parse JSON output to extract model information (id, name, category, pricing)
+          - Filter models suitable for code review (coding, reasoning, vision categories)
+          - Build model selection options from live data
+        </step>
+        <step>If Claudish unavailable or query fails, use embedded fallback list:
+          - x-ai/grok-code-fast-1 (xAI Grok - fast coding)
+          - google/gemini-2.5-flash (Google Gemini - fast and affordable)
+          - openai/gpt-5.1-codex (OpenAI GPT-5.1 Codex - advanced analysis)
+          - deepseek/deepseek-chat (DeepSeek - reasoning specialist)
           - Custom model ID option
           - Claude Sonnet 4.5 embedded (always available, FREE)
         </step>
+        <step>Present model selection with up to 9 external + 1 embedded using dynamic data</step>
         <step>If external models selected, calculate and display estimated costs:
           - INPUT tokens: code lines × 1.5 (context + instructions)
           - OUTPUT tokens: 2000-4000 (varies by review complexity)
@@ -562,23 +567,32 @@ for each issue:
   </consensus_algorithm>
 
   <recommended_models>
-    **External Models** (via OpenRouter):
+    **Model Selection Strategy**:
 
-    1. x-ai/grok-code-fast-1 - xAI Grok (fast coding, good value)
-    2. google/gemini-2.5-flash - Gemini Flash (fast and affordable)
-    3. google/gemini-2.5-pro - Gemini Pro (advanced reasoning)
-    4. deepseek/deepseek-chat - DeepSeek (reasoning specialist)
-    5. openai/gpt-5-codex - GPT-5 Codex (advanced analysis, premium)
-    6. anthropic/claude-sonnet-4.5 - Claude (different perspective from embedded)
+    This command queries Claudish dynamically using `claudish --list-models --json` to
+    get the latest curated model recommendations. This ensures models stay current with
+    OpenRouter's ecosystem without hardcoded lists.
 
-    **Embedded Model** (local, always available):
-    - Claude Sonnet 4.5 - Senior code reviewer (FREE, no external API)
+    **Dynamic Query Process**:
+    1. Run: `npx claudish --list-models --json`
+    2. Parse JSON to extract: id, name, category, pricing
+    3. Filter for code review: coding, reasoning, vision categories
+    4. Present to user with current pricing and descriptions
+
+    **Fallback Models** (if Claudish unavailable):
+    - x-ai/grok-code-fast-1 - xAI Grok (fast coding, good value)
+    - google/gemini-2.5-flash - Gemini Flash (fast and affordable)
+    - openai/gpt-5.1-codex - GPT-5.1 Codex (advanced analysis)
+    - deepseek/deepseek-chat - DeepSeek (reasoning specialist)
+    - Claude Sonnet 4.5 embedded (always available, FREE)
 
     **Model Selection Best Practices**:
-    - Start with 2-3 external models for diversity (Grok + Gemini Flash + DeepSeek)
+    - Start with 2-3 external models for diversity
     - Always include embedded reviewer (FREE, provides baseline)
-    - Add GPT-5 Codex for premium analysis if budget allows
+    - Consider budget-friendly options (check Claudish for FREE models like Polaris Alpha)
     - Custom models: Use OpenRouter format (provider/model-name)
+
+    **See Also**: `skills/claudish-integration/SKILL.md` for integration patterns
   </recommended_models>
 </knowledge>
 
