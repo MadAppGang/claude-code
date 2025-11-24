@@ -1,6 +1,32 @@
 # Changelog
 
-## [1.8.0] - 2025-11-19
+## [2.3.0] - 2025-11-24
+
+### Added
+- ✅ **Fuzzy Search for Models** - New `--search` (or `-s`) flag to find models
+  - Search across 300+ OpenRouter models by name, ID, or description
+  - Intelligent fuzzy matching (handles typos, partial matches, and abbreviations)
+  - Displays rich metadata: Provider, Pricing, Context Window, and Relevance Score
+  - Caches full model list locally for performance (auto-updates every 2 days)
+- ✅ **Expanded Model Support** - Added latest high-performance models:
+  - `google/gemini-3-pro-preview` (1M context, reasoning, vision)
+  - `openai/gpt-5.1-codex` (400K context, optimized for coding)
+
+### Changed
+- **Unavailable Model Handling** - Automatically skips models that are no longer returned by the API (e.g., discontinued models) instead of showing placeholders
+- **Updated Recommended List** - Refreshed the top development models list with latest rankings
+
+### Example Usage
+```bash
+# Search for specific models
+claudish --search "Gemini"
+claudish -s "llama 3"
+
+# Force update the local model cache
+claudish --search "gpt-5" --force-update
+```
+
+## [2.2.1]
 
 ### Added
 - ✅ **JSON Output for Model List** - `--list-models --json` returns machine-readable JSON

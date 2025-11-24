@@ -4,6 +4,7 @@ import { loadModelInfo, getAvailableModels } from "./model-loader.js";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { fuzzyScore } from "./utils.js";
 
 // Read version from package.json
 const __filename = fileURLToPath(import.meta.url);
@@ -140,6 +141,15 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
         printAvailableModels();
       }
       process.exit(0);
+    } else if (arg === "--search" || arg === "-s") {
+      const query = args[++i];
+      if (!query) {
+        console.error("--search requires a search term");
+        process.exit(1);
+      }
+      const forceUpdate = args.includes("--force-update");
+      await searchAndPrintModels(query, forceUpdate);
+      process.exit(0);
     } else {
       // All remaining args go to claude CLI
       config.claudeArgs = args.slice(i);
@@ -218,6 +228,105 @@ export async function parseArgs(args: string[]): Promise<ClaudishConfig> {
  */
 const CACHE_MAX_AGE_DAYS = 2;
 const MODELS_JSON_PATH = join(__dirname, "../recommended-models.json");
+const ALL_MODELS_JSON_PATH = join(__dirname, "../all-models.json");
+
+/**
+ * Search all available models and print results
+ */
+async function searchAndPrintModels(query: string, forceUpdate: boolean): Promise<void> {
+  let models: any[] = [];
+
+  // Check cache for all models
+  if (!forceUpdate && existsSync(ALL_MODELS_JSON_PATH)) {
+    try {
+      const cacheData = JSON.parse(readFileSync(ALL_MODELS_JSON_PATH, "utf-8"));
+      const lastUpdated = new Date(cacheData.lastUpdated);
+      const now = new Date();
+      const ageInDays = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+
+      if (ageInDays <= CACHE_MAX_AGE_DAYS) {
+        models = cacheData.models;
+      }
+    } catch (e) {
+      // Ignore cache error
+    }
+  }
+
+  // Fetch if no cache or stale
+  if (models.length === 0) {
+    console.error("🔄 Fetching all models from OpenRouter (this may take a moment)...");
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/models");
+      if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+      const data = await response.json();
+      models = data.data;
+
+      // Cache result
+      writeFileSync(ALL_MODELS_JSON_PATH, JSON.stringify({
+        lastUpdated: new Date().toISOString(),
+        models
+      }), "utf-8");
+
+      console.error(`✅ Cached ${models.length} models`);
+    } catch (error) {
+      console.error(`❌ Failed to fetch models: ${error}`);
+      process.exit(1);
+    }
+  }
+
+  // Perform fuzzy search
+  const results = models
+    .map(model => {
+      const nameScore = fuzzyScore(model.name || "", query);
+      const idScore = fuzzyScore(model.id || "", query);
+      const descScore = fuzzyScore(model.description || "", query) * 0.5; // Lower weight for description
+
+      return {
+        model,
+        score: Math.max(nameScore, idScore, descScore)
+      };
+    })
+    .filter(item => item.score > 0.2) // Filter low relevance
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 20); // Top 20 results
+
+  if (results.length === 0) {
+    console.log(`No models found matching "${query}"`);
+    return;
+  }
+
+  console.log(`\nFound ${results.length} matching models:\n`);
+  console.log("  Model                          Provider    Pricing     Context  Score");
+  console.log("  " + "─".repeat(80));
+
+  for (const { model, score } of results) {
+      // Format model ID (truncate if too long)
+      const modelId = model.id.length > 30 ? model.id.substring(0, 27) + "..." : model.id;
+      const modelIdPadded = modelId.padEnd(30);
+
+      // Determine provider from ID
+      const providerName = model.id.split('/')[0];
+      const provider = providerName.length > 10 ? providerName.substring(0, 7) + "..." : providerName;
+      const providerPadded = provider.padEnd(10);
+
+      // Format pricing
+      const promptPrice = parseFloat(model.pricing?.prompt || "0") * 1000000;
+      const completionPrice = parseFloat(model.pricing?.completion || "0") * 1000000;
+      const avg = (promptPrice + completionPrice) / 2;
+      const pricing = avg === 0 ? "FREE" : `$${avg.toFixed(2)}/1M`;
+      const pricingPadded = pricing.padEnd(10);
+
+      // Context
+      const contextLen = model.context_length || model.top_provider?.context_length || 0;
+      const context = contextLen > 0 ? `${Math.round(contextLen/1000)}K` : "N/A";
+      const contextPadded = context.padEnd(7);
+
+      console.log(`  ${modelIdPadded} ${providerPadded} ${pricingPadded} ${contextPadded} ${(score * 100).toFixed(0)}%`);
+  }
+  console.log("");
+  console.log("Use a model: claudish --model <model-id>");
+}
 
 /**
  * Check if models cache is stale (older than CACHE_MAX_AGE_DAYS)
@@ -276,6 +385,8 @@ async function updateModelsFromOpenRouter(): Promise<void> {
     // The website is client-side rendered (React), so we can't scrape it with HTTP.
     // The API doesn't expose the "top-weekly" ranking, so we maintain this manually.
     const topWeeklyProgrammingModels = [
+      "google/gemini-3-pro-preview",      // #0: Google Gemini 3 Pro Preview (New!)
+      "openai/gpt-5.1-codex",             // #0: OpenAI Codex 5.1 (New!)
       "x-ai/grok-code-fast-1",            // #1: xAI Grok Code Fast 1
       "anthropic/claude-sonnet-4.5",      // #2: Anthropic Claude Sonnet 4.5
       "google/gemini-2.5-flash",          // #3: Google Gemini 2.5 Flash
@@ -322,33 +433,9 @@ async function updateModelsFromOpenRouter(): Promise<void> {
 
       const model = modelMap.get(modelId);
       if (!model) {
-        // Model not in API yet (e.g., upcoming model like polaris-alpha)
-        // Still include it in the list with minimal metadata
-        console.error(`⚠️  Model ${modelId} not found in OpenRouter API (including with limited metadata)`);
-
-        recommendations.push({
-          id: modelId,
-          name: modelId.split("/")[1].replace(/-/g, " ").replace(/\b\w/g, l => l.toUpperCase()),
-          description: `${modelId} (metadata pending - not yet available in API)`,
-          provider: provider.charAt(0).toUpperCase() + provider.slice(1),
-          category: "programming",
-          priority: recommendations.length + 1,
-          pricing: {
-            input: "N/A",
-            output: "N/A",
-            average: "N/A"
-          },
-          context: "N/A",
-          maxOutputTokens: null,
-          modality: "text->text",
-          supportsTools: false,
-          supportsReasoning: false,
-          supportsVision: false,
-          isModerated: false,
-          recommended: true
-        });
-
-        providers.add(provider);
+        // Model not in API - assume it's no longer available or strictly private
+        // User requested to skip these models rather than showing placeholders
+        console.error(`⚠️  Model ${modelId} not found in OpenRouter API - skipping`);
         continue;
       }
 
