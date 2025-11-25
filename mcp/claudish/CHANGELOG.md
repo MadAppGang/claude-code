@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1] - 2025-11-25
+
+### Fixed
+- 🐛 **Prevent Client Crash with Gemini Thinking Blocks** - Fixed an issue where Gemini 3's raw thinking blocks caused Claude Code (client) to crash with `undefined is not an object (evaluating 'R.map')`.
+  - Thinking blocks are now safely wrapped in XML `<thinking>` tags within standard Text blocks.
+  - Added integration tests to prevent regression.
+
 ## [2.3.0] - 2025-11-24
 
 ### Added

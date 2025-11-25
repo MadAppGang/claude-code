@@ -4,6 +4,7 @@ import { serve } from "@hono/node-server";
 import { writeFileSync } from "node:fs";
 import { transformOpenAIToClaude, removeUriFormat } from "./transform.js";
 import { log, isLoggingEnabled, maskCredential, logStructured } from "./logger.js";
+import { fetchModelContextWindow, doesModelSupportReasoning } from "./model-loader.js";
 import type { ProxyServer } from "./types.js";
 import { AdapterManager } from "./adapters/adapter-manager.js";
 import { MiddlewareManager, GeminiThoughtSignatureMiddleware } from "./middleware/index.js";
@@ -41,6 +42,36 @@ export async function createProxyServer(
   middlewareManager.initialize().catch((error) => {
     log(`[Proxy] Middleware initialization error: ${error}`);
   });
+
+  // Session tracking: Persistence across requests
+  let sessionTotalCost = 0;
+  // Default context window (will be updated asynchronously from OpenRouter API)
+  let contextWindowLimit = 200000;
+  // Claude Code internal context window assumption (Sonnet/Opus standard)
+  // We scale reported tokens to align Claude's percentage calculation with reality
+  const CLAUDE_INTERNAL_CONTEXT_MAX = 200000;
+
+  // Helper to calculate token scaling factor
+  // This ensures auto-compaction triggers at the correct percentage of REAL context usage
+  const getTokenScaleFactor = () => {
+    if (contextWindowLimit === 0) return 1;
+    return CLAUDE_INTERNAL_CONTEXT_MAX / contextWindowLimit;
+  };
+
+  // Fetch actual context window limit in background
+  if (model && !monitorMode) {
+    fetchModelContextWindow(model)
+      .then((limit) => {
+        contextWindowLimit = limit;
+        if (isLoggingEnabled()) {
+          log(`[Proxy] Context window limit updated to ${limit} tokens for model ${model}`);
+          log(`[Proxy] Token scaling factor: ${getTokenScaleFactor().toFixed(2)}x (Map ${limit} → ${CLAUDE_INTERNAL_CONTEXT_MAX})`);
+        }
+      })
+      .catch((err) => {
+        log(`[Proxy] Failed to fetch context window limit: ${err}`);
+      });
+  }
 
   // Create Hono app
   const app = new Hono();
@@ -148,9 +179,10 @@ export async function createProxyServer(
         : 0;
 
       const totalTokens = systemTokens + messageTokens;
+      const scaleFactor = getTokenScaleFactor();
 
       return c.json({
-        input_tokens: totalTokens,
+        input_tokens: Math.ceil(totalTokens * scaleFactor),
       });
     } catch (error) {
       log(`[Proxy] Token counting error: ${error}`);
@@ -516,6 +548,12 @@ export async function createProxyServer(
         }
       }
 
+      // Check dynamic thinking support from OpenRouter metadata
+      const supportsReasoning = await doesModelSupportReasoning(model || "");
+      if (isLoggingEnabled() && supportsReasoning) {
+        log(`[Proxy] Model ${model} supports reasoning/thinking`);
+      }
+
       // Build OpenRouter payload
       const openrouterPayload: any = {
         model,
@@ -523,6 +561,34 @@ export async function createProxyServer(
         temperature: claudeRequest.temperature !== undefined ? claudeRequest.temperature : 1,
         stream: true, // ALWAYS use streaming - more reliable, falls back to JSON if needed
       };
+
+      // Only request reasoning if model supports it
+      if (supportsReasoning) {
+        openrouterPayload.include_reasoning = true; // Ask for reasoning (needed for thinking blocks)
+      }
+
+      // PASS-THROUGH: Always forward the thinking object if present
+      // This allows OpenRouter to handle it for supported models (Anthropic, Gemini, etc.)
+      // We optimize this: only forward if we know it's supported OR if we have a specific adapter
+      // But forwarding it doesn't hurt most models (OpenRouter filters irrelevant params), so safety first
+      if (claudeRequest.thinking) {
+        openrouterPayload.thinking = claudeRequest.thinking;
+        log(`[Proxy] Forwarding thinking budget: ${claudeRequest.thinking.budget_tokens} tokens`);
+      }
+
+      // ADAPTER PREPARATION: Let model specific adapter modify the request
+      // This handles mapping thinking budget -> reasoning_effort for OpenAI, etc.
+      // Note: The adapter itself should also behave correctly regarding supported features
+      adapter.prepareRequest(openrouterPayload, claudeRequest);
+
+      // PROTOCOL FIX: Check if provider supports OpenAI usage format
+      // Most providers support "stream_options: { include_usage: true }" (OpenAI standard)
+      // But OpenRouter also supports top-level "usage: { include: true }"
+      // We'll add both to be safe
+      if (!openrouterPayload.stream_options) {
+        openrouterPayload.stream_options = {};
+      }
+      openrouterPayload.stream_options.include_usage = true;
 
       // Add max_tokens
       if (claudeRequest.max_tokens) {
@@ -657,8 +723,8 @@ export async function createProxyServer(
           stop_reason: mapStopReason(choice.finish_reason),
           stop_sequence: null,
           usage: {
-            input_tokens: data.usage?.prompt_tokens || 0,
-            output_tokens: data.usage?.completion_tokens || 0,
+            input_tokens: Math.ceil((data.usage?.prompt_tokens || 0) * getTokenScaleFactor()),
+            output_tokens: Math.ceil((data.usage?.completion_tokens || 0) * getTokenScaleFactor()),
           },
         };
 
@@ -799,7 +865,7 @@ export async function createProxyServer(
                     stop_sequence: null,
                   },
                   usage: {
-                    output_tokens: outputTokens,  // Per protocol: ONLY output_tokens in message_delta
+                    output_tokens: Math.ceil(outputTokens * getTokenScaleFactor()),  // Per protocol: ONLY output_tokens in message_delta
                   },
                 });
 
@@ -862,15 +928,30 @@ export async function createProxyServer(
             // Claude Code doesn't provide token data to status line, so we maintain it ourselves
             let cumulativeInputTokens = 0;
             let cumulativeOutputTokens = 0;
+            let currentRequestCost = 0; // Track cost for this specific request to handle updates
             const tokenFilePath = `/tmp/claudish-tokens-${port}.json`;
 
             // Helper to write token file for status line consumption
             const writeTokenFile = () => {
               try {
+                const totalTokens = cumulativeInputTokens + cumulativeOutputTokens;
+
+                // Calculate context percentage remaining
+                // Formula: (Limit - Used) / Limit * 100
+                let contextLeftPercent = 100;
+                if (contextWindowLimit > 0) {
+                  contextLeftPercent = Math.round(((contextWindowLimit - totalTokens) / contextWindowLimit) * 100);
+                  // Clamp between 0 and 100
+                  contextLeftPercent = Math.max(0, Math.min(100, contextLeftPercent));
+                }
+
                 const tokenData = {
                   input_tokens: cumulativeInputTokens,
                   output_tokens: cumulativeOutputTokens,
-                  total_tokens: cumulativeInputTokens + cumulativeOutputTokens,
+                  total_tokens: totalTokens,
+                  total_cost: sessionTotalCost, // Add persistent session cost
+                  context_window: contextWindowLimit,
+                  context_left_percent: contextLeftPercent,
                   updated_at: Date.now()
                 };
                 writeFileSync(tokenFilePath, JSON.stringify(tokenData), "utf-8");
@@ -914,6 +995,7 @@ export async function createProxyServer(
 
             // Send initial events IMMEDIATELY (like 1rgs/claude-code-proxy does)
             // Don't wait for first chunk!
+            const scaleFactor = getTokenScaleFactor();
             sendSSE("message_start", {
               type: "message_start",
               message: {
@@ -925,27 +1007,19 @@ export async function createProxyServer(
                 stop_reason: null,
                 stop_sequence: null,
                 usage: {
-                  input_tokens: estimatedInputTokens - estimatedCacheTokens,
-                  cache_creation_input_tokens: isFirstTurn ? estimatedCacheTokens : 0,
-                  cache_read_input_tokens: isFirstTurn ? 0 : estimatedCacheTokens,
+                  input_tokens: Math.ceil((estimatedInputTokens - estimatedCacheTokens) * scaleFactor),
+                  cache_creation_input_tokens: isFirstTurn ? Math.ceil(estimatedCacheTokens * scaleFactor) : 0,
+                  cache_read_input_tokens: isFirstTurn ? 0 : Math.ceil(estimatedCacheTokens * scaleFactor),
                   output_tokens: 1  // Start with 1 to avoid division by zero
                 },
               },
             });
 
-            // THINKING BLOCK SUPPORT: We still need to send content_block_start IMMEDIATELY
-            // Protocol requires it right after message_start, before ping
-            // But we'll close and reopen if reasoning arrives first
-            textBlockIndex = currentBlockIndex++;
-            sendSSE("content_block_start", {
-              type: "content_block_start",
-              index: textBlockIndex,
-              content_block: {
-                type: "text",
-                text: "",
-              },
-            });
-            textBlockStarted = true;
+            // FIXED: Removed eager text block initialization to prevent "(no content)" messages
+            // when model starts with thinking/reasoning blocks (e.g., Gemini, Grok)
+            // textBlockIndex = currentBlockIndex++;
+            // sendSSE("content_block_start", ...);
+            // textBlockStarted = true;
 
             // Send initial ping (required by Claude Code)
             sendSSE("ping", {
@@ -1048,6 +1122,17 @@ export async function createProxyServer(
                     if (chunk.usage) {
                       usage = chunk.usage;
 
+                      // COST TRACKING: Update session total cost
+                      // OpenRouter provides 'cost' field in usage object (in credits/USD)
+                      if (typeof usage.cost === 'number') {
+                        // Calculate difference from last update (in case usage is sent incrementally)
+                        const costDiff = usage.cost - currentRequestCost;
+                        if (costDiff > 0) {
+                          sessionTotalCost += costDiff;
+                          currentRequestCost = usage.cost;
+                        }
+                      }
+
                       // CONTEXT TRACKING FIX: Update cumulative tokens and write to file
                       // This allows status line to show accurate context usage
                       if (usage.prompt_tokens) {
@@ -1108,24 +1193,23 @@ export async function createProxyServer(
                             }
                           }
 
-                          // Start thinking block
+                          // Start thinking block (as TEXT block with XML tags for compatibility)
                           reasoningBlockIndex = currentBlockIndex++;
                           sendSSE("content_block_start", {
                             type: "content_block_start",
                             index: reasoningBlockIndex,
                             content_block: {
-                              type: "thinking",
-                              thinking: "",
-                              signature: ""  // Empty signature for now
+                              type: "text", // Wrap thinking in text block to prevent client crashes
+                              text: "<thinking>\n",
                             },
                           });
                           reasoningBlockStarted = true;
                           if (isLoggingEnabled()) {
-                            log(`[Proxy] Started thinking block at index ${reasoningBlockIndex}`);
+                            log(`[Proxy] Started thinking block (as text) at index ${reasoningBlockIndex}`);
                           }
                         }
 
-                        // Send thinking delta
+                        // Send thinking delta as text
                         if (isLoggingEnabled()) {
                           logStructured("Thinking Delta", {
                             thinking: reasoningText,
@@ -1136,15 +1220,24 @@ export async function createProxyServer(
                           type: "content_block_delta",
                           index: reasoningBlockIndex,
                           delta: {
-                            type: "thinking_delta",
-                            thinking: reasoningText,
+                            type: "text_delta", // Send as text delta
+                            text: reasoningText,
                           },
                         });
                       }
 
                       // Phase 4: Handle transition from reasoning → content
                       if (reasoningBlockStarted && hasContent && !hasReasoning) {
-                        // Close thinking block
+                        // Close thinking block (append closing tag first)
+                        sendSSE("content_block_delta", {
+                          type: "content_block_delta",
+                          index: reasoningBlockIndex,
+                          delta: {
+                            type: "text_delta",
+                            text: "\n</thinking>\n\n",
+                          },
+                        });
+
                         sendSSE("content_block_stop", {
                           type: "content_block_stop",
                           index: reasoningBlockIndex,
