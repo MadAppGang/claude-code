@@ -233,6 +233,61 @@ echo "prompt" | claudish --model x-ai/grok-code-fast-1 --stdin
 
 ---
 
+## MCP Server Issues
+
+### "MCP server not starting"
+
+Test it manually:
+```bash
+OPENROUTER_API_KEY=sk-or-v1-... claudish --mcp
+# Should output: [claudish] MCP server started
+```
+
+If nothing happens, check your API key is set correctly.
+
+### "Tools not appearing in Claude"
+
+1. **Restart Claude Code** after adding MCP config
+2. Check your settings file syntax (valid JSON?)
+3. Verify the path: `~/.config/claude-code/settings.json`
+
+**Correct config:**
+```json
+{
+  "mcpServers": {
+    "claudish": {
+      "command": "claudish",
+      "args": ["--mcp"],
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-..."
+      }
+    }
+  }
+}
+```
+
+### "run_prompt returns error"
+
+**"Model not found"**
+Check the model ID is correct. Use `list_models` tool first to see available models.
+
+**"API key invalid"**
+The API key in your MCP config might be wrong. Check it at [openrouter.ai/keys](https://openrouter.ai/keys).
+
+**"Rate limited"**
+OpenRouter has rate limits. Wait a moment and try again, or check your account limits.
+
+### "MCP mode works but CLI doesn't" (or vice versa)
+
+They use the same API key. If one works and the other doesn't:
+
+- **CLI**: Uses `OPENROUTER_API_KEY` from environment or `.env`
+- **MCP**: Uses the key from Claude Code's MCP settings
+
+Make sure both have valid keys.
+
+---
+
 ## Performance Issues
 
 ### "Slow responses"

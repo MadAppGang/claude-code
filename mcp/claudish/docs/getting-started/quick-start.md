@@ -42,25 +42,54 @@ Just run `claudish` - it'll ask for the key interactively.
 
 ---
 
-## Step 3: Run It
+## Step 3: Choose Your Mode
 
-**Interactive mode (default):**
+Claudish runs two ways. Pick what fits your workflow.
+
+### Option A: CLI Mode (Replace Claude)
+
+**Interactive:**
 ```bash
 npx claudish@latest
 ```
+Shows model selector. Pick one, start a full session with that model.
 
-This shows the model selector. Pick one, start your session.
-
-**Single-shot mode:**
+**Single-shot:**
 ```bash
 npx claudish@latest --model x-ai/grok-code-fast-1 "add error handling to api.ts"
 ```
-
 One task, result printed, exit. Perfect for scripts.
+
+### Option B: MCP Mode (Claude + External Models)
+
+Add Claudish as an MCP server. Claude can then call external models as tools.
+
+**Add to Claude Code settings** (`~/.config/claude-code/settings.json`):
+```json
+{
+  "mcpServers": {
+    "claudish": {
+      "command": "npx",
+      "args": ["claudish@latest", "--mcp"],
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-your-key-here"
+      }
+    }
+  }
+}
+```
+
+**Restart Claude Code**, then:
+```
+"Ask Grok to review this function"
+"Use GPT-5 Codex to explain this error"
+```
+
+Claude uses the `run_prompt` tool to call external models. Best of both worlds.
 
 ---
 
-## Step 4: Install the Skill (Optional but Recommended)
+## Step 4: Install the Skill (Optional)
 
 This teaches Claude Code how to use Claudish automatically:
 
@@ -121,7 +150,8 @@ You didn't notice any of this. That's the point.
 
 ## Next Steps
 
-- **[Interactive Mode](../usage/interactive-mode.md)** - Explore the full experience
+- **[Interactive Mode](../usage/interactive-mode.md)** - Full CLI experience
+- **[MCP Server Mode](../usage/mcp-server.md)** - Use external models as Claude tools
 - **[Choosing Models](../models/choosing-models.md)** - Pick the right model for your task
 - **[Environment Variables](../advanced/environment.md)** - Configure everything
 

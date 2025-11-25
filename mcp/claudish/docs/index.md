@@ -43,16 +43,54 @@ Real talk - Claude is excellent. So why bother with alternatives?
 export OPENROUTER_API_KEY='sk-or-v1-...'
 ```
 
-**Step 2: Run it**
+**Step 2: Pick your mode**
+
+### CLI Mode - Replace Claude entirely
 ```bash
-# Interactive mode - pick a model, start coding
+# Interactive - pick a model, start coding
 npx claudish@latest
 
-# Single-shot - run one task and exit
+# Single-shot - one task and exit
 npx claudish@latest --model x-ai/grok-code-fast-1 "fix the bug in auth.ts"
 ```
 
-That's it. You're running Claude Code with a different brain.
+### MCP Mode - Use external models as Claude tools
+
+Add to your Claude Code settings (`~/.config/claude-code/settings.json`):
+```json
+{
+  "mcpServers": {
+    "claudish": {
+      "command": "npx",
+      "args": ["claudish@latest", "--mcp"],
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-..."
+      }
+    }
+  }
+}
+```
+
+Then just ask Claude:
+```
+"Use Grok to review this authentication code"
+"Ask GPT-5 Codex to explain this regex"
+"Compare what 3 models think about this architecture"
+```
+
+---
+
+## CLI vs MCP: Which to Use?
+
+| Scenario | Mode | Why |
+|----------|------|-----|
+| Full coding session with different model | CLI | Replace Claude entirely |
+| Quick second opinion mid-conversation | MCP | Tool call, stay in Claude |
+| Batch automation/scripts | CLI | Single-shot mode |
+| Multi-model comparison | MCP | `compare_models` tool |
+| Cost-sensitive simple tasks | Either | Pick cheap model |
+
+**TL;DR:** CLI when you want a different brain. MCP when you want Claude + friends.
 
 ---
 
