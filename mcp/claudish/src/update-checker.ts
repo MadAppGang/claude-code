@@ -2,12 +2,93 @@
  * Auto-update checker for Claudish
  *
  * Checks npm registry for new versions and prompts user to update.
+ * Caches the check result to avoid checking on every run (once per day).
  */
 
-import { execSync, spawn } from "node:child_process";
+import { execSync } from "node:child_process";
 import { createInterface } from "node:readline";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir, homedir } from "node:os";
 
 const NPM_REGISTRY_URL = "https://registry.npmjs.org/claudish/latest";
+const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface UpdateCache {
+  lastCheck: number;
+  latestVersion: string | null;
+}
+
+/**
+ * Get cache file path
+ */
+function getCacheFilePath(): string {
+  // Try to use ~/.cache/claudish, fall back to temp directory
+  const cacheDir = join(homedir(), ".cache", "claudish");
+  try {
+    if (!existsSync(cacheDir)) {
+      mkdirSync(cacheDir, { recursive: true });
+    }
+    return join(cacheDir, "update-check.json");
+  } catch {
+    // Fall back to temp directory if home cache fails
+    return join(tmpdir(), "claudish-update-check.json");
+  }
+}
+
+/**
+ * Read cached update check result
+ */
+function readCache(): UpdateCache | null {
+  try {
+    const cachePath = getCacheFilePath();
+    if (!existsSync(cachePath)) {
+      return null;
+    }
+    const data = JSON.parse(readFileSync(cachePath, "utf-8"));
+    return data as UpdateCache;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Write update check result to cache
+ */
+function writeCache(latestVersion: string | null): void {
+  try {
+    const cachePath = getCacheFilePath();
+    const data: UpdateCache = {
+      lastCheck: Date.now(),
+      latestVersion,
+    };
+    writeFileSync(cachePath, JSON.stringify(data), "utf-8");
+  } catch {
+    // Silently fail - caching is optional
+  }
+}
+
+/**
+ * Check if cache is still valid (less than 24 hours old)
+ */
+function isCacheValid(cache: UpdateCache): boolean {
+  const age = Date.now() - cache.lastCheck;
+  return age < CACHE_MAX_AGE_MS;
+}
+
+/**
+ * Clear the update cache (called after successful update)
+ */
+function clearCache(): void {
+  try {
+    const cachePath = getCacheFilePath();
+    if (existsSync(cachePath)) {
+      unlinkSync(cachePath);
+    }
+  } catch {
+    // Silently fail
+  }
+}
 
 /**
  * Semantic version comparison
@@ -96,6 +177,8 @@ function runUpdate(): boolean {
 /**
  * Check for updates and prompt user
  *
+ * Uses a cache to avoid checking npm on every run (once per 24 hours).
+ *
  * @param currentVersion - Current installed version
  * @param options - Configuration options
  * @returns true if update was performed (caller should exit), false otherwise
@@ -109,8 +192,19 @@ export async function checkForUpdates(
 ): Promise<boolean> {
   const { quiet = false, skipPrompt = false } = options;
 
-  // Fetch latest version from npm
-  const latestVersion = await fetchLatestVersion();
+  let latestVersion: string | null = null;
+
+  // Check cache first
+  const cache = readCache();
+  if (cache && isCacheValid(cache)) {
+    // Use cached version
+    latestVersion = cache.latestVersion;
+  } else {
+    // Cache is stale or doesn't exist - fetch from npm
+    latestVersion = await fetchLatestVersion();
+    // Update cache (even if null - to avoid repeated failed requests)
+    writeCache(latestVersion);
+  }
 
   if (!latestVersion) {
     // Couldn't fetch - silently continue
@@ -154,6 +248,8 @@ export async function checkForUpdates(
   const success = runUpdate();
 
   if (success) {
+    // Clear cache so next run checks fresh
+    clearCache();
     // Exit after successful update so user can restart with new version
     return true;
   }

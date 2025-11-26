@@ -1,6 +1,6 @@
 {
   "name": "claudish",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "description": "Run Claude Code with any OpenRouter model - CLI tool and MCP server",
   "type": "module",
   "main": "./dist/index.js",
