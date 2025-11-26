@@ -211,6 +211,11 @@ export class OpenRouterHandler implements ModelHandler {
       const encoder = new TextEncoder();
       const decoder = new TextDecoder();
 
+      // Capture middleware manager for use in closure
+      const middlewareManager = this.middlewareManager;
+      // Shared metadata for middleware across all chunks in this stream
+      const streamMetadata = new Map<string, any>();
+
       return c.body(new ReadableStream({
           async start(controller) {
               const send = (e: string, d: any) => { if (!isClosed) controller.enqueue(encoder.encode(`event: ${e}\ndata: ${JSON.stringify(d)}\n\n`)); };
@@ -226,11 +231,6 @@ export class OpenRouterHandler implements ModelHandler {
               const toolIds = new Set<string>();
               let accTxt = 0;
               let lastActivity = Date.now();
-
-              const scale = 128000 / 128000; // Placeholder logic, ideally this.getTokenScaleFactor(target) (can't access 'this' easily if unbound, but here we are in closure)
-              // Actually let's use local variable captures
-              // const factor = this.getTokenScaleFactor(target) -> need to bind or capture 'this' outside
-              // Since we are in method, 'this' refers to class instance.
 
               send("message_start", {
                   type: "message_start",
@@ -251,12 +251,15 @@ export class OpenRouterHandler implements ModelHandler {
                   if (!isClosed && Date.now() - lastActivity > 1000) send("ping", { type: "ping" });
               }, 1000);
 
-              const finalize = (reason: string, err?: string) => {
+              const finalize = async (reason: string, err?: string) => {
                   if (finalized) return;
                   finalized = true;
                   if (reasoningStarted) { send("content_block_stop", { type: "content_block_stop", index: reasoningIdx }); reasoningStarted = false; }
                   if (textStarted) { send("content_block_stop", { type: "content_block_stop", index: textIdx }); textStarted = false; }
                   for (const [_, t] of tools) if (t.started && !t.closed) { send("content_block_stop", { type: "content_block_stop", index: t.blockIndex }); t.closed = true; }
+
+                  // Call middleware afterStreamComplete to save reasoning_details to persistent cache
+                  await middlewareManager.afterStreamComplete(target, streamMetadata);
 
                   if (reason === "error") {
                       send("error", { type: "error", error: { type: "api_error", message: err } });
@@ -280,12 +283,20 @@ export class OpenRouterHandler implements ModelHandler {
                       for (const line of lines) {
                           if (!line.trim() || !line.startsWith("data: ")) continue;
                           const dataStr = line.slice(6);
-                          if (dataStr === "[DONE]") { finalize("done"); return; }
+                          if (dataStr === "[DONE]") { await finalize("done"); return; }
                           try {
                               const chunk = JSON.parse(dataStr);
                               if (chunk.usage) usage = chunk.usage; // Update tokens
                               const delta = chunk.choices?.[0]?.delta;
                               if (delta) {
+                                  // Call middleware afterStreamChunk to extract reasoning_details
+                                  await middlewareManager.afterStreamChunk({
+                                      modelId: target,
+                                      chunk,
+                                      delta,
+                                      metadata: streamMetadata,
+                                  });
+
                                   // Logic for content handling (simplified port)
                                   const txt = delta.content || "";
                                   if (txt) {
@@ -327,8 +338,8 @@ export class OpenRouterHandler implements ModelHandler {
                           } catch (e) {}
                       }
                   }
-                  finalize("unexpected");
-              } catch(e) { finalize("error", String(e)); }
+                  await finalize("unexpected");
+              } catch(e) { await finalize("error", String(e)); }
           },
           cancel() { isClosed = true; if (ping) clearInterval(ping); }
       }), { headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache", "Connection": "keep-alive" } });
