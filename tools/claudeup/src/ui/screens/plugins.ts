@@ -7,12 +7,19 @@ import {
   removeMarketplace,
   getConfiguredMarketplaces,
   enablePlugin,
+  addGlobalMarketplace,
+  removeGlobalMarketplace,
+  getGlobalConfiguredMarketplaces,
+  enableGlobalPlugin,
+  saveGlobalInstalledPluginVersion,
+  removeGlobalInstalledPluginVersion,
 } from '../../services/claude-settings.js';
 import {
   saveInstalledPluginVersion,
   removeInstalledPluginVersion,
   clearMarketplaceCache,
   getAvailablePlugins,
+  getGlobalAvailablePlugins,
   type PluginInfo,
 } from '../../services/plugin-manager.js';
 
@@ -24,15 +31,25 @@ interface ListItem {
   plugin?: PluginInfo;
 }
 
+// Track current scope - persists across screen refreshes
+let currentScope: 'project' | 'global' = 'project';
+
 export async function createPluginsScreen(state: AppState): Promise<void> {
   createHeader(state, 'Plugins');
 
-  const configuredMarketplaces = await getConfiguredMarketplaces(state.projectPath);
+  const isGlobal = currentScope === 'global';
 
-  // Fetch all available plugins
+  // Fetch marketplaces based on scope
+  const configuredMarketplaces = isGlobal
+    ? await getGlobalConfiguredMarketplaces()
+    : await getConfiguredMarketplaces(state.projectPath);
+
+  // Fetch all available plugins based on scope
   let allPlugins: PluginInfo[] = [];
   try {
-    allPlugins = await getAvailablePlugins(state.projectPath);
+    allPlugins = isGlobal
+      ? await getGlobalAvailablePlugins()
+      : await getAvailablePlugins(state.projectPath);
   } catch {
     // Continue with empty plugins
   }
@@ -100,6 +117,11 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     listItems.push({ label: '', type: 'empty' });
   }
 
+  // Scope indicator
+  const scopeLabel = isGlobal
+    ? ' {magenta-fg}{bold}[GLOBAL]{/bold}{/magenta-fg} Marketplaces & Plugins '
+    : ' {cyan-fg}{bold}[PROJECT]{/bold}{/cyan-fg} Marketplaces & Plugins ';
+
   // List
   const list = blessed.list({
     parent: state.screen,
@@ -115,11 +137,11 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     scrollable: true,
     border: { type: 'line' },
     style: {
-      selected: { bg: 'blue', fg: 'white' },
-      border: { fg: 'gray' },
+      selected: { bg: isGlobal ? 'magenta' : 'blue', fg: 'white' },
+      border: { fg: isGlobal ? 'magenta' : 'gray' },
     },
     scrollbar: { ch: '│', style: { bg: 'gray' } },
-    label: ' Marketplaces & Plugins ',
+    label: scopeLabel,
   });
 
   // Detail panel
@@ -162,6 +184,10 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
         ? '{red-fg}Press Enter to remove{/red-fg}'
         : '{green-fg}Press Enter to add{/green-fg}';
 
+      const scopeInfo = isGlobal
+        ? '{magenta-fg}Scope: Global (~/.claude){/magenta-fg}'
+        : `{cyan-fg}Scope: Project (${state.projectPath}){/cyan-fg}`;
+
       const content = `
 {bold}{cyan-fg}${mp.displayName}{/cyan-fg}{/bold}${mp.official ? ' {cyan-fg}[Official]{/cyan-fg}' : ''}
 
@@ -172,6 +198,8 @@ ${pluginInfo}
 
 {bold}Source:{/bold}
 {gray-fg}github.com/${mp.source.repo}{/gray-fg}
+
+${scopeInfo}
 
 ${actionText}
       `.trim();
@@ -208,6 +236,10 @@ ${actionText}
         actions = '{green-fg}[Enter]{/green-fg} Install & Enable';
       }
 
+      const scopeInfo = isGlobal
+        ? '{magenta-fg}Scope: Global{/magenta-fg}'
+        : '{cyan-fg}Scope: Project{/cyan-fg}';
+
       const content = `
 {bold}{cyan-fg}${plugin.name}{/cyan-fg}{/bold}
 
@@ -218,6 +250,7 @@ ${plugin.description}
 ${versionInfo}
 
 {bold}ID:{/bold} ${plugin.id}
+${scopeInfo}
 
 ${actions}
       `.trim();
@@ -244,18 +277,26 @@ ${actions}
         const confirm = await showConfirm(
           state,
           `Remove ${mp.displayName}?`,
-          'Plugins from this marketplace will no longer be available.'
+          `Plugins from this marketplace will no longer be available.\n(${isGlobal ? 'Global' : 'Project'} scope)`
         );
 
         if (confirm) {
-          await removeMarketplace(mp.name, state.projectPath);
+          if (isGlobal) {
+            await removeGlobalMarketplace(mp.name);
+          } else {
+            await removeMarketplace(mp.name, state.projectPath);
+          }
           clearMarketplaceCache();
           await showMessage(state, 'Removed', `${mp.displayName} removed.`, 'success');
           createPluginsScreen(state);
         }
       } else {
         // Add marketplace
-        await addMarketplace(mp, state.projectPath);
+        if (isGlobal) {
+          await addGlobalMarketplace(mp);
+        } else {
+          await addMarketplace(mp, state.projectPath);
+        }
         clearMarketplaceCache();
         await showMessage(
           state,
@@ -271,7 +312,11 @@ ${actions}
       if (plugin.installedVersion) {
         // Toggle enabled/disabled
         const newState = !plugin.enabled;
-        await enablePlugin(plugin.id, newState, state.projectPath);
+        if (isGlobal) {
+          await enableGlobalPlugin(plugin.id, newState);
+        } else {
+          await enablePlugin(plugin.id, newState, state.projectPath);
+        }
         clearMarketplaceCache();
         await showMessage(
           state,
@@ -282,8 +327,13 @@ ${actions}
         createPluginsScreen(state);
       } else {
         // Install plugin
-        await enablePlugin(plugin.id, true, state.projectPath);
-        await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        if (isGlobal) {
+          await enableGlobalPlugin(plugin.id, true);
+          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+        } else {
+          await enablePlugin(plugin.id, true, state.projectPath);
+          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        }
         clearMarketplaceCache();
         await showMessage(
           state,
@@ -294,6 +344,14 @@ ${actions}
         createPluginsScreen(state);
       }
     }
+  });
+
+  // Toggle scope (g key)
+  state.screen.key(['g'], async () => {
+    if (state.isSearching) return;
+    currentScope = currentScope === 'project' ? 'global' : 'project';
+    clearMarketplaceCache();
+    createPluginsScreen(state);
   });
 
   // Update plugin (u key)
@@ -316,7 +374,11 @@ ${actions}
     );
 
     if (confirm) {
-      await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+      if (isGlobal) {
+        await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+      } else {
+        await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+      }
       clearMarketplaceCache();
       await showMessage(state, 'Updated', `${plugin.name} updated.\nRestart Claude Code to apply.`, 'success');
       createPluginsScreen(state);
@@ -339,8 +401,12 @@ ${actions}
     const confirm = await showConfirm(state, 'Uninstall?', `Remove ${plugin.name}?`);
 
     if (confirm) {
-      await enablePlugin(plugin.id, false, state.projectPath);
-      await removeInstalledPluginVersion(plugin.id, state.projectPath);
+      if (isGlobal) {
+        await removeGlobalInstalledPluginVersion(plugin.id);
+      } else {
+        await enablePlugin(plugin.id, false, state.projectPath);
+        await removeInstalledPluginVersion(plugin.id, state.projectPath);
+      }
       clearMarketplaceCache();
       await showMessage(state, 'Uninstalled', `${plugin.name} removed.\nRestart Claude Code to apply.`, 'success');
       createPluginsScreen(state);
@@ -367,7 +433,11 @@ ${actions}
 
     if (confirm) {
       for (const plugin of updatable) {
-        await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        if (isGlobal) {
+          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+        } else {
+          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        }
       }
       clearMarketplaceCache();
       await showMessage(state, 'Updated', `Updated ${updatable.length} plugin(s).\nRestart Claude Code to apply.`, 'success');
@@ -387,18 +457,22 @@ ${actions}
     state.screen.render();
   });
 
-  // Legend
+  // Legend with scope indicator
+  const scopeText = isGlobal
+    ? '{magenta-fg}[g] Global{/magenta-fg}'
+    : '{cyan-fg}[g] Project{/cyan-fg}';
+
   blessed.box({
     parent: state.screen,
     bottom: 1,
     right: 2,
-    width: 45,
+    width: 60,
     height: 1,
-    content: '{green-fg}●{/green-fg} Enabled  {yellow-fg}●{/yellow-fg} Disabled  {gray-fg}○{/gray-fg} Not installed',
+    content: `${scopeText}  {green-fg}●{/green-fg} Enabled  {yellow-fg}●{/yellow-fg} Disabled  {gray-fg}○{/gray-fg} Not installed`,
     tags: true,
   });
 
-  createFooter(state, '↑↓ Navigate │ Enter Toggle │ u Update │ d Uninstall │ a Update All │ r Refresh');
+  createFooter(state, '↑↓ Navigate │ Enter Toggle │ g Scope │ u Update │ d Uninstall │ a Update All │ r Refresh');
 
   list.focus();
   state.screen.render();

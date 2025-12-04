@@ -1,4 +1,12 @@
-import { getConfiguredMarketplaces, getEnabledPlugins, readSettings, writeSettings } from './claude-settings.js';
+import {
+  getConfiguredMarketplaces,
+  getEnabledPlugins,
+  readSettings,
+  writeSettings,
+  getGlobalConfiguredMarketplaces,
+  getGlobalEnabledPlugins,
+  getGlobalInstalledPluginVersions,
+} from './claude-settings.js';
 import { defaultMarketplaces } from '../data/marketplaces.js';
 
 export interface PluginInfo {
@@ -70,6 +78,50 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
   const configuredMarketplaces = await getConfiguredMarketplaces(projectPath);
   const enabledPlugins = await getEnabledPlugins(projectPath);
   const installedVersions = await getInstalledPluginVersions(projectPath);
+
+  const plugins: PluginInfo[] = [];
+
+  // Get all marketplace names (configured + defaults)
+  const marketplaceNames = new Set<string>();
+  for (const mp of defaultMarketplaces) {
+    if (configuredMarketplaces[mp.name]) {
+      marketplaceNames.add(mp.name);
+    }
+  }
+
+  // Fetch plugins from each configured marketplace
+  for (const mpName of marketplaceNames) {
+    const marketplace = defaultMarketplaces.find((m) => m.name === mpName);
+    if (!marketplace) continue;
+
+    const marketplacePlugins = await fetchMarketplacePlugins(mpName, marketplace.source.repo);
+
+    for (const plugin of marketplacePlugins) {
+      const pluginId = `${plugin.name}@${mpName}`;
+      const installedVersion = installedVersions[pluginId];
+      const isEnabled = enabledPlugins[pluginId] === true;
+
+      plugins.push({
+        id: pluginId,
+        name: plugin.name,
+        version: plugin.version,
+        description: plugin.description,
+        marketplace: mpName,
+        marketplaceDisplay: marketplace.displayName,
+        enabled: isEnabled,
+        installedVersion: installedVersion,
+        hasUpdate: installedVersion ? compareVersions(plugin.version, installedVersion) > 0 : false,
+      });
+    }
+  }
+
+  return plugins;
+}
+
+export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
+  const configuredMarketplaces = await getGlobalConfiguredMarketplaces();
+  const enabledPlugins = await getGlobalEnabledPlugins();
+  const installedVersions = await getGlobalInstalledPluginVersions();
 
   const plugins: PluginInfo[] = [];
 

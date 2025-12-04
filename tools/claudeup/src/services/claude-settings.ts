@@ -237,3 +237,63 @@ export async function getConfiguredMarketplaces(
   const settings = await readSettings(projectPath);
   return settings.extraKnownMarketplaces || {};
 }
+
+// Global marketplace management
+export async function addGlobalMarketplace(marketplace: Marketplace): Promise<void> {
+  const settings = await readGlobalSettings();
+  settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
+  settings.extraKnownMarketplaces[marketplace.name] = { source: marketplace.source };
+  await writeGlobalSettings(settings);
+}
+
+export async function removeGlobalMarketplace(name: string): Promise<void> {
+  const settings = await readGlobalSettings();
+  if (settings.extraKnownMarketplaces) {
+    delete settings.extraKnownMarketplaces[name];
+  }
+  await writeGlobalSettings(settings);
+}
+
+export async function getGlobalConfiguredMarketplaces(): Promise<Record<string, MarketplaceSource>> {
+  const settings = await readGlobalSettings();
+  return settings.extraKnownMarketplaces || {};
+}
+
+// Global plugin management
+export async function enableGlobalPlugin(pluginId: string, enabled: boolean): Promise<void> {
+  const settings = await readGlobalSettings();
+  settings.enabledPlugins = settings.enabledPlugins || {};
+  settings.enabledPlugins[pluginId] = enabled;
+  await writeGlobalSettings(settings);
+}
+
+export async function getGlobalEnabledPlugins(): Promise<Record<string, boolean>> {
+  const settings = await readGlobalSettings();
+  return settings.enabledPlugins || {};
+}
+
+export async function getGlobalInstalledPluginVersions(): Promise<Record<string, string>> {
+  const settings = await readGlobalSettings();
+  return settings.installedPluginVersions || {};
+}
+
+export async function saveGlobalInstalledPluginVersion(
+  pluginId: string,
+  version: string
+): Promise<void> {
+  const settings = await readGlobalSettings();
+  settings.installedPluginVersions = settings.installedPluginVersions || {};
+  settings.installedPluginVersions[pluginId] = version;
+  await writeGlobalSettings(settings);
+}
+
+export async function removeGlobalInstalledPluginVersion(pluginId: string): Promise<void> {
+  const settings = await readGlobalSettings();
+  if (settings.installedPluginVersions) {
+    delete settings.installedPluginVersions[pluginId];
+  }
+  if (settings.enabledPlugins) {
+    delete settings.enabledPlugins[pluginId];
+  }
+  await writeGlobalSettings(settings);
+}
