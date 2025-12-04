@@ -12,6 +12,17 @@ export interface CliTool {
 
 export const cliTools: CliTool[] = [
   {
+    name: 'claude',
+    displayName: 'Claude Code',
+    description: 'Anthropic official agentic coding tool',
+    installCommand: 'npm install -g @anthropic-ai/claude-code',
+    checkCommand: 'claude --version',
+    website: 'https://claude.ai/code',
+    category: 'ai-coding',
+    packageManager: 'npm',
+    packageName: '@anthropic-ai/claude-code',
+  },
+  {
     name: 'claudish',
     displayName: 'Claudish',
     description: 'Run Claude Code with OpenRouter models (Grok, GPT-5, Gemini)',
