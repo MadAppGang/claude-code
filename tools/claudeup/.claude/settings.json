@@ -1,0 +1,17 @@
+{
+  "extraKnownMarketplaces": {
+    "mag-claude-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "MadAppGang/claude-code"
+      }
+    },
+    "anthropic-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code-plugins"
+      }
+    }
+  },
+  "statusLine": ""
+}
