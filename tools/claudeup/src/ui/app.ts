@@ -8,11 +8,26 @@ import { createStatusLineScreen } from './screens/statusline.js';
 // Version from package.json
 export const VERSION = '0.2.1';
 
+/**
+ * Safe exit that handles terminal cleanup errors (Ghostty compatibility)
+ * Ghostty has issues with Setulc (underline color) terminfo capability
+ */
+function safeExit(code: number): void {
+  try {
+    process.exit(code);
+  } catch {
+    // If blessed throws on cleanup, force exit
+    process.exitCode = code;
+  }
+}
+
 export interface AppState {
   screen: blessed.Screen;
   currentScreen: Screen;
   projectPath: string;
   isSearching: boolean;
+  progressBar?: blessed.BoxElement;
+  isRefreshing: boolean;
 }
 
 // Claude Code color palette
@@ -28,6 +43,31 @@ export const colors = {
 };
 
 export function createApp(): AppState {
+  // Handle terminal compatibility issues (Ghostty Setulc error)
+  // Suppress errors during terminal cleanup on exit
+  const originalExit = process.exit;
+  process.exit = ((code?: number) => {
+    // Suppress blessed terminal errors on exit
+    process.stderr.write = () => true;
+    originalExit(code);
+  }) as typeof process.exit;
+
+  // Also catch uncaught exceptions during exit
+  process.on('uncaughtException', (err) => {
+    // Ignore blessed/terminfo errors (Setulc, etc.)
+    if (err.message?.includes('Setulc') || err.message?.includes('terminfo')) {
+      process.exitCode = 0;
+      return;
+    }
+    console.error('Uncaught exception:', err);
+    process.exit(1);
+  });
+
+  // Use simpler terminal for Ghostty compatibility
+  if (process.env.TERM?.includes('ghostty')) {
+    process.env.TERM = 'xterm-256color';
+  }
+
   const screen = blessed.screen({
     smartCSR: true,
     title: 'claudeup',
@@ -39,13 +79,25 @@ export function createApp(): AppState {
     currentScreen: 'plugins', // Default to plugins screen
     projectPath: process.cwd(),
     isSearching: false,
+    isRefreshing: false,
   };
 
   // Global key bindings - check isSearching to prevent conflicts
-  screen.key(['escape', 'q', 'C-c'], () => {
+  // Ctrl+C always exits immediately (no confirmation)
+  screen.key(['C-c'], () => {
+    safeExit(0);
+  });
+
+  // ESC and q - show confirmation on home screen, navigate back otherwise
+  screen.key(['escape', 'q'], async () => {
     if (state.isSearching) return; // Let search handler handle escape
     if (state.currentScreen === 'plugins') {
-      process.exit(0);
+      // On home screen - show confirmation before exit
+      const { showConfirm } = await import('./app.js');
+      const confirmed = await showConfirm(state, 'Exit claudeup?', 'Press Y to exit, N to cancel');
+      if (confirmed) {
+        safeExit(0);
+      }
     } else {
       navigateTo(state, 'plugins');
     }
@@ -97,13 +149,16 @@ export async function navigateTo(state: AppState, screen: Screen): Promise<void>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const scr = state.screen as any;
   if (scr.unkey && typeof scr.unkey === 'function') {
-    // Remove common global keys that might have been set
+    // Remove common global keys that might have been set by various screens
     try {
-      scr.unkey(['r']);
-      scr.unkey(['u']);
-      scr.unkey(['d']);
-      scr.unkey(['a']);
-    } catch (e) {
+      scr.unkey(['g']); // scope toggle (plugins)
+      scr.unkey(['r']); // refresh
+      scr.unkey(['u']); // update
+      scr.unkey(['d']); // delete/uninstall
+      scr.unkey(['a']); // update all
+      scr.unkey(['j']); // vim down
+      scr.unkey(['k']); // vim up
+    } catch {
       // Ignore errors if keys weren't bound
     }
   }
@@ -460,7 +515,65 @@ export function createFooter(state: AppState, hints: string): blessed.BoxElement
     left: 0,
     width: '100%',
     height: 1,
-    content: `{gray-fg}${hints}{/gray-fg}`,
+    content: `{white-fg}${hints}{/white-fg}`,
     tags: true,
+    style: { fg: 'white' },
   });
+}
+
+/**
+ * Show a progress bar at the top of the screen
+ */
+export function showProgress(
+  state: AppState,
+  message: string,
+  current?: number,
+  total?: number
+): void {
+  state.isRefreshing = true;
+
+  // Build progress display
+  let progressText = `{cyan-fg}⟳{/cyan-fg} ${message}`;
+  let barContent = '';
+
+  if (current !== undefined && total !== undefined && total > 0) {
+    const barWidth = 20;
+    const filled = Math.round((current / total) * barWidth);
+    const empty = barWidth - filled;
+    barContent = ` {cyan-fg}[${'█'.repeat(filled)}${'░'.repeat(empty)}]{/cyan-fg} ${current}/${total}`;
+    progressText += barContent;
+  } else {
+    // Indeterminate - just show spinning indicator
+    progressText += ' {gray-fg}...{/gray-fg}';
+  }
+
+  if (state.progressBar) {
+    state.progressBar.setContent(progressText);
+  } else {
+    state.progressBar = blessed.box({
+      parent: state.screen,
+      top: 2,
+      left: 0,
+      width: '100%',
+      height: 1,
+      content: progressText,
+      tags: true,
+      style: { fg: 'white', bg: 'black' },
+    });
+  }
+
+  state.screen.render();
+}
+
+/**
+ * Hide the progress bar
+ */
+export function hideProgress(state: AppState): void {
+  state.isRefreshing = false;
+
+  if (state.progressBar) {
+    state.progressBar.destroy();
+    state.progressBar = undefined;
+    state.screen.render();
+  }
 }

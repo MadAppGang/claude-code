@@ -1,7 +1,7 @@
 import blessed from 'neo-blessed';
 import type { AppState } from '../app.js';
-import { createHeader, createFooter, showMessage, showConfirm } from '../app.js';
-import { defaultMarketplaces } from '../../data/marketplaces.js';
+import { createHeader, createFooter, showMessage, showConfirm, showProgress, hideProgress } from '../app.js';
+import { getAllMarketplaces } from '../../data/marketplaces.js';
 import {
   addMarketplace,
   removeMarketplace,
@@ -17,32 +17,67 @@ import {
 import {
   saveInstalledPluginVersion,
   removeInstalledPluginVersion,
-  clearMarketplaceCache,
   getAvailablePlugins,
   getGlobalAvailablePlugins,
+  getLocalMarketplacesInfo,
+  refreshAllMarketplaces,
   type PluginInfo,
 } from '../../services/plugin-manager.js';
+
+import type { Marketplace } from '../../types/index.js';
 
 interface ListItem {
   label: string;
   type: 'marketplace' | 'plugin' | 'empty';
-  marketplace?: (typeof defaultMarketplaces)[0];
+  marketplace?: Marketplace;
   marketplaceEnabled?: boolean;
   plugin?: PluginInfo;
 }
 
 // Track current scope - persists across screen refreshes
-let currentScope: 'project' | 'global' = 'project';
+let currentScope: 'project' | 'global' = 'global'; // Default to global for better first-run experience
+
+// Track collapsed marketplaces - persists across screen refreshes
+const collapsedMarketplaces = new Set<string>();
+
+// Helper to clean up screen-level key bindings before re-registering
+// This prevents handler accumulation when createPluginsScreen is called recursively
+function cleanupPluginScreenKeys(screen: blessed.Screen): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const scr = screen as any;
+  if (scr.unkey && typeof scr.unkey === 'function') {
+    try {
+      scr.unkey(['g']);
+      scr.unkey(['u']);
+      scr.unkey(['d']);
+      scr.unkey(['r']);
+      scr.unkey(['a']);
+      scr.unkey(['j']);
+      scr.unkey(['k']);
+    } catch {
+      // Ignore errors if keys weren't bound
+    }
+  }
+}
 
 export async function createPluginsScreen(state: AppState): Promise<void> {
+  // Clean up any existing screen-level key handlers to prevent accumulation
+  cleanupPluginScreenKeys(state.screen);
+
   createHeader(state, 'Plugins');
 
   const isGlobal = currentScope === 'global';
 
-  // Fetch marketplaces based on scope
+  // Fetch configured marketplaces based on scope (for enabled status)
   const configuredMarketplaces = isGlobal
     ? await getGlobalConfiguredMarketplaces()
     : await getConfiguredMarketplaces(state.projectPath);
+
+  // Get local marketplace cache (single source of truth)
+  const localMarketplaces = await getLocalMarketplacesInfo();
+
+  // Get all marketplaces from local cache + hardcoded defaults (deduped by repo)
+  const allMarketplaces = getAllMarketplaces(localMarketplaces);
 
   // Fetch all available plugins based on scope
   let allPlugins: PluginInfo[] = [];
@@ -65,24 +100,31 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
   // Build unified list
   const listItems: ListItem[] = [];
 
-  for (const marketplace of defaultMarketplaces) {
-    const isEnabled = configuredMarketplaces[marketplace.name] !== undefined;
+  for (const marketplace of allMarketplaces) {
+    // Marketplace is enabled if it's in local cache (actually cloned) or explicitly configured
+    const isInLocalCache = localMarketplaces.has(marketplace.name);
+    const isConfigured = configuredMarketplaces[marketplace.name] !== undefined;
+    const isEnabled = isInLocalCache || isConfigured;
     const plugins = pluginsByMarketplace.get(marketplace.name) || [];
+    const isCollapsed = collapsedMarketplaces.has(marketplace.name);
 
-    // Marketplace header
+    // Marketplace header with expand/collapse indicator
+    const expandIcon = isEnabled && plugins.length > 0
+      ? (isCollapsed ? '{gray-fg}▶{/gray-fg}' : '{gray-fg}▼{/gray-fg}')
+      : ' ';
     const enabledBadge = isEnabled ? '{green-fg}✓{/green-fg}' : '{gray-fg}○{/gray-fg}';
     const officialBadge = marketplace.official ? ' {cyan-fg}[Official]{/cyan-fg}' : '';
     const pluginCount = plugins.length > 0 ? ` {gray-fg}(${plugins.length}){/gray-fg}` : '';
 
     listItems.push({
-      label: `${enabledBadge} {bold}${marketplace.displayName}{/bold}${officialBadge}${pluginCount}`,
+      label: `${expandIcon} ${enabledBadge} {bold}${marketplace.displayName}{/bold}${officialBadge}${pluginCount}`,
       type: 'marketplace',
       marketplace,
       marketplaceEnabled: isEnabled,
     });
 
-    // Plugins under this marketplace (if enabled)
-    if (isEnabled && plugins.length > 0) {
+    // Plugins under this marketplace (if enabled and not collapsed)
+    if (isEnabled && plugins.length > 0 && !isCollapsed) {
       for (const plugin of plugins) {
         let status = '{gray-fg}○{/gray-fg}';
         if (plugin.enabled) {
@@ -101,20 +143,22 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
         const updateBadge = plugin.hasUpdate ? ' {yellow-fg}⬆{/yellow-fg}' : '';
 
         listItems.push({
-          label: `    ${status} ${plugin.name} ${versionDisplay}${updateBadge}`,
+          label: `      ${status} ${plugin.name} ${versionDisplay}${updateBadge}`,
           type: 'plugin',
           plugin,
         });
       }
-    } else if (isEnabled) {
+    } else if (isEnabled && !isCollapsed) {
       listItems.push({
-        label: '    {gray-fg}No plugins available{/gray-fg}',
+        label: '      {gray-fg}No plugins available{/gray-fg}',
         type: 'empty',
       });
     }
 
-    // Empty line between marketplaces
-    listItems.push({ label: '', type: 'empty' });
+    // Empty line between marketplaces (only if expanded)
+    if (!isCollapsed) {
+      listItems.push({ label: '', type: 'empty' });
+    }
   }
 
   // Scope indicator
@@ -137,6 +181,7 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     scrollable: true,
     border: { type: 'line' },
     style: {
+      fg: 'white',
       selected: { bg: isGlobal ? 'magenta' : 'blue', fg: 'white' },
       border: { fg: isGlobal ? 'magenta' : 'gray' },
     },
@@ -154,8 +199,11 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     content: '',
     tags: true,
     border: { type: 'line' },
-    style: { border: { fg: 'gray' } },
-    label: ' Details ',
+    style: {
+      fg: 'white',
+      border: { fg: 'gray' },
+    },
+    label: ' {white-fg}Details{/white-fg} ',
   });
 
   // Update detail panel
@@ -171,6 +219,7 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
 
     if (item.type === 'marketplace' && item.marketplace) {
       const mp = item.marketplace;
+
       const statusText = item.marketplaceEnabled
         ? '{green-fg}● Enabled{/green-fg}'
         : '{gray-fg}○ Not added{/gray-fg}';
@@ -188,6 +237,10 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
         ? '{magenta-fg}Scope: Global (~/.claude){/magenta-fg}'
         : `{cyan-fg}Scope: Project (${state.projectPath}){/cyan-fg}`;
 
+      const sourceDisplay = mp.source.repo
+        ? `{bold}Source:{/bold}\n{gray-fg}github.com/${mp.source.repo}{/gray-fg}`
+        : `{bold}Source:{/bold}\n{gray-fg}Local cache{/gray-fg}`;
+
       const content = `
 {bold}{cyan-fg}${mp.displayName}{/cyan-fg}{/bold}${mp.official ? ' {cyan-fg}[Official]{/cyan-fg}' : ''}
 
@@ -196,8 +249,7 @@ ${mp.description}
 {bold}Status:{/bold} ${statusText}
 ${pluginInfo}
 
-{bold}Source:{/bold}
-{gray-fg}github.com/${mp.source.repo}{/gray-fg}
+${sourceDisplay}
 
 ${scopeInfo}
 
@@ -224,7 +276,9 @@ ${actionText}
       }
 
       let actions = '';
-      if (plugin.installedVersion) {
+      // Check both enabled and installedVersion - plugin can be enabled without version tracking
+      const isInstalled = plugin.enabled || plugin.installedVersion;
+      if (isInstalled) {
         actions = plugin.enabled
           ? '{cyan-fg}[Enter]{/cyan-fg} Disable'
           : '{cyan-fg}[Enter]{/cyan-fg} Enable';
@@ -306,8 +360,9 @@ ${actions}
       }
     } else if (selected.type === 'plugin' && selected.plugin) {
       const plugin = selected.plugin;
+      const isInstalled = plugin.enabled || plugin.installedVersion;
 
-      if (plugin.installedVersion) {
+      if (isInstalled) {
         // Toggle enabled/disabled
         const newState = !plugin.enabled;
         if (isGlobal) {
@@ -387,7 +442,8 @@ ${actions}
     if (!item || item.type !== 'plugin' || !item.plugin) return;
 
     const plugin = item.plugin;
-    if (!plugin.installedVersion) {
+    const isInstalled = plugin.enabled || plugin.installedVersion;
+    if (!isInstalled) {
       await showMessage(state, 'Not Installed', `${plugin.name} is not installed.`, 'info');
       return;
     }
@@ -396,6 +452,7 @@ ${actions}
 
     if (confirm) {
       if (isGlobal) {
+        await enableGlobalPlugin(plugin.id, false);
         await removeGlobalInstalledPluginVersion(plugin.id);
       } else {
         await enablePlugin(plugin.id, false, state.projectPath);
@@ -406,10 +463,37 @@ ${actions}
     }
   });
 
-  // Refresh (r key)
+  // Refresh (r key) - git pull all marketplaces and clear cache
   state.screen.key(['r'], async () => {
-    if (state.isSearching) return;
-    clearMarketplaceCache();
+    if (state.isSearching || state.isRefreshing) return;
+
+    // Show progress bar
+    showProgress(state, 'Refreshing marketplaces...');
+
+    // Git pull all local marketplaces and clear cache with progress updates
+    const results = await refreshAllMarketplaces((progress) => {
+      showProgress(state, `Refreshing ${progress.name}...`, progress.current, progress.total);
+    });
+
+    // Hide progress bar
+    hideProgress(state);
+
+    // Build summary message
+    const updated = results.filter((r) => r.updated);
+    const failed = results.filter((r) => !r.success);
+
+    let message = '';
+    if (updated.length > 0) {
+      message += `Updated: ${updated.map((r) => r.name).join(', ')}\n`;
+    }
+    if (failed.length > 0) {
+      message += `Failed: ${failed.map((r) => r.name).join(', ')}\n`;
+    }
+    if (updated.length === 0 && failed.length === 0) {
+      message = 'All marketplaces up to date.';
+    }
+
+    await showMessage(state, 'Refreshed', message.trim(), updated.length > 0 ? 'success' : 'info');
     createPluginsScreen(state);
   });
 
@@ -449,6 +533,33 @@ ${actions}
     state.screen.render();
   });
 
+  // Expand/collapse marketplace (left/right arrows or </> keys)
+  const toggleCollapse = (collapse: boolean) => {
+    const selected = list.selected as number;
+    const item = listItems[selected];
+
+    // Find the marketplace for the current item
+    let targetMarketplace: Marketplace | undefined;
+    if (item?.type === 'marketplace' && item.marketplace) {
+      targetMarketplace = item.marketplace;
+    } else if (item?.type === 'plugin' && item.plugin) {
+      // Find parent marketplace
+      targetMarketplace = allMarketplaces.find((mp) => mp.name === item.plugin?.marketplace);
+    }
+
+    if (targetMarketplace) {
+      if (collapse) {
+        collapsedMarketplaces.add(targetMarketplace.name);
+      } else {
+        collapsedMarketplaces.delete(targetMarketplace.name);
+      }
+      createPluginsScreen(state);
+    }
+  };
+
+  list.key(['left', '<'], () => toggleCollapse(true));
+  list.key(['right', '>'], () => toggleCollapse(false));
+
   // Legend with scope indicator
   const scopeText = isGlobal
     ? '{magenta-fg}[g] Global{/magenta-fg}'
@@ -462,9 +573,10 @@ ${actions}
     height: 1,
     content: `${scopeText}  {green-fg}●{/green-fg} Enabled  {yellow-fg}●{/yellow-fg} Disabled  {gray-fg}○{/gray-fg} Not installed`,
     tags: true,
+    style: { fg: 'white' },
   });
 
-  createFooter(state, '↑↓ Navigate │ Enter Toggle │ g Scope │ u Update │ d Uninstall │ a Update All │ r Refresh');
+  createFooter(state, '↑↓ Navigate │ ←→ Collapse/Expand │ Enter Toggle │ g Scope │ u Update │ d Uninstall │ r Refresh');
 
   list.focus();
   state.screen.render();
