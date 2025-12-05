@@ -8,6 +8,11 @@ import {
   getGlobalInstalledPluginVersions,
 } from './claude-settings.js';
 import { defaultMarketplaces } from '../data/marketplaces.js';
+import { scanLocalMarketplaces, refreshLocalMarketplaces, type LocalMarketplace, type RefreshResult, type ProgressCallback } from './local-marketplace.js';
+import { formatMarketplaceName, isValidGitHubRepo, parsePluginId } from '../utils/string-utils.js';
+
+// Cache for local marketplaces (session-level) - Promise-based to prevent race conditions
+let localMarketplacesPromise: Promise<Map<string, LocalMarketplace>> | null = null;
 
 export interface PluginInfo {
   id: string;
@@ -40,13 +45,28 @@ export async function fetchMarketplacePlugins(
     return cached;
   }
 
+  // Validate repo format to prevent SSRF
+  if (!isValidGitHubRepo(repo)) {
+    console.error(`Invalid GitHub repo format: ${repo}`);
+    return [];
+  }
+
   try {
     // Fetch marketplace.json from GitHub
     const url = `https://raw.githubusercontent.com/${repo}/main/.claude-plugin/marketplace.json`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(10000), // 10s timeout
+    });
 
     if (!response.ok) {
       console.error(`Failed to fetch marketplace: ${response.status}`);
+      return [];
+    }
+
+    // Validate content-type
+    const contentType = response.headers.get('content-type');
+    if (contentType && !contentType.includes('application/json') && !contentType.includes('text/plain')) {
+      console.error(`Invalid content-type for marketplace: ${contentType}`);
       return [];
     }
 
@@ -79,6 +99,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
   const installedVersions = await getInstalledPluginVersions(projectPath);
 
   const plugins: PluginInfo[] = [];
+  const seenPluginIds = new Set<string>();
 
   // Get all marketplace names (configured + defaults)
   const marketplaceNames = new Set<string>();
@@ -100,6 +121,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
 
+      seenPluginIds.add(pluginId);
       plugins.push({
         id: pluginId,
         name: plugin.name,
@@ -112,6 +134,76 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
         hasUpdate: installedVersion ? compareVersions(plugin.version, installedVersion) > 0 : false,
       });
     }
+  }
+
+  // Fetch ALL plugins from local marketplace caches (for marketplaces not in defaults)
+  const localMarketplaces = await getLocalMarketplaces();
+
+  for (const [mpName, localMp] of localMarketplaces) {
+    // Skip if already fetched from defaults
+    if (marketplaceNames.has(mpName)) continue;
+
+    // Add ALL plugins from this local marketplace cache
+    for (const localPlugin of localMp.plugins) {
+      const pluginId = `${localPlugin.name}@${mpName}`;
+      if (seenPluginIds.has(pluginId)) continue;
+
+      const installedVersion = installedVersions[pluginId];
+      const isEnabled = enabledPlugins[pluginId] === true;
+
+      seenPluginIds.add(pluginId);
+      plugins.push({
+        id: pluginId,
+        name: localPlugin.name,
+        version: localPlugin.version,
+        description: localPlugin.description || '',
+        marketplace: mpName,
+        marketplaceDisplay: localMp.name || formatMarketplaceName(mpName),
+        enabled: isEnabled,
+        installedVersion: installedVersion,
+        hasUpdate: installedVersion ? compareVersions(localPlugin.version, installedVersion) > 0 : false,
+      });
+    }
+  }
+
+  // Add orphaned plugins (enabled/installed but not in any cache)
+  const allPluginIds = new Set([
+    ...Object.keys(enabledPlugins),
+    ...Object.keys(installedVersions),
+  ]);
+
+  for (const pluginId of allPluginIds) {
+    if (seenPluginIds.has(pluginId)) continue;
+
+    const parsed = parsePluginId(pluginId);
+    if (!parsed) continue;
+
+    const { pluginName, marketplace: mpName } = parsed;
+    const installedVersion = installedVersions[pluginId];
+    const isEnabled = enabledPlugins[pluginId] === true;
+
+    // Try to get plugin info from local marketplace cache (fallback)
+    const localMp = localMarketplaces.get(mpName);
+    const localPlugin = localMp?.plugins.find((p) => p.name === pluginName);
+
+    const latestVersion = localPlugin?.version || installedVersion || 'unknown';
+    const description = localPlugin?.description || 'Installed plugin';
+    const hasUpdate =
+      installedVersion && localPlugin?.version
+        ? compareVersions(localPlugin.version, installedVersion) > 0
+        : false;
+
+    plugins.push({
+      id: pluginId,
+      name: pluginName,
+      version: latestVersion,
+      description,
+      marketplace: mpName,
+      marketplaceDisplay: localMp?.name || formatMarketplaceName(mpName),
+      enabled: isEnabled,
+      installedVersion: installedVersion,
+      hasUpdate,
+    });
   }
 
   return plugins;
@@ -123,6 +215,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
   const installedVersions = await getGlobalInstalledPluginVersions();
 
   const plugins: PluginInfo[] = [];
+  const seenPluginIds = new Set<string>();
 
   // Get all marketplace names (configured + defaults)
   const marketplaceNames = new Set<string>();
@@ -144,6 +237,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
 
+      seenPluginIds.add(pluginId);
       plugins.push({
         id: pluginId,
         name: plugin.name,
@@ -156,6 +250,76 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
         hasUpdate: installedVersion ? compareVersions(plugin.version, installedVersion) > 0 : false,
       });
     }
+  }
+
+  // Fetch ALL plugins from local marketplace caches (for marketplaces not in defaults)
+  const localMarketplaces = await getLocalMarketplaces();
+
+  for (const [mpName, localMp] of localMarketplaces) {
+    // Skip if already fetched from defaults
+    if (marketplaceNames.has(mpName)) continue;
+
+    // Add ALL plugins from this local marketplace cache
+    for (const localPlugin of localMp.plugins) {
+      const pluginId = `${localPlugin.name}@${mpName}`;
+      if (seenPluginIds.has(pluginId)) continue;
+
+      const installedVersion = installedVersions[pluginId];
+      const isEnabled = enabledPlugins[pluginId] === true;
+
+      seenPluginIds.add(pluginId);
+      plugins.push({
+        id: pluginId,
+        name: localPlugin.name,
+        version: localPlugin.version,
+        description: localPlugin.description || '',
+        marketplace: mpName,
+        marketplaceDisplay: localMp.name || formatMarketplaceName(mpName),
+        enabled: isEnabled,
+        installedVersion: installedVersion,
+        hasUpdate: installedVersion ? compareVersions(localPlugin.version, installedVersion) > 0 : false,
+      });
+    }
+  }
+
+  // Add orphaned plugins (enabled/installed but not in any cache)
+  const allPluginIds = new Set([
+    ...Object.keys(enabledPlugins),
+    ...Object.keys(installedVersions),
+  ]);
+
+  for (const pluginId of allPluginIds) {
+    if (seenPluginIds.has(pluginId)) continue;
+
+    const parsed = parsePluginId(pluginId);
+    if (!parsed) continue;
+
+    const { pluginName, marketplace: mpName } = parsed;
+    const installedVersion = installedVersions[pluginId];
+    const isEnabled = enabledPlugins[pluginId] === true;
+
+    // Try to get plugin info from local marketplace cache (fallback)
+    const localMp = localMarketplaces.get(mpName);
+    const localPlugin = localMp?.plugins.find((p) => p.name === pluginName);
+
+    const latestVersion = localPlugin?.version || installedVersion || 'unknown';
+    const description = localPlugin?.description || 'Installed plugin';
+    const hasUpdate =
+      installedVersion && localPlugin?.version
+        ? compareVersions(localPlugin.version, installedVersion) > 0
+        : false;
+
+    plugins.push({
+      id: pluginId,
+      name: pluginName,
+      version: latestVersion,
+      description,
+      marketplace: mpName,
+      marketplaceDisplay: localMp?.name || formatMarketplaceName(mpName),
+      enabled: isEnabled,
+      installedVersion: installedVersion,
+      hasUpdate,
+    });
   }
 
   return plugins;
@@ -210,4 +374,40 @@ export async function removeInstalledPluginVersion(
 // Clear marketplace cache
 export function clearMarketplaceCache(): void {
   marketplaceCache.clear();
+  localMarketplacesPromise = null;
 }
+
+// Get local marketplaces (with Promise-based caching to prevent race conditions)
+async function getLocalMarketplaces(): Promise<Map<string, LocalMarketplace>> {
+  if (localMarketplacesPromise === null) {
+    localMarketplacesPromise = scanLocalMarketplaces();
+  }
+  return localMarketplacesPromise;
+}
+
+// Export local marketplaces for use in other modules
+export async function getLocalMarketplacesInfo(): Promise<Map<string, LocalMarketplace>> {
+  return getLocalMarketplaces();
+}
+
+/**
+ * Refresh all marketplace data:
+ * 1. Git pull on all local marketplaces
+ * 2. Clear all caches (forces re-fetch from GitHub and re-scan of local)
+ * Returns results from git pull operations
+ * @param onProgress - Optional callback for progress updates
+ */
+export async function refreshAllMarketplaces(
+  onProgress?: ProgressCallback
+): Promise<RefreshResult[]> {
+  // First, git pull all local marketplaces
+  const results = await refreshLocalMarketplaces(onProgress);
+
+  // Then clear all caches to force fresh data
+  clearMarketplaceCache();
+
+  return results;
+}
+
+// Re-export types for consumers
+export type { RefreshResult, ProgressCallback };

@@ -28,6 +28,7 @@
 !/release-please-config.json
 !/scripts/
 !/SECURITY.md
+!/src/
 !/tap-snapshots/
 !/test/
 !/tsconfig.json

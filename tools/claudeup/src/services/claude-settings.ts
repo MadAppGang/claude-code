@@ -7,7 +7,9 @@ import type {
   McpServerConfig,
   Marketplace,
   MarketplaceSource,
+  DiscoveredMarketplace,
 } from '../types/index.js';
+import { parsePluginId } from '../utils/string-utils.js';
 
 const CLAUDE_DIR = '.claude';
 const SETTINGS_FILE = 'settings.json';
@@ -393,4 +395,58 @@ export async function removeGlobalInstalledPluginVersion(pluginId: string): Prom
     delete settings.enabledPlugins[pluginId];
   }
   await writeGlobalSettings(settings);
+}
+
+// Shared logic for discovering marketplaces from settings
+function discoverMarketplacesFromSettings(settings: ClaudeSettings): DiscoveredMarketplace[] {
+  const discovered = new Map<string, DiscoveredMarketplace>();
+
+  // 1. From extraKnownMarketplaces (explicitly configured)
+  for (const [name, config] of Object.entries(settings.extraKnownMarketplaces || {})) {
+    discovered.set(name, { name, source: 'configured', config });
+  }
+
+  // 2. From enabledPlugins (infer marketplace from plugin ID format: pluginName@marketplaceName)
+  for (const pluginId of Object.keys(settings.enabledPlugins || {})) {
+    const parsed = parsePluginId(pluginId);
+    if (parsed && !discovered.has(parsed.marketplace)) {
+      discovered.set(parsed.marketplace, { name: parsed.marketplace, source: 'inferred' });
+    }
+  }
+
+  // 3. From installedPluginVersions (same format)
+  for (const pluginId of Object.keys(settings.installedPluginVersions || {})) {
+    const parsed = parsePluginId(pluginId);
+    if (parsed && !discovered.has(parsed.marketplace)) {
+      discovered.set(parsed.marketplace, { name: parsed.marketplace, source: 'inferred' });
+    }
+  }
+
+  return Array.from(discovered.values());
+}
+
+// Discover all marketplaces from settings (configured + inferred from plugins)
+export async function discoverAllMarketplaces(
+  projectPath?: string
+): Promise<DiscoveredMarketplace[]> {
+  try {
+    const settings = await readSettings(projectPath);
+    return discoverMarketplacesFromSettings(settings);
+  } catch (error) {
+    // Graceful degradation - return empty array instead of crashing
+    console.error('Failed to discover project marketplaces:', error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
+}
+
+// Discover all marketplaces from global settings
+export async function discoverAllGlobalMarketplaces(): Promise<DiscoveredMarketplace[]> {
+  try {
+    const settings = await readGlobalSettings();
+    return discoverMarketplacesFromSettings(settings);
+  } catch (error) {
+    // Graceful degradation - return empty array instead of crashing
+    console.error('Failed to discover global marketplaces:', error instanceof Error ? error.message : 'Unknown error');
+    return [];
+  }
 }
