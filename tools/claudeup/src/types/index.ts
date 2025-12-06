@@ -34,6 +34,12 @@ export interface Marketplace {
   official?: boolean;
 }
 
+export interface DiscoveredMarketplace {
+  name: string;
+  source: 'default' | 'configured' | 'inferred';
+  config?: MarketplaceSource;
+}
+
 export interface Plugin {
   name: string;
   version: string;

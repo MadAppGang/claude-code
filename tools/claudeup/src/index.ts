@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { createApp, navigateTo, VERSION } from './ui/app.js';
+import { createApp, navigateTo, VERSION, showProgress, hideProgress } from './ui/app.js';
+import { refreshLocalMarketplaces } from './services/local-marketplace.js';
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
@@ -22,6 +23,7 @@ Usage: claudeup [options]
 Options:
   -v, --version  Show version number
   -h, --help     Show this help message
+  --no-refresh   Skip auto-refresh of marketplaces on startup
 
 Navigation:
   [1] Plugins    Manage plugin marketplaces and installed plugins
@@ -41,7 +43,26 @@ Keys:
   const app = createApp();
 
   // Start with plugins screen (default)
-  navigateTo(app, 'plugins');
+  await navigateTo(app, 'plugins');
+
+  // Auto-refresh marketplaces on startup (git pull) unless --no-refresh
+  if (!args.includes('--no-refresh')) {
+    // Show progress indicator during refresh
+    showProgress(app, 'Syncing marketplaces...');
+
+    refreshLocalMarketplaces((progress) => {
+      showProgress(app, `Syncing ${progress.name}...`, progress.current, progress.total);
+    })
+      .then(() => {
+        hideProgress(app);
+        // Refresh the screen to show updated data
+        navigateTo(app, 'plugins');
+      })
+      .catch(() => {
+        // Silently ignore refresh errors, just hide progress
+        hideProgress(app);
+      });
+  }
 }
 
 main().catch((error) => {
