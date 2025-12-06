@@ -1,6 +1,6 @@
 import blessed from 'neo-blessed';
 import type { AppState } from '../app.js';
-import { createHeader, createFooter, showMessage, showProgress, hideProgress, showLoading, navigateTo } from '../app.js';
+import { createHeader, createFooter, showMessage, showConfirm, showProgress, hideProgress, showInput, showLoading, navigateTo } from '../app.js';
 import { getAllMarketplaces } from '../../data/marketplaces.js';
 import {
   addMarketplace,
@@ -21,8 +21,10 @@ import {
   getGlobalAvailablePlugins,
   getLocalMarketplacesInfo,
   refreshAllMarketplaces,
+  clearMarketplaceCache,
   type PluginInfo,
 } from '../../services/plugin-manager.js';
+import { cloneMarketplace, deleteMarketplace, addToKnownMarketplaces, removeFromKnownMarketplaces } from '../../services/local-marketplace.js';
 
 import type { Marketplace } from '../../types/index.js';
 
@@ -364,18 +366,46 @@ ${actions}
       const mp = selected.marketplace;
 
       if (selected.marketplaceEnabled) {
-        // Remove marketplace - immediate, no confirmation
-        const loading = showLoading(state, `Removing ${mp.displayName}...`);
-        try {
-          if (isGlobal) {
-            await removeGlobalMarketplace(mp.name);
-          } else {
-            await removeMarketplace(mp.name, state.projectPath);
+        // Remove marketplace with confirmation
+        const confirm = await showConfirm(
+          state,
+          `Remove ${mp.displayName}?`,
+          `Plugins from this marketplace will no longer be available.\n(${isGlobal ? 'Global' : 'Project'} scope)`
+        );
+
+        if (confirm) {
+          const loading = showLoading(state, `Removing ${mp.displayName}...`);
+          try {
+            // Step 1: Remove from settings
+            if (isGlobal) {
+              await removeGlobalMarketplace(mp.name);
+            } else {
+              await removeMarketplace(mp.name, state.projectPath);
+            }
+
+            // Step 2: Delete directory
+            await deleteMarketplace(mp.name);
+
+            // Step 3: Remove from Claude's known_marketplaces.json
+            await removeFromKnownMarketplaces(mp.name);
+
+            // Step 4: Clear cache
+            clearMarketplaceCache();
+
+            await showMessage(state, 'Removed', `${mp.displayName} removed.`, 'success');
+          } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            await showMessage(
+              state,
+              'Removal Failed',
+              `Failed to remove ${mp.displayName}: ${errorMsg}`,
+              'error'
+            );
+          } finally {
+            loading.stop();
           }
-        } finally {
-          loading.stop();
+          await navigateTo(state, 'plugins');
         }
-        await navigateTo(state, 'plugins');
       } else {
         // Add marketplace - immediate, no confirmation
         const loading = showLoading(state, `Adding ${mp.displayName}...`);
@@ -559,6 +589,56 @@ ${actions}
     await navigateTo(state, 'plugins');
   });
 
+  // Add new marketplace (n key)
+  state.screen.key(['n'], async () => {
+    if (state.isSearching) return;
+
+    const repo = await showInput(state, 'Add Marketplace', 'GitHub repo (owner/repo):');
+    if (!repo || !repo.trim()) return;
+
+    showProgress(state, 'Cloning marketplace...');
+    const result = await cloneMarketplace(repo.trim());
+    hideProgress(state);
+
+    if (result.success) {
+      try {
+        // Add to settings and Claude's known_marketplaces.json
+        const normalizedRepo = repo.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$/, '');
+        const marketplace: Marketplace = {
+          name: result.name,
+          displayName: result.name,
+          source: { source: 'github', repo: normalizedRepo },
+          description: '',
+          official: false,
+        };
+
+        // Step 1: Add to settings
+        if (isGlobal) {
+          await addGlobalMarketplace(marketplace);
+        } else {
+          await addMarketplace(marketplace, state.projectPath);
+        }
+
+        // Step 2: Add to known marketplaces
+        await addToKnownMarketplaces(result.name, normalizedRepo);
+
+        // Step 3: Clear cache
+        clearMarketplaceCache();
+
+        await showMessage(state, 'Added', `${result.name} marketplace added.\nPlugins are now available.`, 'success');
+      } catch (error) {
+        // Rollback: delete cloned directory on failure
+        await deleteMarketplace(result.name).catch(() => {});
+
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        await showMessage(state, 'Add Failed', `Failed to add marketplace: ${errorMsg}`, 'error');
+      }
+      createPluginsScreen(state);
+    } else {
+      await showMessage(state, 'Failed', result.error || 'Clone failed', 'error');
+    }
+  });
+
   // Navigation
   list.key(['j'], () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -610,7 +690,7 @@ ${actions}
     style: { fg: 'white' },
   });
 
-  createFooter(state, '↑↓ Navigate │ ←→ Collapse/Expand │ Enter Toggle │ g Scope │ u Update │ d Uninstall │ r Refresh');
+  createFooter(state, '↑↓ Navigate │ Enter Toggle │ n New │ g Scope │ u Update │ a All │ d Del │ r Refresh');
 
   list.focus();
   state.screen.render();
