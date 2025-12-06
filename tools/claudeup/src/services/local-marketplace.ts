@@ -23,6 +23,61 @@ export interface LocalMarketplace {
 }
 
 const CLAUDE_PLUGINS_DIR = path.join(os.homedir(), '.claude', 'plugins', 'marketplaces');
+const KNOWN_MARKETPLACES_FILE = path.join(os.homedir(), '.claude', 'plugins', 'known_marketplaces.json');
+
+interface KnownMarketplaceEntry {
+  source: { source: string; url?: string; repo?: string };
+  installLocation: string;
+  lastUpdated: string;
+}
+
+type KnownMarketplaces = Record<string, KnownMarketplaceEntry>;
+
+/**
+ * Read known_marketplaces.json (Claude Code's internal marketplace tracking)
+ */
+async function readKnownMarketplaces(): Promise<KnownMarketplaces> {
+  try {
+    if (await fs.pathExists(KNOWN_MARKETPLACES_FILE)) {
+      return await fs.readJson(KNOWN_MARKETPLACES_FILE);
+    }
+  } catch {
+    // Return empty if can't read
+  }
+  return {};
+}
+
+/**
+ * Write known_marketplaces.json
+ */
+async function writeKnownMarketplaces(data: KnownMarketplaces): Promise<void> {
+  await fs.ensureDir(path.dirname(KNOWN_MARKETPLACES_FILE));
+  await fs.writeJson(KNOWN_MARKETPLACES_FILE, data, { spaces: 2 });
+}
+
+/**
+ * Add a marketplace to known_marketplaces.json
+ */
+export async function addToKnownMarketplaces(name: string, repo: string): Promise<void> {
+  const known = await readKnownMarketplaces();
+  known[name] = {
+    source: { source: 'github', repo },
+    installLocation: path.join(CLAUDE_PLUGINS_DIR, name),
+    lastUpdated: new Date().toISOString(),
+  };
+  await writeKnownMarketplaces(known);
+}
+
+/**
+ * Remove a marketplace from known_marketplaces.json
+ */
+export async function removeFromKnownMarketplaces(name: string): Promise<void> {
+  const known = await readKnownMarketplaces();
+  if (known[name]) {
+    delete known[name];
+    await writeKnownMarketplaces(known);
+  }
+}
 
 /**
  * Get git remote URL from a marketplace directory
@@ -220,4 +275,104 @@ export async function refreshLocalMarketplaces(
   }
 
   return results;
+}
+
+export interface CloneResult {
+  success: boolean;
+  name: string;
+  error?: string;
+}
+
+/**
+ * Clone a marketplace from GitHub repo
+ * @param repo - GitHub repo in format "owner/repo" or "https://github.com/owner/repo"
+ */
+export async function cloneMarketplace(repo: string): Promise<CloneResult> {
+  // Normalize repo format: extract "owner/repo" from various inputs
+  let normalizedRepo = repo.trim();
+
+  // Handle full URL: https://github.com/owner/repo or https://github.com/owner/repo.git
+  if (normalizedRepo.includes('github.com')) {
+    const match = normalizedRepo.match(/github\.com[/:]([^/]+\/[^/\s.]+)/);
+    if (match) {
+      normalizedRepo = match[1].replace(/\.git$/, '');
+    }
+  }
+
+  // Validate format: owner/repo with alphanumeric, underscore, hyphen only (NO dots to prevent ..)
+  if (!normalizedRepo.match(/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+$/)) {
+    return { success: false, name: '', error: 'Invalid repo format. Use owner/repo (letters, numbers, hyphens, underscores only)' };
+  }
+
+  // Extract marketplace name from repo (last part)
+  const repoName = normalizedRepo.split('/')[1];
+
+  // Defense in depth: explicitly reject path traversal attempts
+  if (repoName.includes('..') || repoName.includes('/') || repoName.includes('\\')) {
+    return { success: false, name: '', error: 'Invalid repository name' };
+  }
+
+  // Ensure plugins directory exists
+  await fs.ensureDir(CLAUDE_PLUGINS_DIR);
+
+  const marketplacePath = path.join(CLAUDE_PLUGINS_DIR, repoName);
+
+  // Verify resolved path is within expected directory (defense in depth)
+  const resolvedPath = path.resolve(marketplacePath);
+  if (!resolvedPath.startsWith(path.resolve(CLAUDE_PLUGINS_DIR))) {
+    return { success: false, name: '', error: 'Invalid path detected' };
+  }
+
+  // Check if already exists
+  if (await fs.pathExists(marketplacePath)) {
+    return { success: false, name: repoName, error: 'Marketplace already exists' };
+  }
+
+  try {
+    // Clone the repository
+    const cloneUrl = `https://github.com/${normalizedRepo}.git`;
+    await execAsync(`git clone --depth 1 "${cloneUrl}" "${marketplacePath}"`, {
+      timeout: 60000, // 60s timeout for clone
+    });
+
+    // Verify it's a valid marketplace (has .claude-plugin/marketplace.json)
+    const manifestPath = path.join(marketplacePath, '.claude-plugin', 'marketplace.json');
+    if (!(await fs.pathExists(manifestPath))) {
+      // Not a valid marketplace, clean up
+      await fs.remove(marketplacePath);
+      return { success: false, name: repoName, error: 'Not a valid marketplace (no .claude-plugin/marketplace.json)' };
+    }
+
+    return { success: true, name: repoName };
+  } catch (error) {
+    // Clean up on failure
+    await fs.remove(marketplacePath).catch(() => {});
+    return {
+      success: false,
+      name: repoName,
+      error: error instanceof Error ? error.message : 'Clone failed',
+    };
+  }
+}
+
+/**
+ * Delete a marketplace directory from local cache
+ */
+export async function deleteMarketplace(name: string): Promise<void> {
+  // Validate name doesn't contain path traversal
+  if (name.includes('..') || name.includes('/') || name.includes('\\')) {
+    throw new Error('Invalid marketplace name');
+  }
+
+  const marketplacePath = path.join(CLAUDE_PLUGINS_DIR, name);
+
+  // Verify path is within expected directory (defense in depth)
+  const resolvedPath = path.resolve(marketplacePath);
+  if (!resolvedPath.startsWith(path.resolve(CLAUDE_PLUGINS_DIR))) {
+    throw new Error('Invalid marketplace path');
+  }
+
+  if (await fs.pathExists(marketplacePath)) {
+    await fs.remove(marketplacePath);
+  }
 }
