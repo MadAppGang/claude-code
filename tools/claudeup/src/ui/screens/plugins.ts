@@ -1,6 +1,6 @@
 import blessed from 'neo-blessed';
 import type { AppState } from '../app.js';
-import { createHeader, createFooter, showMessage, showConfirm } from '../app.js';
+import { createHeader, createFooter, showMessage, showConfirm, showLoading } from '../app.js';
 import { defaultMarketplaces } from '../../data/marketplaces.js';
 import {
   addMarketplace,
@@ -33,6 +33,8 @@ interface ListItem {
 
 // Track current scope - persists across screen refreshes
 let currentScope: 'project' | 'global' = 'project';
+// Track current selection - persists across screen refreshes
+let currentSelection = 0;
 
 export async function createPluginsScreen(state: AppState): Promise<void> {
   createHeader(state, 'Plugins');
@@ -122,6 +124,11 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     ? ' {magenta-fg}{bold}[GLOBAL]{/bold}{/magenta-fg} Marketplaces & Plugins '
     : ' {cyan-fg}{bold}[PROJECT]{/bold}{/cyan-fg} Marketplaces & Plugins ';
 
+  // Ensure currentSelection is within bounds
+  if (currentSelection >= listItems.length) {
+    currentSelection = Math.max(0, listItems.length - 1);
+  }
+
   // List
   const list = blessed.list({
     parent: state.screen,
@@ -143,6 +150,14 @@ export async function createPluginsScreen(state: AppState): Promise<void> {
     scrollbar: { ch: '│', style: { bg: 'gray' } },
     label: scopeLabel,
   });
+
+  // Restore selection position
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const listAny = list as any;
+  if (currentSelection > 0 && currentSelection < listItems.length) {
+    listAny.select(currentSelection);
+    listAny.scrollTo(currentSelection);
+  }
 
   // Detail panel
   const detailBox = blessed.box({
@@ -261,7 +276,10 @@ ${actions}
     state.screen.render();
   };
 
-  list.on('select item', updateDetail);
+  list.on('select item', () => {
+    currentSelection = list.selected as number;
+    updateDetail();
+  });
   setTimeout(updateDetail, 0);
 
   // Handle selection (Enter)
@@ -281,20 +299,30 @@ ${actions}
         );
 
         if (confirm) {
-          if (isGlobal) {
-            await removeGlobalMarketplace(mp.name);
-          } else {
-            await removeMarketplace(mp.name, state.projectPath);
+          const loading = showLoading(state, `Removing ${mp.displayName}...`);
+          try {
+            if (isGlobal) {
+              await removeGlobalMarketplace(mp.name);
+            } else {
+              await removeMarketplace(mp.name, state.projectPath);
+            }
+          } finally {
+            loading.stop();
           }
           await showMessage(state, 'Removed', `${mp.displayName} removed.`, 'success');
           createPluginsScreen(state);
         }
       } else {
         // Add marketplace
-        if (isGlobal) {
-          await addGlobalMarketplace(mp);
-        } else {
-          await addMarketplace(mp, state.projectPath);
+        const loading = showLoading(state, `Adding ${mp.displayName}...`);
+        try {
+          if (isGlobal) {
+            await addGlobalMarketplace(mp);
+          } else {
+            await addMarketplace(mp, state.projectPath);
+          }
+        } finally {
+          loading.stop();
         }
         await showMessage(
           state,
@@ -310,10 +338,15 @@ ${actions}
       if (plugin.installedVersion) {
         // Toggle enabled/disabled
         const newState = !plugin.enabled;
-        if (isGlobal) {
-          await enableGlobalPlugin(plugin.id, newState);
-        } else {
-          await enablePlugin(plugin.id, newState, state.projectPath);
+        const loading = showLoading(state, `${newState ? 'Enabling' : 'Disabling'} ${plugin.name}...`);
+        try {
+          if (isGlobal) {
+            await enableGlobalPlugin(plugin.id, newState);
+          } else {
+            await enablePlugin(plugin.id, newState, state.projectPath);
+          }
+        } finally {
+          loading.stop();
         }
         await showMessage(
           state,
@@ -324,12 +357,17 @@ ${actions}
         createPluginsScreen(state);
       } else {
         // Install plugin
-        if (isGlobal) {
-          await enableGlobalPlugin(plugin.id, true);
-          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
-        } else {
-          await enablePlugin(plugin.id, true, state.projectPath);
-          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        const loading = showLoading(state, `Installing ${plugin.name}...`);
+        try {
+          if (isGlobal) {
+            await enableGlobalPlugin(plugin.id, true);
+            await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+          } else {
+            await enablePlugin(plugin.id, true, state.projectPath);
+            await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+          }
+        } finally {
+          loading.stop();
         }
         await showMessage(
           state,
@@ -343,14 +381,15 @@ ${actions}
   });
 
   // Toggle scope (g key) - don't clear cache, just switch view
-  state.screen.key(['g'], async () => {
+  list.key(['g'], async () => {
     if (state.isSearching) return;
     currentScope = currentScope === 'project' ? 'global' : 'project';
+    currentSelection = 0; // Reset selection when scope changes
     createPluginsScreen(state);
   });
 
   // Update plugin (u key)
-  state.screen.key(['u'], async () => {
+  list.key(['u'], async () => {
     if (state.isSearching) return;
     const selected = list.selected as number;
     const item = listItems[selected];
@@ -369,10 +408,15 @@ ${actions}
     );
 
     if (confirm) {
-      if (isGlobal) {
-        await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
-      } else {
-        await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+      const loading = showLoading(state, `Updating ${plugin.name}...`);
+      try {
+        if (isGlobal) {
+          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+        } else {
+          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+        }
+      } finally {
+        loading.stop();
       }
       await showMessage(state, 'Updated', `${plugin.name} updated.\nRestart Claude Code to apply.`, 'success');
       createPluginsScreen(state);
@@ -380,7 +424,7 @@ ${actions}
   });
 
   // Uninstall plugin (d key)
-  state.screen.key(['d'], async () => {
+  list.key(['d'], async () => {
     if (state.isSearching) return;
     const selected = list.selected as number;
     const item = listItems[selected];
@@ -395,11 +439,16 @@ ${actions}
     const confirm = await showConfirm(state, 'Uninstall?', `Remove ${plugin.name}?`);
 
     if (confirm) {
-      if (isGlobal) {
-        await removeGlobalInstalledPluginVersion(plugin.id);
-      } else {
-        await enablePlugin(plugin.id, false, state.projectPath);
-        await removeInstalledPluginVersion(plugin.id, state.projectPath);
+      const loading = showLoading(state, `Uninstalling ${plugin.name}...`);
+      try {
+        if (isGlobal) {
+          await removeGlobalInstalledPluginVersion(plugin.id);
+        } else {
+          await enablePlugin(plugin.id, false, state.projectPath);
+          await removeInstalledPluginVersion(plugin.id, state.projectPath);
+        }
+      } finally {
+        loading.stop();
       }
       await showMessage(state, 'Uninstalled', `${plugin.name} removed.\nRestart Claude Code to apply.`, 'success');
       createPluginsScreen(state);
@@ -407,14 +456,14 @@ ${actions}
   });
 
   // Refresh (r key)
-  state.screen.key(['r'], async () => {
+  list.key(['r'], async () => {
     if (state.isSearching) return;
     clearMarketplaceCache();
     createPluginsScreen(state);
   });
 
   // Update all plugins (a key)
-  state.screen.key(['a'], async () => {
+  list.key(['a'], async () => {
     if (state.isSearching) return;
     const updatable = allPlugins.filter((p) => p.hasUpdate);
     if (updatable.length === 0) {
@@ -425,12 +474,17 @@ ${actions}
     const confirm = await showConfirm(state, 'Update All?', `Update ${updatable.length} plugin(s)?`);
 
     if (confirm) {
-      for (const plugin of updatable) {
-        if (isGlobal) {
-          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
-        } else {
-          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+      const loading = showLoading(state, `Updating ${updatable.length} plugin(s)...`);
+      try {
+        for (const plugin of updatable) {
+          if (isGlobal) {
+            await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+          } else {
+            await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+          }
         }
+      } finally {
+        loading.stop();
       }
       await showMessage(state, 'Updated', `Updated ${updatable.length} plugin(s).\nRestart Claude Code to apply.`, 'success');
       createPluginsScreen(state);
