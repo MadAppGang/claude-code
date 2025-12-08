@@ -6,7 +6,7 @@ import { createPluginsScreen } from './screens/plugins.js';
 import { createStatusLineScreen } from './screens/statusline.js';
 
 // Version from package.json
-export const VERSION = '0.3.0';
+export const VERSION = '0.3.1';
 
 export interface AppState {
   screen: blessed.Screen;
@@ -510,6 +510,7 @@ export function showSelect(
       left: 1,
       width: 56,
       height: options.length + 2,
+      tags: true,
       border: {
         type: 'line',
       },
@@ -524,8 +525,8 @@ export function showSelect(
       const content = options
         .map((opt, idx) => {
           const prefix = idx === selectedIndex ? '{cyan-fg}>{/cyan-fg}' : ' ';
-          const highlight = idx === selectedIndex ? '{bold}' : '';
-          const endHighlight = idx === selectedIndex ? '{/bold}' : '';
+          const highlight = idx === selectedIndex ? '{bold}{white-fg}' : '{gray-fg}';
+          const endHighlight = idx === selectedIndex ? '{/white-fg}{/bold}' : '{/gray-fg}';
           return `${prefix} ${highlight}${opt.label}${endHighlight}`;
         })
         .join('\n');

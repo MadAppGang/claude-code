@@ -126,18 +126,39 @@ export async function addMcpServer(
   config: McpServerConfig,
   projectPath?: string
 ): Promise<void> {
+  // Add to .mcp.json
   const mcpConfig = await readMcpConfig(projectPath);
   mcpConfig.mcpServers = mcpConfig.mcpServers || {};
   mcpConfig.mcpServers[name] = config;
   await writeMcpConfig(mcpConfig, projectPath);
+
+  // Enable in settings.local.json
+  const localSettings = await readLocalSettings(projectPath);
+  const enabledServers = localSettings.enabledMcpjsonServers || [];
+  if (!enabledServers.includes(name)) {
+    enabledServers.push(name);
+  }
+  localSettings.enabledMcpjsonServers = enabledServers;
+  localSettings.enableAllProjectMcpServers = true;
+  await writeLocalSettings(localSettings, projectPath);
 }
 
 export async function removeMcpServer(name: string, projectPath?: string): Promise<void> {
+  // Remove from .mcp.json
   const mcpConfig = await readMcpConfig(projectPath);
   if (mcpConfig.mcpServers) {
     delete mcpConfig.mcpServers[name];
   }
   await writeMcpConfig(mcpConfig, projectPath);
+
+  // Remove from settings.local.json
+  const localSettings = await readLocalSettings(projectPath);
+  if (localSettings.enabledMcpjsonServers) {
+    localSettings.enabledMcpjsonServers = localSettings.enabledMcpjsonServers.filter(
+      (s) => s !== name
+    );
+    await writeLocalSettings(localSettings, projectPath);
+  }
 }
 
 export async function toggleMcpServer(

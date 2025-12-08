@@ -78,6 +78,8 @@ export interface McpServerConfig {
 
 export interface ClaudeLocalSettings extends ClaudeSettings {
   allowMcp?: boolean;
+  enabledMcpjsonServers?: string[];
+  enableAllProjectMcpServers?: boolean;
 }
 
 export type Screen = 'main' | 'mcp' | 'mcp-registry' | 'plugins' | 'statusline' | 'cli-tools';

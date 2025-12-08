@@ -661,221 +661,183 @@ async function editMcpServerConfig(
 ): Promise<void> {
   // Get current env vars from config
   const currentEnv = currentConfig.env || {};
-  const envVarNames = Object.keys(currentEnv);
 
   // Get configFields from curated server definition if available
   const allServers = getAllMcpServers();
   const curatedServer = allServers.find((s) => s.name === server.name);
   const configFields = curatedServer?.configFields || [];
 
-  // Build list of all env vars (from current config + configFields)
-  const allEnvVars = new Set<string>(envVarNames);
-  for (const field of configFields) {
-    const envVarName = field.envVar || field.name;
-    allEnvVars.add(envVarName);
-  }
+  // Main edit loop
+  while (true) {
+    // Build list of current env vars with their status
+    const envVarNames = Object.keys(currentEnv);
+    const options: { label: string; value: string }[] = [];
 
-  if (allEnvVars.size === 0) {
-    // No env vars to edit, offer to add new ones
-    const addNew = await showConfirm(
-      state,
-      'No Environment Variables',
-      'This server has no environment variables configured.\nWould you like to add one?'
-    );
+    // Add each env var as an option
+    for (const varName of envVarNames) {
+      const value = currentEnv[varName];
+      const isReference = value.startsWith('${') && value.endsWith('}');
+      let displayValue: string;
 
-    if (addNew) {
-      await addNewEnvVar(state, server.name, currentConfig);
-    }
-    return;
-  }
-
-  // Let user choose what to do
-  const action = await showSelect(state, `Configure ${server.name}`, 'What would you like to do?', [
-    { label: 'Edit existing variables', value: 'edit' },
-    { label: 'Add new variable', value: 'add' },
-    { label: 'Cancel', value: 'cancel' },
-  ]);
-
-  if (action === null || action === 'cancel') {
-    return;
-  }
-
-  if (action === 'add') {
-    await addNewEnvVar(state, server.name, currentConfig);
-    return;
-  }
-
-  // Edit existing variables
-  const updatedEnv: Record<string, string> = { ...currentEnv };
-  let modified = false;
-
-  for (const envVarName of allEnvVars) {
-    const currentValue = currentEnv[envVarName];
-    const field = configFields.find((f) => (f.envVar || f.name) === envVarName);
-    const fieldLabel = field?.label || envVarName;
-
-    // Determine current value type
-    const isReference = currentValue?.startsWith('${') && currentValue?.endsWith('}');
-    const envValueFromShell = process.env[envVarName];
-    const hasShellValue = envValueFromShell !== undefined && envValueFromShell !== '';
-
-    // Build description of current state
-    let currentDesc = 'Not configured';
-    if (currentValue) {
       if (isReference) {
-        const refStatus = hasShellValue ? 'set in environment' : 'NOT set in environment';
-        currentDesc = `${currentValue} (${refStatus})`;
+        const refVarName = value.slice(2, -1);
+        const envSet = process.env[refVarName] ? 'SET' : 'NOT SET';
+        displayValue = `${value} [${envSet}]`;
       } else {
-        const masked = currentValue.length > 8 ? currentValue.slice(0, 8) + '...' : currentValue;
-        currentDesc = `Hardcoded: ${masked}`;
+        const masked = value.length > 12 ? value.slice(0, 12) + '...' : value;
+        displayValue = `"${masked}"`;
       }
-    }
 
-    // Build options
-    const options = [
-      { label: `Keep current: ${currentDesc}`, value: 'keep' },
-    ];
-
-    if (hasShellValue) {
       options.push({
-        label: `Use environment variable \${${envVarName}}`,
-        value: 'env',
+        label: `${varName} = ${displayValue}`,
+        value: `edit:${varName}`,
       });
     }
 
-    options.push({ label: 'Enter new value', value: 'new' });
-
-    if (currentValue) {
-      options.push({ label: 'Remove this variable', value: 'remove' });
+    // Add separator and actions
+    if (options.length > 0) {
+      options.push({ label: '─────────────────────────────', value: 'separator' });
     }
+    options.push({ label: '+ Add new variable', value: 'add' });
+    if (options.length > 2) {
+      options.push({ label: 'Save and close', value: 'save' });
+    }
+    options.push({ label: 'Cancel', value: 'cancel' });
 
     const choice = await showSelect(
       state,
-      `Edit ${envVarName}`,
-      `${fieldLabel}\n\nCurrent: ${currentDesc}`,
+      `Environment Variables: ${server.name}`,
+      envVarNames.length > 0
+        ? 'Select a variable to edit or delete:'
+        : 'No variables configured.',
       options
     );
 
-    if (choice === null) {
-      // User cancelled - ask if they want to save partial changes
-      if (modified) {
-        const savePartial = await showConfirm(
+    if (choice === null || choice === 'cancel') {
+      createMcpScreen(state);
+      return;
+    }
+
+    if (choice === 'separator') {
+      continue;
+    }
+
+    if (choice === 'save') {
+      // Save and exit
+      const newConfig: McpServerConfig = {
+        ...currentConfig,
+        env: Object.keys(currentEnv).length > 0 ? { ...currentEnv } : undefined,
+      };
+      await addMcpServer(server.name, newConfig, state.projectPath);
+      await showMessage(
+        state,
+        'Saved',
+        'Configuration saved.\nRestart Claude Code to apply.',
+        'success'
+      );
+      createMcpScreen(state);
+      return;
+    }
+
+    if (choice === 'add') {
+      // Add new variable
+      const varName = await showInput(state, 'Add Variable', 'Variable name:');
+      if (varName === null || !varName.trim()) continue;
+
+      const cleanName = varName.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+
+      // Check if exists in environment
+      const envValue = process.env[cleanName];
+      let value: string | null = null;
+
+      if (envValue) {
+        const useEnv = await showConfirm(
           state,
-          'Save Changes?',
-          'You have unsaved changes. Save them?'
+          `${cleanName} found in environment`,
+          `Use environment reference \${${cleanName}}?`
         );
-        if (savePartial) {
-          break;
+        if (useEnv) {
+          value = `\${${cleanName}}`;
         }
       }
-      return;
+
+      if (value === null) {
+        value = await showInput(state, `Set ${cleanName}`, 'Value:');
+        if (value === null || !value) continue;
+      }
+
+      currentEnv[cleanName] = value;
+
+      // Auto-save after adding
+      const newConfig: McpServerConfig = {
+        ...currentConfig,
+        env: { ...currentEnv },
+      };
+      await addMcpServer(server.name, newConfig, state.projectPath);
+      await showMessage(state, 'Added', `${cleanName} added.`, 'success');
+      continue;
     }
 
-    if (choice === 'keep') {
-      // Keep current value
-      continue;
-    } else if (choice === 'env') {
-      // Use environment variable reference
-      updatedEnv[envVarName] = `\${${envVarName}}`;
-      modified = true;
-    } else if (choice === 'new') {
-      // Enter new value
-      const newValue = await showInput(
+    if (choice.startsWith('edit:')) {
+      const varName = choice.slice(5);
+      const currentValue = currentEnv[varName];
+      const field = configFields.find((f) => (f.envVar || f.name) === varName);
+      const fieldLabel = field?.label || varName;
+
+      // Show edit options for this variable
+      const envValueFromShell = process.env[varName];
+      const editOptions: { label: string; value: string }[] = [];
+
+      if (envValueFromShell) {
+        editOptions.push({
+          label: `Use env reference \${${varName}}`,
+          value: 'useenv',
+        });
+      }
+      editOptions.push({ label: 'Enter new value', value: 'newvalue' });
+      editOptions.push({ label: 'Delete variable', value: 'delete' });
+      editOptions.push({ label: 'Back', value: 'back' });
+
+      const editChoice = await showSelect(
         state,
-        `Set ${envVarName}`,
-        `${fieldLabel}:`,
-        ''
+        `Edit: ${varName}`,
+        `${fieldLabel}\nCurrent: ${currentValue}`,
+        editOptions
       );
 
-      if (newValue === null) {
-        continue; // Skip this var
+      if (editChoice === null || editChoice === 'back') {
+        continue;
       }
 
-      if (newValue) {
-        updatedEnv[envVarName] = newValue;
-        modified = true;
+      if (editChoice === 'useenv') {
+        currentEnv[varName] = `\${${varName}}`;
+        const newConfig: McpServerConfig = { ...currentConfig, env: { ...currentEnv } };
+        await addMcpServer(server.name, newConfig, state.projectPath);
+        await showMessage(state, 'Updated', `${varName} now uses environment.`, 'success');
+      } else if (editChoice === 'newvalue') {
+        const newValue = await showInput(state, `Set ${varName}`, `${fieldLabel}:`, '');
+        if (newValue !== null && newValue) {
+          currentEnv[varName] = newValue;
+          const newConfig: McpServerConfig = { ...currentConfig, env: { ...currentEnv } };
+          await addMcpServer(server.name, newConfig, state.projectPath);
+          await showMessage(state, 'Updated', `${varName} updated.`, 'success');
+        }
+      } else if (editChoice === 'delete') {
+        const confirmDelete = await showConfirm(
+          state,
+          `Delete ${varName}?`,
+          'This will remove the variable from configuration.'
+        );
+        if (confirmDelete) {
+          delete currentEnv[varName];
+          const newConfig: McpServerConfig = {
+            ...currentConfig,
+            env: Object.keys(currentEnv).length > 0 ? { ...currentEnv } : undefined,
+          };
+          await addMcpServer(server.name, newConfig, state.projectPath);
+          await showMessage(state, 'Deleted', `${varName} removed.`, 'success');
+        }
       }
-    } else if (choice === 'remove') {
-      delete updatedEnv[envVarName];
-      modified = true;
     }
   }
-
-  if (modified) {
-    // Save updated config
-    const newConfig: McpServerConfig = {
-      ...currentConfig,
-      env: Object.keys(updatedEnv).length > 0 ? updatedEnv : undefined,
-    };
-
-    await addMcpServer(server.name, newConfig, state.projectPath);
-
-    await showMessage(
-      state,
-      'Configuration Updated',
-      `${server.name} configuration has been updated.\n\nRestart Claude Code to apply changes.`,
-      'success'
-    );
-  }
-
-  createMcpScreen(state);
-}
-
-async function addNewEnvVar(
-  state: AppState,
-  serverName: string,
-  currentConfig: McpServerConfig
-): Promise<void> {
-  // Get variable name
-  const varName = await showInput(state, 'Add Environment Variable', 'Variable name (e.g., API_KEY):');
-
-  if (varName === null || !varName.trim()) {
-    return;
-  }
-
-  const cleanVarName = varName.trim().toUpperCase().replace(/[^A-Z0-9_]/g, '_');
-
-  // Check if var exists in environment
-  const envValue = process.env[cleanVarName];
-  const hasEnvValue = envValue !== undefined && envValue !== '';
-
-  let value: string | null = null;
-
-  if (hasEnvValue) {
-    const useEnv = await showConfirm(
-      state,
-      `${cleanVarName} Found`,
-      `${cleanVarName} is set in your environment.\nUse the environment variable reference?`
-    );
-
-    if (useEnv) {
-      value = `\${${cleanVarName}}`;
-    }
-  }
-
-  if (value === null) {
-    value = await showInput(state, `Set ${cleanVarName}`, 'Enter value:');
-
-    if (value === null || !value) {
-      return;
-    }
-  }
-
-  // Update config
-  const updatedEnv = { ...currentConfig.env, [cleanVarName]: value };
-  const newConfig: McpServerConfig = {
-    ...currentConfig,
-    env: updatedEnv,
-  };
-
-  await addMcpServer(serverName, newConfig, state.projectPath);
-
-  await showMessage(
-    state,
-    'Variable Added',
-    `${cleanVarName} has been added to ${serverName}.\n\nRestart Claude Code to apply changes.`,
-    'success'
-  );
-
-  createMcpScreen(state);
 }
