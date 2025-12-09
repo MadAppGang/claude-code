@@ -12,8 +12,9 @@
 A complete Claude Code plugin marketplace with enterprise-level architecture:
 
 - **Plugin Marketplace** (`mag-claude-plugins`)
-- **Frontend Development Plugin** (v3.8.2) - Full-featured Opus-powered
+- **Frontend Development Plugin** (v3.11.0) - Full-featured Opus-powered
   - 11 Specialized Agents (Plan Reviewer + CSS Developer + Designer + UI Developer ecosystem with multi-model review)
+  - **LLM Performance Tracking** (NEW in v3.11.0) - Track external model execution times, quality scores, and recommendations to `ai-docs/llm-performance.json`
   - **Opus 4.5 Upgrades** (NEW in v3.8.0) - Critical architecture and review agents now use Opus 4.5 for superior reasoning
   - **Multi-Model Code Review** (NEW in v3.6.0) - `/review` command with parallel execution (3-5x speedup), consensus analysis, and cost transparency
   - 7 Slash Commands (including `/review` for multi-model code review)
@@ -52,13 +53,14 @@ A complete Claude Code plugin marketplace with enterprise-level architecture:
   - Apidog integration for API documentation synchronization
   - Clean architecture (routes → controllers → services → repositories)
   - Full-stack TypeScript consistency
-- **Orchestration Plugin** (v0.1.1) - Shared multi-agent coordination patterns
+- **Orchestration Plugin** (v0.2.0) - Shared multi-agent coordination patterns with LLM performance tracking
   - **5 Specialized Skills** (shared orchestration knowledge):
     - **multi-agent-coordination** - Parallel vs sequential execution, agent selection, sub-agent delegation
-    - **multi-model-validation** - 4-Message Pattern, Claudish proxy, consensus analysis, 3-5x speedup
+    - **multi-model-validation** - 4-Message Pattern, Claudish proxy, consensus analysis, 3-5x speedup, **Pattern 7: Statistics Collection** (NEW in v0.2.0)
     - **quality-gates** - User approval, iteration loops, TDD pattern, severity classification
     - **todowrite-orchestration** - Phase tracking, real-time progress, workflow management
     - **error-recovery** - Timeout, API failures, partial success, retry strategies, graceful degradation
+  - **LLM Performance Tracking** (NEW in v0.2.0) - Track model execution times, quality scores, and recommendations to `ai-docs/llm-performance.json`
   - **Skills-only architecture** - Pure knowledge plugin (no agents/commands)
   - **Skill bundles** - core, advanced, testing, complete
   - **Context-efficient** - Load only needed skills (vs monolithic)
@@ -689,13 +691,18 @@ Include marketplace in project settings (requires folder trust):
 ✅ **Production Ready**
 
 **5 Complete Plugins:**
-1. **Orchestration** (v0.1.1) - 5 skills - Shared multi-agent coordination patterns (skills-only)
-2. **Frontend** (v3.8.2) - 11 agents, 7 commands, 11 skills - Full-featured Opus-powered
+1. **Orchestration** (v0.2.0) - 5 skills - Shared multi-agent coordination patterns with LLM performance tracking
+2. **Frontend** (v3.11.0) - 11 agents, 7 commands, 11 skills - Full-featured with LLM performance tracking
 3. **Code Analysis** (v1.3.3) - 1 agent, 1 command, 2 skills - Deep investigation with semantic search
 4. **Bun Backend** (v1.5.2) - 3 agents, 3 commands, 1 skill - Production TypeScript backend with Bun
-5. **Agent Development** (v1.0.0) - 3 agents, 1 command, 3 skills - Create Claude Code agents with multi-model validation
+5. **Agent Development** (v1.1.0) - 3 agents, 1 command, 3 skills - Create Claude Code agents with LLM performance tracking
 
 **Features:**
+- **LLM Performance Tracking** (NEW v0.2.0) - Track external model execution times, quality scores, recommendations
+  - Persistent storage in `ai-docs/llm-performance.json`
+  - Historical performance data across sessions
+  - Identify slow models (2x+ avg) and unreliable models (>30% failure)
+  - Data-driven shortlist recommendations
 - **Skills-First Architecture** - Orchestration plugin demonstrates pure skills pattern
 - **Shared Orchestration Knowledge** - 5 skills available across all plugins
 - **Context-Efficient Design** - Load only needed skills (4-5 focused skills vs monolithic)
@@ -740,14 +747,26 @@ Include marketplace in project settings (requires folder trust):
 **Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
 
 **Current Versions:**
-- Orchestration Plugin: **v0.1.1** (2025-11-26)
-- Frontend Plugin: **v3.8.2** (2025-11-26)
+- Orchestration Plugin: **v0.2.0** (2025-12-09)
+- Frontend Plugin: **v3.11.0** (2025-12-09)
 - Code Analysis Plugin: **v1.3.3** (2025-11-26)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
-- Agent Development Plugin: **v1.0.0** (2025-11-26)
+- Agent Development Plugin: **v1.1.0** (2025-12-09)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (Agent Development v1.0.0):**
+**Latest Changes (LLM Performance Tracking v0.2.0):**
+- ✅ **NEW**: LLM Performance Tracking across all multi-model plugins
+- ✅ **Persistent Storage**: `ai-docs/llm-performance.json` tracks all external model executions
+- ✅ **Per-Model Metrics**: Execution time, issues found, quality score, success rate
+- ✅ **Historical Analysis**: Track performance across 50+ sessions
+- ✅ **Smart Recommendations**: Identify slow models (2x+ avg), unreliable models (>30% failure)
+- ✅ **Data-Driven Shortlists**: Top performers based on quality/speed ratio
+- ✅ **Updated Plugins**:
+  - Orchestration v0.2.0 - Pattern 7: Statistics Collection in multi-model-validation skill
+  - Frontend v3.11.0 - `/review` command with full statistics tracking
+  - Agent Development v1.1.0 - `/develop` command tracks plan review + quality review stats
+
+**Previous Changes (Agent Development v1.0.0):**
 - ✅ **NEW**: Agent Development plugin for creating Claude Code agents
 - ✅ **3 Specialized Agents**: `agentdev:architect`, `agentdev:developer`, `agentdev:reviewer`
 - ✅ **1 Orchestration Command**: `/develop` for full-cycle agent development
@@ -776,16 +795,16 @@ Include marketplace in project settings (requires folder trust):
 - ✅ **6,774 lines** of comprehensive orchestration knowledge
 
 **Git Tags:**
-- Orchestration: `plugins/orchestration/v0.1.1`
-- Frontend: `plugins/frontend/v3.8.2`
+- Orchestration: `plugins/orchestration/v0.2.0`
+- Frontend: `plugins/frontend/v3.11.0`
 - Bun: `plugins/bun/v1.5.2`
 - Code Analysis: `plugins/code-analysis/v1.3.3`
-- Agent Development: `plugins/agentdev/v1.0.0`
+- Agent Development: `plugins/agentdev/v1.1.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 ---
 
 **Maintained by:** Jack Rudenko @ MadAppGang
-**Last Updated:** November 26, 2025
-**Version:** 5 plugins (Orchestration v0.1.1, Frontend v3.8.2, Code Analysis v1.3.3, Bun Backend v1.5.2, Agent Development v1.0.0)
+**Last Updated:** December 9, 2025
+**Version:** 5 plugins (Orchestration v0.2.0, Frontend v3.11.0, Code Analysis v1.3.3, Bun Backend v1.5.2, Agent Development v1.1.0)
 - do not use hardcoded path in code, docs, comments or any other files

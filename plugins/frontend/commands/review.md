@@ -354,6 +354,9 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
               }' > "${SESSION_PATH}/session-meta.json"
           fi
           ```
+
+          **Note:** Model performance statistics are stored separately in `ai-docs/llm-performance.json`
+          (persistent across all sessions) rather than in session-meta.json.
         </step>
 
         <step>Log session start:
@@ -435,6 +438,210 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 
       # Completing with notes
       update_session_phase "phase2" "completed" "Selected 3 external models: Grok, Gemini, DeepSeek"
+      ```
+    </helper_function>
+
+    <helper_function name="track_model_performance">
+      **Call this function to track individual model execution metrics.**
+      **Writes to ai-docs/llm-performance.json (persistent across sessions).**
+
+      ```bash
+      track_model_performance() {
+        local model_id="$1"           # e.g., "claude-embedded", "x-ai/grok-code-fast-1"
+        local status="$2"             # "success" | "failed" | "timeout"
+        local duration_seconds="$3"   # execution time in seconds
+        local issues_found="${4:-0}"  # number of issues found
+        local quality_score="${5:-}"  # quality score (0-100), optional
+
+        local now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        local perf_file="ai-docs/llm-performance.json"
+
+        # Sanitize model ID for JSON key (replace / with -)
+        local model_key=$(echo "$model_id" | tr '/' '-')
+
+        # Initialize file if it doesn't exist
+        if [[ ! -f "$perf_file" ]]; then
+          mkdir -p ai-docs
+          echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+        fi
+
+        # Add this execution to model's history and update aggregates
+        jq --arg model "$model_key" \
+           --arg model_full "$model_id" \
+           --arg status "$status" \
+           --argjson duration "$duration_seconds" \
+           --argjson issues "$issues_found" \
+           --arg quality "${quality_score:-null}" \
+           --arg now "$now" \
+           --arg session "${SESSION_ID:-unknown}" \
+           '
+           # Initialize model entry if not exists
+           .models[$model] //= {
+             "modelId": $model_full,
+             "totalRuns": 0,
+             "successfulRuns": 0,
+             "failedRuns": 0,
+             "totalExecutionTime": 0,
+             "avgExecutionTime": 0,
+             "minExecutionTime": null,
+             "maxExecutionTime": null,
+             "totalIssuesFound": 0,
+             "avgQualityScore": null,
+             "qualityScores": [],
+             "lastUsed": null,
+             "history": []
+           } |
+
+           # Update model stats
+           .models[$model].totalRuns += 1 |
+           .models[$model].successfulRuns += (if $status == "success" then 1 else 0 end) |
+           .models[$model].failedRuns += (if $status != "success" then 1 else 0 end) |
+           .models[$model].totalExecutionTime += $duration |
+           .models[$model].avgExecutionTime = ((.models[$model].totalExecutionTime / .models[$model].totalRuns) | floor) |
+           .models[$model].minExecutionTime = (
+             if .models[$model].minExecutionTime == null then $duration
+             elif $duration < .models[$model].minExecutionTime then $duration
+             else .models[$model].minExecutionTime end
+           ) |
+           .models[$model].maxExecutionTime = (
+             if .models[$model].maxExecutionTime == null then $duration
+             elif $duration > .models[$model].maxExecutionTime then $duration
+             else .models[$model].maxExecutionTime end
+           ) |
+           .models[$model].totalIssuesFound += $issues |
+           .models[$model].lastUsed = $now |
+
+           # Update quality score tracking (if provided)
+           (if $quality != "null" and $quality != "" then
+             .models[$model].qualityScores += [($quality | tonumber)] |
+             .models[$model].avgQualityScore = ((.models[$model].qualityScores | add) / (.models[$model].qualityScores | length) | floor)
+           else . end) |
+
+           # Add to history (keep last 20 runs per model)
+           .models[$model].history = ([{
+             "timestamp": $now,
+             "session": $session,
+             "status": $status,
+             "executionTime": $duration,
+             "issuesFound": $issues,
+             "qualityScore": (if $quality != "null" and $quality != "" then ($quality | tonumber) else null end)
+           }] + .models[$model].history)[:20] |
+
+           # Update file timestamp
+           .lastUpdated = $now
+           ' "$perf_file" > "${perf_file}.tmp" && \
+        mv "${perf_file}.tmp" "$perf_file"
+      }
+      ```
+
+      **Usage Examples:**
+      ```bash
+      # Track successful review with quality score
+      track_model_performance "claude-embedded" "success" 45 8 95
+
+      # Track external model
+      track_model_performance "x-ai/grok-code-fast-1" "success" 62 6 85
+
+      # Track timeout (no quality score)
+      track_model_performance "deepseek/deepseek-chat" "timeout" 120 0
+
+      # Track failure
+      track_model_performance "google/gemini-2.5-flash" "failed" 15 0
+      ```
+    </helper_function>
+
+    <helper_function name="record_session_stats">
+      **Call this at the end of Phase 4 to record session summary to llm-performance.json:**
+
+      ```bash
+      record_session_stats() {
+        local total_models="$1"
+        local successful="$2"
+        local failed="$3"
+        local parallel_time="$4"      # actual time taken (parallel)
+        local sequential_time="$5"    # estimated sequential time
+        local speedup="$6"
+
+        local now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        local perf_file="ai-docs/llm-performance.json"
+
+        # Initialize file if it doesn't exist
+        if [[ ! -f "$perf_file" ]]; then
+          mkdir -p ai-docs
+          echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+        fi
+
+        # Add session summary (keep last 50 sessions)
+        jq --arg now "$now" \
+           --arg session "${SESSION_ID:-unknown}" \
+           --argjson total "$total_models" \
+           --argjson success "$successful" \
+           --argjson fail "$failed" \
+           --argjson parallel "$parallel_time" \
+           --argjson sequential "$sequential_time" \
+           --argjson speedup "$speedup" \
+           '
+           .sessions = ([{
+             "sessionId": $session,
+             "timestamp": $now,
+             "totalModels": $total,
+             "successfulModels": $success,
+             "failedModels": $fail,
+             "parallelTime": $parallel,
+             "sequentialTime": $sequential,
+             "speedup": $speedup
+           }] + .sessions)[:50] |
+           .lastUpdated = $now
+           ' "$perf_file" > "${perf_file}.tmp" && \
+        mv "${perf_file}.tmp" "$perf_file"
+      }
+      ```
+
+      **Usage:**
+      ```bash
+      # Record session with 4 models, 3 succeeded, 120s parallel vs 335s sequential
+      record_session_stats 4 3 1 120 335 2.8
+      ```
+    </helper_function>
+
+    <helper_function name="get_model_recommendations">
+      **Call this to generate recommendations based on historical performance:**
+
+      ```bash
+      get_model_recommendations() {
+        local perf_file="ai-docs/llm-performance.json"
+
+        if [[ ! -f "$perf_file" ]]; then
+          echo "No performance data available yet."
+          return
+        fi
+
+        # Generate recommendations from aggregated data
+        jq -r '
+          # Calculate overall average execution time
+          (.models | to_entries | map(select(.value.successfulRuns > 0) | .value.avgExecutionTime) | add / length) as $overall_avg |
+
+          # Identify slow models (2x+ average)
+          (.models | to_entries | map(select(.value.avgExecutionTime > ($overall_avg * 2))) | map(.key)) as $slow |
+
+          # Identify unreliable models (>30% failure rate with 3+ runs)
+          (.models | to_entries | map(select(.value.totalRuns >= 3 and (.value.failedRuns / .value.totalRuns) > 0.3)) | map(.key)) as $unreliable |
+
+          # Identify top performers (above avg quality, below avg time)
+          (.models | to_entries | map(select(
+            .value.avgQualityScore != null and
+            .value.avgQualityScore > 80 and
+            .value.avgExecutionTime <= $overall_avg
+          )) | sort_by(-.value.avgQualityScore) | map(.key)[:3]) as $top |
+
+          {
+            "overallAvgTime": ($overall_avg | floor),
+            "slowModels": $slow,
+            "unreliableModels": $unreliable,
+            "topPerformers": $top
+          }
+        ' "$perf_file"
+      }
       ```
     </helper_function>
 
@@ -614,14 +821,21 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 
     <phase number="3" name="Parallel Multi-Model Review">
       <objective>
-        Execute ALL reviews in parallel (embedded + external) for 3-5x speedup
+        Execute ALL reviews in parallel (embedded + external) for 3-5x speedup.
+        Track execution time per model for performance statistics.
       </objective>
 
       <steps>
+        <step>Record execution start time for timing statistics:
+          ```bash
+          PHASE3_START=$(date +%s)
+          ```
+        </step>
         <step>If embedded selected, launch embedded review:
           - Use Task tool to delegate to senior-code-reviewer (NO PROXY_MODE)
           - Input file: ${SESSION_PATH}/code-review-context.md
           - Output file: ${SESSION_PATH}/reviews/claude-review.md
+          - **Track timing**: Record start time before launch, capture duration when complete
         </step>
         <step>Mark embedded review task as completed when done</step>
         <step>If external models selected, launch ALL in PARALLEL:
@@ -631,6 +845,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Each Task: unique output file (${SESSION_PATH}/reviews/{model}-review.md)
           - All Tasks: same input file (${SESSION_PATH}/code-review-context.md)
           - CRITICAL: All tasks execute simultaneously (not sequentially)
+          - **Track timing**: Record start time before parallel launch
         </step>
         <step>Track progress with real-time updates showing which reviews are complete:
 
@@ -649,12 +864,35 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           Update as each review completes. Use BashOutput to monitor if needed.
         </step>
         <step>Handle failures gracefully: Log and continue with successful reviews</step>
+        <step>Record execution end time and calculate model statistics:
+          ```bash
+          PHASE3_END=$(date +%s)
+          PHASE3_DURATION=$((PHASE3_END - PHASE3_START))
+
+          # For each model, track performance using track_model_performance()
+          # Example for successful embedded review:
+          track_model_performance "claude-embedded" "success" $EMBEDDED_DURATION $EMBEDDED_ISSUES "${SESSION_PATH}/reviews/claude-review.md"
+
+          # Example for external model:
+          track_model_performance "x-ai/grok-code-fast-1" "success" $GROK_DURATION $GROK_ISSUES "${SESSION_PATH}/reviews/grok-review.md"
+
+          # Example for failed/timeout model:
+          track_model_performance "deepseek/deepseek-chat" "timeout" 120 0
+          ```
+
+          **How to capture timing per model**:
+          - Record `MODEL_START=$(date +%s)` before launching each Task
+          - When Task completes, record `MODEL_END=$(date +%s)`
+          - Calculate `MODEL_DURATION=$((MODEL_END - MODEL_START))`
+          - Count issues from review file: `ISSUES=$(grep -c "^### \|^## MAJOR\|^## MEDIUM\|^## MINOR" review.md || echo 0)`
+        </step>
         <step>Mark PHASE 3 tasks as completed in TodoWrite</step>
         <step>Mark PHASE 4 tasks as in_progress in TodoWrite</step>
       </steps>
 
       <quality_gate>
-        At least 1 review completed successfully (embedded OR external)
+        At least 1 review completed successfully (embedded OR external).
+        Model performance metrics recorded to session-meta.json.
       </quality_gate>
 
       <error_handling>
@@ -706,12 +944,54 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Actionable recommendations
           - Links to individual review files
         </step>
+        <step>Calculate quality scores for each model:
+          During consolidation, for each model track:
+          - How many of their issues ended up in UNANIMOUS consensus
+          - How many ended up in STRONG consensus
+          - Quality Score = ((unanimous_issues × 2) + strong_issues) / total_issues × 100
+
+          ```bash
+          # Example: Update quality score for a model after consensus analysis
+          update_model_quality() {
+            local model_key="$1"
+            local quality_score="$2"  # 0-100 percentage
+
+            jq --arg model "$model_key" \
+               --argjson quality "$quality_score" \
+               '.metrics.modelPerformance[$model].qualityScore = $quality' \
+               "${SESSION_PATH}/session-meta.json" > "${SESSION_PATH}/session-meta.json.tmp" && \
+            mv "${SESSION_PATH}/session-meta.json.tmp" "${SESSION_PATH}/session-meta.json"
+          }
+
+          # Example usage:
+          # Claude found 10 issues, 6 in unanimous, 2 in strong = (6×2 + 2) / 10 × 100 = 140% (cap at 100)
+          update_model_quality "claude-embedded" 100
+          ```
+        </step>
+        <step>Record session statistics to ai-docs/llm-performance.json:
+          ```bash
+          # Calculate session totals
+          TOTAL_MODELS=4
+          SUCCESSFUL=3
+          FAILED=1
+          PARALLEL_TIME=$PHASE3_DURATION
+          SEQUENTIAL_TIME=$((CLAUDE_TIME + GROK_TIME + GEMINI_TIME + GPT5_TIME))
+          SPEEDUP=$(echo "scale=1; $SEQUENTIAL_TIME / $PARALLEL_TIME" | bc)
+
+          # Record to persistent performance file
+          record_session_stats $TOTAL_MODELS $SUCCESSFUL $FAILED $PARALLEL_TIME $SEQUENTIAL_TIME $SPEEDUP
+          ```
+
+          This accumulates historical data across all review sessions in `ai-docs/llm-performance.json`.
+        </step>
         <step>Mark PHASE 4 tasks as completed in TodoWrite</step>
         <step>Mark PHASE 5 task as in_progress in TodoWrite</step>
       </steps>
 
       <quality_gate>
-        Consolidated report written with consensus analysis and priorities
+        Consolidated report written with consensus analysis and priorities.
+        Model quality scores calculated and stored in session-meta.json.
+        Session statistics finalized (avg time, speedup, consensus breakdown).
       </quality_gate>
 
       <error_handling>
@@ -721,7 +1001,8 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 
     <phase number="5" name="Present Results">
       <objective>
-        Present consolidated results to user with actionable next steps
+        Present consolidated results and MODEL PERFORMANCE STATISTICS to user.
+        Help user identify slow or poorly-performing models for future exclusion.
       </objective>
 
       <steps>
@@ -735,16 +1016,90 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Links to individual review files
           - Clear next steps and recommendations
         </step>
-        <step>Present summary to user (under 50 lines)</step>
+
+        <step>**CRITICAL**: Display Model Performance Statistics table:
+          Read statistics from ai-docs/llm-performance.json and present a formatted table:
+
+          ```markdown
+          ## Model Performance Statistics (This Session)
+
+          | Model                     | Time   | Issues | Quality | Status    |
+          |---------------------------|--------|--------|---------|-----------|
+          | claude-embedded           | 32s    | 8      | 95%     | ✓         |
+          | x-ai/grok-code-fast-1     | 45s    | 6      | 85%     | ✓         |
+          | google/gemini-2.5-flash   | 38s    | 5      | 90%     | ✓         |
+          | openai/gpt-5.1-codex      | 120s   | 9      | 88%     | ✓ (slow)  |
+          | deepseek/deepseek-chat    | TIMEOUT| 0      | -       | ✗         |
+
+          **Quality Score** = % of issues that appeared in unanimous or strong consensus
+
+          ### Session Summary
+          - **Parallel Speedup**: 2.8x (235s sequential → 120s parallel)
+          - **Models Succeeded**: 4/5
+
+          ### Historical Performance (from ai-docs/llm-performance.json)
+
+          | Model                     | Avg Time | Runs | Success% | Avg Quality |
+          |---------------------------|----------|------|----------|-------------|
+          | claude-embedded           | 35s      | 12   | 100%     | 92%         |
+          | x-ai/grok-code-fast-1     | 48s      | 10   | 90%      | 84%         |
+          | google/gemini-2.5-flash   | 42s      | 8    | 100%     | 88%         |
+          | openai/gpt-5.1-codex      | 115s     | 6    | 83%      | 86%         |
+          | deepseek/deepseek-chat    | 95s      | 5    | 40%      | 75%         |
+          ```
+
+          **Formatting Rules**:
+          - Mark models exceeding 2x average time as "(slow)"
+          - Mark failed/timeout models with ✗
+          - Show historical data if ai-docs/llm-performance.json exists
+          - Highlight models with >30% failure rate as unreliable
+        </step>
+
+        <step>**CRITICAL**: Generate recommendations based on historical + session data:
+          Use get_model_recommendations() and session data for actionable insights:
+
+          ```markdown
+          ### Recommendations
+
+          ⚠️ **This Session Issues:**
+
+          1. **openai/gpt-5.1-codex** executed 2.0x slower than average (120s vs 59s avg)
+             - Historical avg: 115s (consistently slow)
+             - Consider: Remove from shortlist or use only for complex reviews
+
+          2. **deepseek/deepseek-chat** timed out
+             - Historical success rate: 40% (unreliable)
+             - Recommendation: **Remove from shortlist**
+
+          ✓ **Top Performers (Historical):**
+          - **claude-embedded**: 92% avg quality, 35s avg time, 100% success
+          - **google/gemini-2.5-flash**: 88% avg quality, 42s avg time, 100% success
+          - **x-ai/grok-code-fast-1**: 84% avg quality, 48s avg time, 90% success
+
+          **Suggested Shortlist:**
+          Based on 50 historical sessions: claude-embedded, gemini-2.5-flash, grok-code-fast-1
+          ```
+
+          **Recommendation Logic** (uses ai-docs/llm-performance.json):
+          - Flag models 2x+ slower than overall average (historical)
+          - Flag models with >30% failure rate (3+ runs minimum)
+          - Highlight models with quality > 80% AND time <= average
+          - Suggest top 3 by quality/speed ratio
+        </step>
+
+        <step>Present summary to user (under 50 lines excluding stats table)</step>
         <step>Mark PHASE 5 task as completed in TodoWrite</step>
       </steps>
 
       <quality_gate>
-        User receives clear, actionable summary with prioritized issues
+        User receives clear, actionable summary with prioritized issues.
+        Model performance statistics table displayed with timing, quality, and status.
+        Recommendations provided for slow/failing models.
       </quality_gate>
 
       <error_handling>
         Always present something to user, even if limited. Never leave user without feedback.
+        If statistics unavailable (legacy mode), skip stats table but show review results.
       </error_handling>
     </phase>
   </phases>
@@ -1267,7 +1622,7 @@ for each issue:
   </deliverables>
 
   <user_summary_format>
-    Present brief summary (under 50 lines) with:
+    Present brief summary (under 50 lines, excluding stats table) with:
     - Reviewer count and models used
     - Overall verdict (PASSED/REQUIRES_IMPROVEMENT/FAILED)
     - Top 5 most important issues prioritized by consensus
@@ -1275,5 +1630,33 @@ for each issue:
     - Links to detailed consolidated report and individual reviews
     - Clear next steps and recommendations
     - Cost breakdown with actual cost (if external models used)
+
+    **THEN present Model Performance Statistics (REQUIRED when multiple models used):**
+
+    ```markdown
+    ## Model Performance Statistics
+
+    | Model                     | Time   | Issues | Quality | Status    |
+    |---------------------------|--------|--------|---------|-----------|
+    | claude-embedded           | 32s    | 8      | 95%     | ✓         |
+    | x-ai/grok-code-fast-1     | 45s    | 6      | 85%     | ✓         |
+    | google/gemini-2.5-flash   | 38s    | 5      | 90%     | ✓         |
+    | openai/gpt-5.1-codex      | 120s   | 9      | 88%     | ✓ (slow)  |
+
+    **Session Summary:**
+    - Parallel Speedup: 2.8x
+    - Average Time: 59s
+    - Slowest: gpt-5.1-codex (2.0x avg)
+
+    **Recommendations:**
+    ⚠️ gpt-5.1-codex runs 2x slower - consider removing from shortlist
+    ✓ Top performers: claude-embedded, gemini-2.5-flash
+    ```
+
+    **Column Definitions:**
+    - **Time**: Execution duration in seconds (TIMEOUT if failed)
+    - **Issues**: Number of issues found by this model
+    - **Quality**: % of issues that appeared in unanimous/strong consensus
+    - **Status**: ✓ success, ✓ (slow) if 2x+ avg, ✗ failed/timeout
   </user_summary_format>
 </formatting>

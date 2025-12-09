@@ -1,7 +1,7 @@
 {
 	"name": "frontend",
-	"version": "3.10.0",
-	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features session-based artifact isolation, model preference persistence, shadcn/ui component library knowledge (60+ components), ultra-efficient agent orchestration, multi-model plan/code review (parallel, 3-5x speedup), 12 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
+	"version": "3.11.0",
+	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features session-based artifact isolation, model preference persistence, shadcn/ui component library knowledge (60+ components), ultra-efficient agent orchestration, multi-model plan/code review (parallel, 3-5x speedup) with model performance statistics, 12 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

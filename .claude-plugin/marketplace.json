@@ -6,16 +6,16 @@
 		"company": "MadAppGang"
 	},
 	"metadata": {
-		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development",
-		"version": "4.5.0",
+		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development with LLM performance tracking",
+		"version": "4.6.0",
 		"pluginRoot": "./plugins"
 	},
 	"plugins": [
 		{
 			"name": "frontend",
 			"source": "./plugins/frontend",
-			"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features session-based artifact isolation, model preference persistence, shadcn/ui component library knowledge (60+ components), ultra-efficient agent orchestration, multi-model plan/code review (parallel, 3-5x speedup), 12 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
-			"version": "3.10.0",
+			"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features session-based artifact isolation, model preference persistence, LLM performance tracking (NEW), shadcn/ui component library knowledge (60+ components), ultra-efficient agent orchestration, multi-model plan/code review (parallel, 3-5x speedup), 12 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
+			"version": "3.11.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -86,8 +86,8 @@
 		{
 			"name": "orchestration",
 			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), multi-model validation (Grok/Gemini/GPT-5), quality gates, TDD loops, TodoWrite phase tracking, and comprehensive error recovery. Battle-tested patterns from 100+ days production use.",
-			"version": "0.1.1",
+			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), multi-model validation (Grok/Gemini/GPT-5), LLM performance tracking (NEW), quality gates, TDD loops, TodoWrite phase tracking, and comprehensive error recovery. Battle-tested patterns from 100+ days production use.",
+			"version": "0.2.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -114,8 +114,8 @@
 		{
 			"name": "agentdev",
 			"source": "./plugins/agentdev",
-			"description": "Create, implement, and review Claude Code agents and commands with multi-model validation. Full-cycle development workflow: design (architect) → plan review → implementation (developer) → quality review (reviewer) → iteration. Features parallel external model reviews, quality gates, and comprehensive XML/YAML standards.",
-			"version": "1.0.0",
+			"description": "Create, implement, and review Claude Code agents and commands with multi-model validation and LLM performance tracking (NEW). Full-cycle development workflow: design (architect) → plan review → implementation (developer) → quality review (reviewer) → iteration. Features parallel external model reviews, quality gates, and comprehensive XML/YAML standards.",
+			"version": "1.1.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

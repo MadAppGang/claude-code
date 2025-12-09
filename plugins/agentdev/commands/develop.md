@@ -1,5 +1,5 @@
 ---
-description: Full-cycle agent/command development with multi-model validation. Orchestrates design (architect) → plan review → implementation (developer) → quality review (reviewer) → iteration. Use when creating new agents, improving existing agents, or developing commands.
+description: Full-cycle agent/command development with multi-model validation and performance tracking. Orchestrates design (architect) → plan review → implementation (developer) → quality review (reviewer) → iteration. Tracks model performance to ai-docs/llm-performance.json for shortlist optimization.
 allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 skills: orchestration:multi-model-validation, orchestration:quality-gates, orchestration:todowrite-orchestration, orchestration:error-recovery, agentdev:xml-standards
 ---
@@ -72,10 +72,11 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
     </phase>
 
     <phase number="1.5" name="Plan Review">
-      <objective>Validate design with external AI models</objective>
+      <objective>Validate design with external AI models and track performance</objective>
       <steps>
         <step>Mark PHASE 1.5 in_progress</step>
         <step>If Claudish unavailable, skip to PHASE 2</step>
+        <step>Record start time: `PHASE1_5_START=$(date +%s)`</step>
         <step>
           **Select Models** (AskUserQuestion, multiSelect: true):
           - x-ai/grok-code-fast-1 [$0.10-0.20]
@@ -83,10 +84,13 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
           - google/gemini-2.5-pro [$0.20-0.40]
           - deepseek/deepseek-chat [$0.05-0.15]
           Default: grok + gemini-flash
+
+          **Show Historical Performance** (if ai-docs/llm-performance.json exists):
+          Read and display avg time, success rate, quality for each model.
         </step>
         <step>
           **Run Reviews IN PARALLEL** (single message, multiple Task calls):
-          For each model, launch `agentdev:architect` with:
+          For each model, record MODEL_START time, then launch `agentdev:architect` with:
           ```
           PROXY_MODE: {model_id}
 
@@ -94,10 +98,22 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
           Save to: ai-docs/plan-review-{model-sanitized}.md
           ```
         </step>
+        <step>
+          **Track Model Performance** (after each review completes):
+          ```bash
+          # For each model that completed:
+          track_model_performance "{model_id}" "{status}" "{duration}" "{issues_found}" "{quality_score}"
+
+          # Example:
+          track_model_performance "x-ai/grok-code-fast-1" "success" 45 3 85
+          track_model_performance "google/gemini-2.5-flash" "success" 38 2 90
+          ```
+          See orchestration:multi-model-validation Pattern 7 for implementation.
+        </step>
         <step>Consolidate feedback → ai-docs/plan-review-consolidated.md</step>
         <step>Mark PHASE 1.5 completed</step>
       </steps>
-      <quality_gate>Reviews completed OR user skipped</quality_gate>
+      <quality_gate>Reviews completed OR user skipped. Performance tracked to ai-docs/llm-performance.json.</quality_gate>
     </phase>
 
     <phase number="1.6" name="Plan Revision">
@@ -135,16 +151,21 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
     </phase>
 
     <phase number="3" name="Quality Review">
-      <objective>Multi-model quality validation</objective>
+      <objective>Multi-model quality validation with performance tracking</objective>
       <steps>
         <step>Mark PHASE 3 in_progress</step>
+        <step>Record start time: `PHASE3_START=$(date +%s)`</step>
         <step>
           **Select Models** (AskUserQuestion, multiSelect: true):
           - Use same as plan review [RECOMMENDED]
           - Or select different models
+
+          **Show Historical Performance** (if ai-docs/llm-performance.json exists):
+          Display avg time, success rate, quality. Recommend top performers.
         </step>
         <step>
           **Review 1: Local** - Launch `agentdev:reviewer`
+          Track: `LOCAL_START=$(date +%s)` before, calculate duration after.
         </step>
         <step>
           **Reviews 2..N: External IN PARALLEL** (single message):
@@ -156,6 +177,18 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
           Save to: ai-docs/implementation-review-{model-sanitized}.md
           ```
         </step>
+        <step>
+          **Track Model Performance** (after all reviews complete):
+          ```bash
+          # Track each model's performance
+          track_model_performance "claude-embedded" "success" $LOCAL_DURATION $LOCAL_ISSUES $LOCAL_QUALITY
+          track_model_performance "x-ai/grok-code-fast-1" "success" $GROK_DURATION $GROK_ISSUES $GROK_QUALITY
+          # ... for each model
+
+          # Record session summary
+          record_session_stats $TOTAL_MODELS $SUCCESSFUL $FAILED $PARALLEL_TIME $SEQUENTIAL_TIME $SPEEDUP
+          ```
+        </step>
         <step>Consolidate → ai-docs/implementation-review-consolidated.md</step>
         <step>
           **Approval Logic**:
@@ -165,7 +198,7 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
         </step>
         <step>Mark PHASE 3 completed</step>
       </steps>
-      <quality_gate>All reviews completed, consolidated</quality_gate>
+      <quality_gate>All reviews completed, consolidated. Performance tracked to ai-docs/llm-performance.json.</quality_gate>
     </phase>
 
     <phase number="4" name="Iteration">
@@ -186,11 +219,39 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
     </phase>
 
     <phase number="5" name="Finalization">
-      <objective>Generate report and complete handoff</objective>
+      <objective>Generate report with performance statistics and complete handoff</objective>
       <steps>
         <step>Mark PHASE 5 in_progress</step>
         <step>Create ai-docs/agent-development-report-{name}.md</step>
         <step>Show git status</step>
+        <step>
+          **Display Model Performance Statistics** (from ai-docs/llm-performance.json):
+
+          ```markdown
+          ## Model Performance Statistics (This Session)
+
+          | Model                     | Time   | Issues | Quality | Status    |
+          |---------------------------|--------|--------|---------|-----------|
+          | claude-embedded           | 32s    | 5      | 92%     | ✓         |
+          | x-ai/grok-code-fast-1     | 45s    | 4      | 88%     | ✓         |
+          | google/gemini-2.5-flash   | 38s    | 3      | 90%     | ✓         |
+
+          ### Session Summary
+          - Parallel Speedup: 2.4x
+          - Models Succeeded: 3/3
+
+          ### Historical Performance (all sessions)
+
+          | Model                     | Avg Time | Runs | Success% | Avg Quality |
+          |---------------------------|----------|------|----------|-------------|
+          | claude-embedded           | 35s      | 8    | 100%     | 90%         |
+          | x-ai/grok-code-fast-1     | 48s      | 6    | 83%      | 85%         |
+          | google/gemini-2.5-flash   | 42s      | 7    | 100%     | 88%         |
+
+          ### Recommendations
+          ✓ Top performers: claude-embedded, gemini-2.5-flash
+          ```
+        </step>
         <step>Present final summary</step>
         <step>
           **User Satisfaction** (AskUserQuestion):
@@ -199,7 +260,7 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
         </step>
         <step>Mark ALL tasks completed</step>
       </steps>
-      <quality_gate>User satisfied, report generated</quality_gate>
+      <quality_gate>User satisfied, report generated, performance stats displayed</quality_gate>
     </phase>
   </phases>
 </orchestration>
@@ -285,6 +346,15 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
 - Critical: 0
 - High: {count} (fixed)
 
+**Model Performance** (this session):
+| Model | Time | Quality | Status |
+|-------|------|---------|--------|
+| {model} | {time}s | {quality}% | ✓ |
+
+**Session Stats**:
+- Parallel Speedup: {speedup}x
+- Performance logged to: ai-docs/llm-performance.json
+
 **Report**: ai-docs/agent-development-report-{name}.md
 
 Ready to use!
@@ -298,5 +368,6 @@ Ready to use!
   - Quality review passed
   - User satisfied
   - Report generated
+  - **Model performance tracked to ai-docs/llm-performance.json**
   - All TodoWrite tasks completed
 </success_criteria>

@@ -1,7 +1,7 @@
 {
   "name": "orchestration",
-  "version": "0.1.1",
-  "description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Provides proven patterns for parallel execution, multi-model validation, quality gates, and phase-based orchestration.",
+  "version": "0.2.0",
+  "description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Provides proven patterns for parallel execution, multi-model validation with performance statistics (NEW v0.2.0), quality gates, and phase-based orchestration. Pattern 7 adds model execution time tracking, quality scores, and recommendations.",
   "author": "MadAppGang",
   "license": "MIT",
   "homepage": "https://github.com/MadAppGang/claude-code",
@@ -17,7 +17,9 @@
     "grok",
     "gemini",
     "consensus",
-    "error-recovery"
+    "error-recovery",
+    "statistics",
+    "performance-tracking"
   ],
 
   "skills": [

@@ -1,15 +1,15 @@
 ---
 name: multi-model-validation
-description: Run multiple AI models in parallel for 3-5x speedup. Use when validating with Grok, Gemini, GPT-5, DeepSeek, or Claudish proxy for code review, consensus analysis, or multi-expert validation. Trigger keywords - "grok", "gemini", "gpt-5", "deepseek", "claudish", "multiple models", "parallel review", "external AI", "consensus", "multi-model".
-version: 0.1.0
-tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai]
-keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter]
+description: Run multiple AI models in parallel for 3-5x speedup with performance statistics tracking. Use when validating with Grok, Gemini, GPT-5, DeepSeek, or Claudish proxy for code review, consensus analysis, or multi-expert validation. Includes Pattern 7 for tracking model execution times, quality scores, and generating recommendations for slow/failing models. Trigger keywords - "grok", "gemini", "gpt-5", "deepseek", "claudish", "multiple models", "parallel review", "external AI", "consensus", "multi-model", "model performance", "statistics".
+version: 0.2.0
+tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai, statistics, performance]
+keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter, statistics, performance, quality-score, execution-time]
 ---
 
 # Multi-Model Validation
 
-**Version:** 1.0.0
-**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy
+**Version:** 2.0.0
+**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy with performance statistics
 **Status:** Production Ready
 
 ## Overview
@@ -20,8 +20,15 @@ Multi-model validation is the practice of running multiple AI models (Grok, Gemi
 - **Consensus-based prioritization** (issues flagged by all models are CRITICAL)
 - **Diverse perspectives** (different models catch different issues)
 - **Cost transparency** (know before you spend)
+- **Performance tracking** (NEW v2.0) - identify slow/failing models for future exclusion
 
 The key innovation is the **4-Message Pattern**, which ensures true parallel execution by using only Task tool calls in a single message, avoiding the sequential execution trap caused by mixing tool types.
+
+**Pattern 7 (NEW in v2.0)** adds statistics collection and analysis to help users:
+- Track execution time per model
+- Calculate quality scores (issues in consensus %)
+- Identify slow models (2x+ average)
+- Get recommendations for shortlist optimization
 
 This skill is extracted from the `/review` command and generalized for use in any multi-model workflow.
 
@@ -667,6 +674,339 @@ Instead of keyword matching, use semantic similarity:
 
 ---
 
+### Pattern 7: Statistics Collection and Analysis
+
+**Purpose**: Track model performance to help users identify slow or poorly-performing models for future exclusion.
+
+**Storage Location**: `ai-docs/llm-performance.json` (persistent across all sessions)
+
+**When to Collect Statistics:**
+- After each model completes (success, failure, or timeout)
+- During consolidation phase (quality scores)
+- At session end (session summary)
+
+**File Structure (ai-docs/llm-performance.json):**
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "lastUpdated": "2025-12-09T10:45:00Z",
+  "models": {
+    "claude-embedded": {
+      "modelId": "claude-embedded",
+      "totalRuns": 12,
+      "successfulRuns": 12,
+      "failedRuns": 0,
+      "totalExecutionTime": 420,
+      "avgExecutionTime": 35,
+      "minExecutionTime": 28,
+      "maxExecutionTime": 52,
+      "totalIssuesFound": 96,
+      "avgQualityScore": 92,
+      "qualityScores": [95, 90, 88, 94, 91, ...],
+      "lastUsed": "2025-12-09T10:35:22Z",
+      "history": [
+        {
+          "timestamp": "2025-12-09T10:35:22Z",
+          "session": "review-20251209-103522-a3f2",
+          "status": "success",
+          "executionTime": 32,
+          "issuesFound": 8,
+          "qualityScore": 95
+        }
+        // ... last 20 runs
+      ]
+    },
+    "x-ai-grok-code-fast-1": {
+      "modelId": "x-ai/grok-code-fast-1",
+      "totalRuns": 10,
+      "successfulRuns": 9,
+      "failedRuns": 1,
+      // ... same structure
+    }
+  },
+  "sessions": [
+    {
+      "sessionId": "review-20251209-103522-a3f2",
+      "timestamp": "2025-12-09T10:35:22Z",
+      "totalModels": 4,
+      "successfulModels": 3,
+      "failedModels": 1,
+      "parallelTime": 120,
+      "sequentialTime": 335,
+      "speedup": 2.8
+    }
+    // ... last 50 sessions
+  ]
+}
+```
+
+**Key Benefits of Persistent Storage:**
+- Track model reliability over time (not just one session)
+- Identify consistently slow models
+- Calculate historical success rates
+- Generate data-driven shortlist recommendations
+
+**How to Calculate Quality Score:**
+
+Quality = % of model's issues that appear in unanimous or strong consensus
+
+```
+quality_score = (issues_in_unanimous + issues_in_strong) / total_issues * 100
+
+Example:
+- Model found 10 issues
+- 4 appear in unanimous consensus
+- 3 appear in strong consensus
+- Quality = (4 + 3) / 10 * 100 = 70%
+```
+
+Higher quality means the model finds issues other models agree with.
+
+**How to Calculate Parallel Speedup:**
+
+```
+speedup = sum(all_execution_times) / max(execution_time)
+
+Example:
+- Claude: 32s
+- Grok: 45s
+- Gemini: 38s
+- GPT-5: 120s
+
+Sequential would take: 32 + 45 + 38 + 120 = 235s
+Parallel took: max(32, 45, 38, 120) = 120s
+Speedup: 235 / 120 = 1.96x
+```
+
+**Performance Statistics Display Format:**
+
+```markdown
+## Model Performance Statistics
+
+| Model                     | Time   | Issues | Quality | Status    |
+|---------------------------|--------|--------|---------|-----------|
+| claude-embedded           | 32s    | 8      | 95%     | ✓         |
+| x-ai/grok-code-fast-1     | 45s    | 6      | 85%     | ✓         |
+| google/gemini-2.5-flash   | 38s    | 5      | 90%     | ✓         |
+| openai/gpt-5.1-codex      | 120s   | 9      | 88%     | ✓ (slow)  |
+| deepseek/deepseek-chat    | TIMEOUT| 0      | -       | ✗         |
+
+**Session Summary:**
+- Parallel Speedup: 1.96x (235s sequential → 120s parallel)
+- Average Time: 59s
+- Slowest: gpt-5.1-codex (2.0x avg)
+
+**Recommendations:**
+⚠️ gpt-5.1-codex runs 2x slower than average - consider removing
+⚠️ deepseek-chat timed out - check API status or remove from shortlist
+✓ Top performers: claude-embedded, gemini-2.5-flash (fast + high quality)
+```
+
+**Recommendation Logic:**
+
+```
+1. Flag SLOW models:
+   if (model.executionTime > 2 * avgExecutionTime) {
+     flag: "⚠️ Runs 2x+ slower than average"
+     suggestion: "Consider removing from shortlist"
+   }
+
+2. Flag FAILED/TIMEOUT models:
+   if (model.status !== "success") {
+     flag: "⚠️ Failed or timed out"
+     suggestion: "Check API status or increase timeout"
+   }
+
+3. Identify TOP PERFORMERS:
+   if (model.qualityScore > 85 && model.executionTime < avgExecutionTime) {
+     highlight: "✓ Top performer (fast + high quality)"
+   }
+
+4. Suggest SHORTLIST:
+   sortedModels = models.sort((a, b) => {
+     // Quality/speed ratio: higher quality + lower time = better
+     scoreA = a.qualityScore / (a.executionTime / avgExecutionTime)
+     scoreB = b.qualityScore / (b.executionTime / avgExecutionTime)
+     return scoreB - scoreA
+   })
+   shortlist = sortedModels.slice(0, 3)
+```
+
+**Implementation (writes to ai-docs/llm-performance.json):**
+
+```bash
+# Track model performance after each model completes
+# Updates historical aggregates and adds to run history
+track_model_performance() {
+  local model_id="$1"
+  local status="$2"
+  local duration="$3"
+  local issues="${4:-0}"
+  local quality_score="${5:-}"  # optional
+
+  local perf_file="ai-docs/llm-performance.json"
+  local model_key=$(echo "$model_id" | tr '/' '-')
+
+  # Initialize file if doesn't exist
+  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+
+  jq --arg model "$model_key" \
+     --arg model_full "$model_id" \
+     --arg status "$status" \
+     --argjson duration "$duration" \
+     --argjson issues "$issues" \
+     --arg quality "${quality_score:-null}" \
+     --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     --arg session "${SESSION_ID:-unknown}" \
+     '
+     # Initialize model if not exists
+     .models[$model] //= {"modelId":$model_full,"totalRuns":0,"successfulRuns":0,"failedRuns":0,
+       "totalExecutionTime":0,"avgExecutionTime":0,"minExecutionTime":null,"maxExecutionTime":null,
+       "totalIssuesFound":0,"avgQualityScore":null,"qualityScores":[],"lastUsed":null,"history":[]} |
+
+     # Update aggregates
+     .models[$model].totalRuns += 1 |
+     .models[$model].successfulRuns += (if $status == "success" then 1 else 0 end) |
+     .models[$model].failedRuns += (if $status != "success" then 1 else 0 end) |
+     .models[$model].totalExecutionTime += $duration |
+     .models[$model].avgExecutionTime = ((.models[$model].totalExecutionTime / .models[$model].totalRuns) | floor) |
+     .models[$model].totalIssuesFound += $issues |
+     .models[$model].lastUsed = $now |
+
+     # Update min/max
+     .models[$model].minExecutionTime = ([.models[$model].minExecutionTime, $duration] | map(select(. != null)) | min) |
+     .models[$model].maxExecutionTime = ([.models[$model].maxExecutionTime, $duration] | max) |
+
+     # Update quality scores (if provided)
+     (if $quality != "null" then .models[$model].qualityScores += [($quality|tonumber)] |
+       .models[$model].avgQualityScore = ((.models[$model].qualityScores|add) / (.models[$model].qualityScores|length) | floor)
+     else . end) |
+
+     # Add to history (keep last 20)
+     .models[$model].history = ([{"timestamp":$now,"session":$session,"status":$status,
+       "executionTime":$duration,"issuesFound":$issues,
+       "qualityScore":(if $quality != "null" then ($quality|tonumber) else null end)}] + .models[$model].history)[:20] |
+
+     .lastUpdated = $now
+     ' "$perf_file" > "${perf_file}.tmp" && mv "${perf_file}.tmp" "$perf_file"
+}
+
+# Usage:
+track_model_performance "claude-embedded" "success" 45 8 95
+track_model_performance "x-ai/grok-code-fast-1" "success" 62 6 85
+track_model_performance "deepseek/deepseek-chat" "timeout" 120 0
+```
+
+**Record Session Summary:**
+
+```bash
+record_session_stats() {
+  local total="$1" success="$2" failed="$3"
+  local parallel_time="$4" sequential_time="$5" speedup="$6"
+
+  local perf_file="ai-docs/llm-performance.json"
+  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+
+  jq --arg session "${SESSION_ID:-unknown}" \
+     --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     --argjson total "$total" --argjson success "$success" --argjson failed "$failed" \
+     --argjson parallel "$parallel_time" --argjson sequential "$sequential_time" --argjson speedup "$speedup" \
+     '.sessions = ([{"sessionId":$session,"timestamp":$now,"totalModels":$total,
+       "successfulModels":$success,"failedModels":$failed,"parallelTime":$parallel,
+       "sequentialTime":$sequential,"speedup":$speedup}] + .sessions)[:50] | .lastUpdated = $now' \
+     "$perf_file" > "${perf_file}.tmp" && mv "${perf_file}.tmp" "$perf_file"
+}
+```
+
+**Get Recommendations from Historical Data:**
+
+```bash
+get_model_recommendations() {
+  local perf_file="ai-docs/llm-performance.json"
+  [[ -f "$perf_file" ]] || { echo "No performance data yet."; return; }
+
+  jq -r '
+    (.models | to_entries | map(select(.value.successfulRuns > 0) | .value.avgExecutionTime) | add / length) as $avg |
+    {
+      "overallAvgTime": ($avg | floor),
+      "slowModels": [.models | to_entries[] | select(.value.avgExecutionTime > ($avg * 2)) | .key],
+      "unreliableModels": [.models | to_entries[] | select(.value.totalRuns >= 3 and (.value.failedRuns / .value.totalRuns) > 0.3) | .key],
+      "topPerformers": [.models | to_entries | map(select(.value.avgQualityScore != null and .value.avgQualityScore > 80 and .value.avgExecutionTime <= $avg)) | sort_by(-.value.avgQualityScore)[:3] | .[].key]
+    }
+  ' "$perf_file"
+}
+```
+
+---
+
+## Integrating Statistics in Your Plugin
+
+**To add LLM performance tracking to your plugin's commands:**
+
+### Step 1: Reference This Skill
+Add to your command's frontmatter:
+```yaml
+skills: orchestration:multi-model-validation
+```
+
+### Step 2: Track Each Model Execution
+After each external model completes:
+```bash
+# Parameters: model_id, status, duration_seconds, issues_found, quality_score
+track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 85
+```
+
+### Step 3: Record Session Summary
+At the end of multi-model execution:
+```bash
+# Parameters: total, successful, failed, parallel_time, sequential_time, speedup
+record_session_stats 4 3 1 120 335 2.8
+```
+
+### Step 4: Display Statistics
+In your finalization phase, show:
+1. This session's model performance table
+2. Historical performance (if ai-docs/llm-performance.json exists)
+3. Recommendations for slow/unreliable models
+
+### Example Integration (in command.md)
+
+```xml
+<phase name="External Review">
+  <steps>
+    <step>Record start time: PHASE_START=$(date +%s)</step>
+    <step>Run external models in parallel (single message, multiple Task calls)</step>
+    <step>
+      After completion, track each model:
+      track_model_performance "{model}" "{status}" "{duration}" "{issues}" "{quality}"
+    </step>
+    <step>
+      Record session:
+      record_session_stats $TOTAL $SUCCESS $FAILED $PARALLEL $SEQUENTIAL $SPEEDUP
+    </step>
+  </steps>
+</phase>
+
+<phase name="Finalization">
+  <steps>
+    <step>
+      Display Model Performance Statistics (read from ai-docs/llm-performance.json)
+    </step>
+    <step>Show recommendations for slow/failing models</step>
+  </steps>
+</phase>
+```
+
+### Plugins Using This Pattern
+
+| Plugin | Command | Usage |
+|--------|---------|-------|
+| **frontend** | `/review` | Full implementation with historical tracking |
+| **agentdev** | `/develop` | Plan review + quality review tracking |
+
+---
+
 ## Integration with Other Skills
 
 **multi-model-validation + quality-gates:**
@@ -754,6 +1094,10 @@ Step 3: User Sees Real-Time Progress
 - ✅ Prioritize by consensus level (unanimous → strong → majority → divergent)
 - ✅ Show model agreement matrix
 - ✅ Handle partial success gracefully (some models fail)
+- ✅ **Track execution time per model** (NEW v2.0)
+- ✅ **Calculate and display quality scores** (NEW v2.0)
+- ✅ **Show performance statistics table at end of session** (NEW v2.0)
+- ✅ **Generate recommendations for slow/failing models** (NEW v2.0)
 
 **Don't:**
 - ❌ Mix tool types in Message 2 (breaks parallelism)
@@ -763,11 +1107,14 @@ Step 3: User Sees Real-Time Progress
 - ❌ Inline full reviews in consolidation prompt (use file paths)
 - ❌ Return full 500-line reviews to orchestrator (use brief summaries)
 - ❌ Skip cost approval gate for expensive operations
+- ❌ **Skip statistics display** (users need data to optimize model selection)
+- ❌ **Keep slow models in shortlist** (flag models 2x+ slower than average)
 
 **Performance:**
 - Parallel execution: 3-5x faster than sequential
 - Message 2 speedup: 15 min → 5 min with 5 models
 - Context efficiency: Brief summaries save 50-80% context
+- **Statistics overhead: <1 second** (jq operations are fast)
 
 ---
 
@@ -994,8 +1341,17 @@ Multi-model validation achieves 3-5x speedup and consensus-based prioritization 
 - **Consensus analysis** (unanimous → strong → majority → divergent)
 - **Cost transparency** (estimate before, report after)
 - **Error recovery** (graceful degradation on failures)
+- **Statistics collection** (NEW v2.0) - track execution times, quality scores, and generate recommendations
 
-Master this skill and you can validate any implementation with multiple AI perspectives in minutes.
+Master this skill and you can validate any implementation with multiple AI perspectives in minutes, while continuously improving your model shortlist based on actual performance data.
+
+**Version 2.0 Additions:**
+- Pattern 7: Statistics Collection and Analysis
+- Per-model execution time tracking
+- Quality score calculation (issues in consensus %)
+- Session summary statistics (speedup, avg time, success rate)
+- Recommendations for slow/failing models
+- Shortlist optimization based on quality/speed ratio
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "agentdev",
-  "version": "1.0.0",
-  "description": "Create, implement, and review Claude Code agents and commands with multi-model validation. Full-cycle development workflow with design, implementation, and quality review agents.",
+  "version": "1.1.0",
+  "description": "Create, implement, and review Claude Code agents and commands with multi-model validation and LLM performance tracking. Full-cycle development workflow with design, implementation, and quality review agents. Tracks model performance to ai-docs/llm-performance.json.",
   "author": "MadAppGang",
   "license": "MIT",
   "homepage": "https://github.com/MadAppGang/claude-code",
@@ -14,7 +14,9 @@
     "claudish",
     "quality-review",
     "xml-standards",
-    "orchestration"
+    "orchestration",
+    "statistics",
+    "performance-tracking"
   ],
 
   "agents": [
@@ -34,7 +36,7 @@
   ],
 
   "dependencies": {
-    "orchestration@mag-claude-plugins": "^0.1.1"
+    "orchestration@mag-claude-plugins": "^0.2.0"
   },
 
   "compatibility": {
