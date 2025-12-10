@@ -1,535 +1,930 @@
 ---
 name: browser-debugger
-description: Systematically tests UI functionality, monitors console output, tracks network requests, and provides debugging reports using Chrome DevTools. Use after implementing UI features, when investigating console errors, for regression testing, or when user mentions testing, browser bugs, console errors, or UI verification.
-allowed-tools: Task
+description: Systematically tests UI functionality, validates design fidelity with AI visual analysis, monitors console output, tracks network requests, and provides debugging reports using Chrome DevTools MCP. Use after implementing UI features, for design validation, when investigating console errors, for regression testing, or when user mentions testing, browser bugs, console errors, or UI verification.
+allowed-tools: Task, Bash
 ---
 
 # Browser Debugger
 
-This Skill provides comprehensive browser-based UI testing and debugging capabilities using the tester agent and Chrome DevTools MCP server.
+This Skill provides comprehensive browser-based UI testing, visual analysis, and debugging capabilities using Chrome DevTools MCP server and optional external vision models via Claudish.
 
-## When to use this Skill
+## When to Use This Skill
 
-Claude should invoke this Skill when:
+Claude and agents (developer, reviewer, tester, ui-developer) should invoke this Skill when:
 
-- User has just implemented a UI feature and needs verification
-- User reports console errors or warnings
-- User wants to test form validation or user interactions
-- User asks to verify API integration works in the browser
-- After making significant code changes (regression testing)
-- Before committing or deploying code
-- User mentions: "test in browser", "check console", "verify UI", "does it work?"
-- User describes UI bugs that need reproduction
+- **Validating Own Work**: After implementing UI features, agents should verify their work in a real browser
+- **Design Fidelity Checks**: Comparing implementation screenshots against design references
+- **Visual Regression Testing**: Detecting layout shifts, styling issues, or visual bugs
+- **Console Error Investigation**: User reports console errors or warnings
+- **Form/Interaction Testing**: Verifying user interactions work correctly
+- **Pre-Commit Verification**: Before committing or deploying code
+- **Bug Reproduction**: User describes UI bugs that need investigation
 
-## Instructions
+## Prerequisites
 
-### Phase 1: Understand Testing Scope
+### Required: Chrome DevTools MCP
 
-First, determine what needs to be tested:
+This skill requires Chrome DevTools MCP. Check availability and install if needed:
 
-1. **Default URL**: `http://localhost:5173` (caremaster-tenant-frontend dev server)
-2. **Specific page**: If user mentions a route (e.g., "/users"), test that page
-3. **Specific feature**: Focus testing on the mentioned feature
-4. **Specific elements**: If user mentions buttons, forms, tables, test those
+```bash
+# Check if available
+mcp__chrome-devtools__list_pages 2>/dev/null && echo "Available" || echo "Not available"
 
-### Phase 2: Invoke tester Agent
-
-Use the Task tool to launch the tester agent with comprehensive instructions:
-
-```
-Use Task tool with:
-- subagent_type: "frontend:tester"
-- prompt: [Detailed testing instructions below]
+# Install via claudeup (recommended)
+npm install -g claudeup@latest
+claudeup mcp add chrome-devtools
 ```
 
-**Prompt structure for tester**:
+### Optional: External Vision Models (via OpenRouter)
 
-```markdown
-# Browser UI Testing Task
+For advanced visual analysis, use external vision-language models via Claudish:
 
-## Target
-- URL: [http://localhost:5173 or specific page]
-- Feature: [what to test]
-- Goal: [verify functionality, check console, reproduce bug, etc.]
+```bash
+# Check OpenRouter API key
+[[ -n "${OPENROUTER_API_KEY}" ]] && echo "OpenRouter configured" || echo "Not configured"
 
-## Testing Steps
-
-### Phase 1: Initial Assessment
-1. Navigate to the URL using mcp__chrome-devtools__navigate_page or mcp__chrome-devtools__new_page
-2. Take page snapshot using mcp__chrome-devtools__take_snapshot to see all interactive elements
-3. Take screenshot using mcp__chrome-devtools__take_screenshot
-4. Check baseline console state using mcp__chrome-devtools__list_console_messages
-5. Check initial network activity using mcp__chrome-devtools__list_network_requests
-
-### Phase 2: Systematic Interaction Testing
-
-[If specific steps provided by user, list them here]
-[Otherwise: Discovery mode - identify and test all interactive elements]
-
-For each interaction:
-
-**Before Interaction:**
-1. Take screenshot: mcp__chrome-devtools__take_screenshot
-2. Note current console message count
-3. Identify element UID from snapshot
-
-**Perform Interaction:**
-- Click: mcp__chrome-devtools__click with element UID
-- Fill: mcp__chrome-devtools__fill with element UID and value
-- Hover: mcp__chrome-devtools__hover with element UID
-
-**After Interaction:**
-1. Wait 1-2 seconds for animations/transitions
-2. Take screenshot: mcp__chrome-devtools__take_screenshot
-3. Check console: mcp__chrome-devtools__list_console_messages
-4. Check network: mcp__chrome-devtools__list_network_requests
-5. Get details of any errors: mcp__chrome-devtools__get_console_message
-6. Get details of failed requests: mcp__chrome-devtools__get_network_request
-
-**Visual Analysis:**
-Compare before/after screenshots:
-- Did expected UI changes occur?
-- Did modals appear/disappear?
-- Did form submit successfully?
-- Did error messages display?
-- Did loading states show?
-- Did content update?
-
-### Phase 3: Console and Network Analysis
-
-**Console Monitoring:**
-1. List all console messages: mcp__chrome-devtools__list_console_messages
-2. Categorize:
-   - Errors (critical - must fix)
-   - Warnings (should review)
-   - Info/debug messages
-3. For each error:
-   - Get full details: mcp__chrome-devtools__get_console_message
-   - Note stack trace
-   - Identify which interaction triggered it
-   - Assess impact on functionality
-
-**Network Monitoring:**
-1. List all network requests: mcp__chrome-devtools__list_network_requests
-2. Identify failed requests (4xx, 5xx status codes)
-3. For each failure:
-   - Get request details: mcp__chrome-devtools__get_network_request
-   - Note request method, URL, status code
-   - Examine request/response payloads
-   - Determine cause (CORS, auth, validation, server error)
-
-### Phase 4: Edge Case Testing
-
-Test common failure scenarios:
-
-**Form Validation:**
-- Submit with empty required fields
-- Submit with invalid data (bad email, short password)
-- Verify error messages appear
-- Verify form doesn't submit
-
-**Error Handling:**
-- Trigger known error conditions
-- Verify error states display properly
-- Check that app doesn't crash
-
-**Loading States:**
-- Verify loading indicators during async operations
-- Check UI is disabled during loading
-- Ensure loading clears after completion
-
-**Console Cleanliness:**
-- No React errors (missing keys, hook violations)
-- No network errors (CORS, 404s, 500s)
-- No deprecation warnings
-- No unhandled promise rejections
-
-## Required Output Format
-
-Provide a comprehensive test report with this exact structure:
-
-# Browser Debug Report
-
-## Test Summary
-- **Status**: [PASS / FAIL / PARTIAL]
-- **URL Tested**: [url]
-- **Test Duration**: [time in seconds]
-- **Total Interactions**: [count]
-- **Console Errors**: [count]
-- **Console Warnings**: [count]
-- **Failed Network Requests**: [count]
-
-## Test Execution Details
-
-### Step 1: [Action Description]
-- **Action**: [What was done - e.g., "Clicked Create User button (UID: abc123)"]
-- **Expected Result**: [What should happen]
-- **Actual Result**: [What you observed in screenshots]
-- **Visual Changes**: [Describe UI changes in detail]
-- **Console Output**:
-  ```
-  [New console messages, if any]
-  ```
-- **Network Activity**: [API calls triggered, if any]
-- **Status**: ✓ PASS / ✗ FAIL
-
-[Repeat for each test step]
-
-## Console Analysis
-
-### Critical Errors
-[List each error with full details, stack trace, and impact assessment]
-Or: ✓ No console errors detected
-
-### Warnings
-[List each warning with context and whether it should be fixed]
-Or: ✓ No console warnings detected
-
-### Info/Debug Messages
-[Relevant informational output that helps understand behavior]
-
-## Network Analysis
-
-### Failed Requests
-[For each failed request: method, URL, status, error message, payloads]
-Or: ✓ All network requests successful
-
-### Request Timeline
-[List significant API calls with status codes and timing]
-
-### Suspicious Activity
-[Slow requests, repeated calls, unexpected endpoints]
-
-## Visual Inspection Results
-
-### UI Components Tested
-- [Component 1]: ✓ Works as expected / ✗ Issue: [description]
-- [Component 2]: ✓ Works as expected / ✗ Issue: [description]
-[etc.]
-
-### Visual Issues Found
-[Layout problems, styling issues, alignment, broken images, responsive issues]
-Or: ✓ No visual issues detected
-
-## Issues Found
-
-[If issues exist:]
-
-### Critical Issues (Fix Immediately)
-1. **[Issue Title]**
-   - **Description**: [Detailed description]
-   - **Steps to Reproduce**:
-     1. [Step 1]
-     2. [Step 2]
-   - **Expected**: [Expected behavior]
-   - **Actual**: [Actual behavior]
-   - **Error Messages**: [Console/network errors]
-   - **Impact**: [How this affects users]
-   - **Recommendation**: [How to fix]
-
-### Minor Issues (Should Fix)
-[Less critical but still important issues]
-
-### Improvements (Nice to Have)
-[Suggestions for better UX, performance, etc.]
-
-[If no issues:]
-✓ No issues found - all functionality working as expected
-
-## Performance Notes
-- Page load time: [if measured]
-- Interaction responsiveness: [smooth / laggy / specific issues]
-- Performance concerns: [any observations]
-
-## Overall Assessment
-
-[2-3 sentence summary of test results]
-
-**Recommendation**: [DEPLOY / FIX CRITICAL ISSUES / NEEDS MORE WORK]
+# Install claudish
+npm install -g claudish
+```
 
 ---
 
-## Important Requirements
+## Visual Analysis Models (Recommended)
 
-1. **Always analyze screenshots yourself** - describe what you see in detail
-2. **Never return screenshots to the user** - only text descriptions
-3. **Be specific** - "Modal appeared with title 'Create User'" not "Something happened"
-4. **Document reproduction steps** for all issues
-5. **Distinguish critical bugs from minor issues**
-6. **Check console after EVERY interaction**
-7. **Use exact element UIDs from snapshots**
-8. **Wait for animations/transitions before checking results**
+For best visual analysis of UI screenshots, use these models via Claudish:
+
+### Tier 1: Best Quality (Recommended for Design Validation)
+
+| Model | Strengths | Cost | Best For |
+|-------|-----------|------|----------|
+| **qwen/qwen3-vl-32b-instruct** | Best OCR, spatial reasoning, GUI automation, 32+ languages | ~$0.06/1M input | Design fidelity, OCR, element detection |
+| **google/gemini-2.5-flash** | Fast, excellent price/performance, 1M context | ~$0.05/1M input | Real-time validation, large pages |
+| **openai/gpt-4o** | Most fluid multimodal, strong all-around | ~$0.15/1M input | Complex visual reasoning |
+
+### Tier 2: Fast & Affordable
+
+| Model | Strengths | Cost | Best For |
+|-------|-----------|------|----------|
+| **qwen/qwen3-vl-30b-a3b-instruct** | Good balance, MoE architecture | ~$0.04/1M input | Quick checks, multiple iterations |
+| **google/gemini-2.5-flash-lite** | Ultrafast, very cheap | ~$0.01/1M input | High-volume testing |
+
+### Tier 3: Free Options
+
+| Model | Notes |
+|-------|-------|
+| **openrouter/polaris-alpha** | FREE, good for testing workflows |
+
+### Model Selection Guide
+
+```
+Design Fidelity Validation → qwen/qwen3-vl-32b-instruct (best OCR & spatial)
+Quick Smoke Tests → google/gemini-2.5-flash (fast & cheap)
+Complex Layout Analysis → openai/gpt-4o (best reasoning)
+High Volume Testing → google/gemini-2.5-flash-lite (ultrafast)
+Budget Conscious → openrouter/polaris-alpha (free)
 ```
 
-### Phase 3: Summarize Findings
+---
 
-After receiving the tester report:
+## Visual Analysis Model Selection (Interactive)
 
-1. **Present the test summary** to the user
-2. **Highlight critical issues** that need immediate attention
-3. **List console errors** with file locations
-4. **Note failed network requests** with status codes
-5. **Provide actionable recommendations** for fixes
-6. **Suggest next steps** (fix bugs, commit code, deploy, etc.)
+**Before the first screenshot analysis in a session, ask the user which model to use.**
 
-## Expected Test Report Structure
+### Step 1: Check for Saved Preference
 
-The tester will provide a detailed markdown report. Present it to the user in a clear, organized way:
+First, check if user has a saved model preference:
+
+```bash
+# Check for saved preference in project settings
+SAVED_MODEL=$(cat .claude/settings.json 2>/dev/null | jq -r '.pluginSettings.frontend.visualAnalysisModel // empty')
+
+# Or check session-specific preference
+if [[ -f "ai-docs/sessions/${SESSION_ID}/session-meta.json" ]]; then
+  SESSION_MODEL=$(jq -r '.visualAnalysisModel // empty' "ai-docs/sessions/${SESSION_ID}/session-meta.json")
+fi
+```
+
+### Step 2: If No Saved Preference, Ask User
+
+Use **AskUserQuestion** with these options:
 
 ```markdown
-## 🧪 Browser Test Results
+## Visual Analysis Model Selection
 
-**Status**: [PASS/FAIL/PARTIAL] | **URL**: [url] | **Duration**: [time]
+For screenshot analysis and design validation, which AI vision model would you like to use?
 
-### Summary
-- Total tests: [count]
-- Console errors: [count]
-- Failed requests: [count]
-
-### Test Steps
-
-[Summarized step-by-step results]
-
-### Issues Found
-
-**Critical** 🔴
-- [Issue 1 with reproduction steps]
-
-**Minor** 🟡
-- [Issue 2]
-
-### Console Errors
-
-[List errors with file locations]
-
-### Network Issues
-
-[List failed requests with status codes]
-
-### Recommendation
-
-[DEPLOY / FIX FIRST / NEEDS WORK]
+**Your choice will be remembered for this session.**
 ```
 
-## Common Testing Scenarios
+**AskUserQuestion options:**
 
-### Scenario 1: After Implementing Feature
+| Option | Label | Description |
+|--------|-------|-------------|
+| 1 | `qwen/qwen3-vl-32b-instruct` (Recommended) | Best for design fidelity - excellent OCR, spatial reasoning, detailed analysis. ~$0.06/1M tokens |
+| 2 | `google/gemini-2.5-flash` | Fast & affordable - great balance of speed and quality. ~$0.05/1M tokens |
+| 3 | `openai/gpt-4o` | Most capable - best for complex visual reasoning. ~$0.15/1M tokens |
+| 4 | `openrouter/polaris-alpha` (Free) | No cost - good for testing, basic analysis |
+| 5 | Skip visual analysis | Use embedded Claude only (no external models) |
 
-User: "I just added user management"
+**Recommended based on task type:**
+- Design validation → Option 1 (Qwen VL)
+- Quick iterations → Option 2 (Gemini Flash)
+- Complex layouts → Option 3 (GPT-4o)
+- Budget-conscious → Option 4 (Free)
 
-**Your response:**
-1. Invoke this Skill (automatically)
-2. Test URL: http://localhost:5173/users
-3. Test all CRUD operations
-4. Verify console is clean
-5. Check network requests succeed
-6. Report results
+### Step 3: Save User's Choice
 
-### Scenario 2: Console Errors Reported
+After user selects, save their preference:
 
-User: "I'm seeing errors in the console"
+**Option A: Save to Session (temporary)**
+```bash
+# Update session metadata
+jq --arg model "$SELECTED_MODEL" '.visualAnalysisModel = $model' \
+  "ai-docs/sessions/${SESSION_ID}/session-meta.json" > tmp.json && \
+  mv tmp.json "ai-docs/sessions/${SESSION_ID}/session-meta.json"
+```
 
-**Your response:**
-1. Invoke this Skill
-2. Navigate to the page
-3. Capture all console messages
-4. Get full error details with stack traces
-5. Identify which interactions trigger errors
-6. Provide detailed error analysis
+**Option B: Save to Project Settings (persistent)**
+```bash
+# Update project settings for future sessions
+jq --arg model "$SELECTED_MODEL" \
+  '.pluginSettings.frontend.visualAnalysisModel = $model' \
+  .claude/settings.json > tmp.json && mv tmp.json .claude/settings.json
+```
 
-### Scenario 3: Form Validation
+### Step 4: Use Selected Model
 
-User: "Test if the user form validation works"
+Store the selected model in a variable and use it for all subsequent visual analysis:
 
-**Your response:**
-1. Invoke this Skill
-2. Test empty form submission
-3. Test invalid email format
-4. Test short passwords
-5. Test all validation rules
-6. Verify error messages display correctly
+```bash
+# VISUAL_MODEL is now set to user's choice
+# Use it in all claudish calls:
 
-### Scenario 4: Regression Testing
+npx claudish --model "$VISUAL_MODEL" --stdin --quiet <<EOF
+[visual analysis prompt]
+EOF
+```
 
-User: "I refactored the code, make sure nothing broke"
+### Model Selection Flow (Decision Tree)
 
-**Your response:**
-1. Invoke this Skill
-2. Test all major features
-3. Check console for new errors
-4. Verify all interactions still work
-5. Compare with expected behavior
+```
+┌─────────────────────────────────────────────────────┐
+│ Screenshot Analysis Requested                        │
+└─────────────────────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────┐
+│ Check: Is VISUAL_MODEL already set this session?    │
+└─────────────────────────────────────────────────────┘
+                        │
+            ┌───────────┴───────────┐
+            │ YES                   │ NO
+            ▼                       ▼
+┌───────────────────┐   ┌─────────────────────────────┐
+│ Use saved model   │   │ Check project settings      │
+│ Skip to analysis  │   │ .claude/settings.json       │
+└───────────────────┘   └─────────────────────────────┘
+                                    │
+                        ┌───────────┴───────────┐
+                        │ FOUND                 │ NOT FOUND
+                        ▼                       ▼
+            ┌───────────────────┐   ┌─────────────────────────┐
+            │ Use saved model   │   │ Check OpenRouter API    │
+            │ Remember for      │   │ key availability        │
+            │ session           │   └─────────────────────────┘
+            └───────────────────┘               │
+                                    ┌───────────┴───────────┐
+                                    │ AVAILABLE             │ NOT AVAILABLE
+                                    ▼                       ▼
+                        ┌───────────────────┐   ┌─────────────────────┐
+                        │ AskUserQuestion:  │   │ Inform user:        │
+                        │ Select vision     │   │ "Using embedded     │
+                        │ model             │   │ Claude only"        │
+                        └───────────────────┘   └─────────────────────┘
+                                    │
+                                    ▼
+                        ┌───────────────────────────────────┐
+                        │ Save choice to session            │
+                        │ Ask: "Save as default?" (optional)│
+                        └───────────────────────────────────┘
+                                    │
+                                    ▼
+                        ┌───────────────────────────────────┐
+                        │ Proceed with visual analysis      │
+                        └───────────────────────────────────┘
+```
 
-### Scenario 5: Pre-Commit Verification
+### Example: AskUserQuestion Implementation
 
-User: "Ready to commit, verify everything works"
+When prompting the user, use this format:
 
-**Your response:**
-1. Invoke this Skill
-2. Run comprehensive smoke test
-3. Check all features modified
-4. Ensure console is clean
-5. Verify no network failures
-6. Give go/no-go recommendation
+```
+Use AskUserQuestion tool with:
 
-## Quality Checklist
+question: "Which vision model should I use for screenshot analysis?"
+header: "Vision Model"
+multiSelect: false
+options:
+  - label: "Qwen VL 32B (Recommended)"
+    description: "Best for design fidelity - excellent OCR & spatial reasoning. ~$0.06/1M tokens"
+  - label: "Gemini 2.5 Flash"
+    description: "Fast & affordable - great for quick iterations. ~$0.05/1M tokens"
+  - label: "GPT-4o"
+    description: "Most capable - best for complex visual reasoning. ~$0.15/1M tokens"
+  - label: "Free (Polaris Alpha)"
+    description: "No cost - good for testing and basic analysis"
+```
 
-Before completing testing, ensure:
+### Mapping User Choice to Model ID
 
-- ✅ Tested all user-specified features
-- ✅ Checked console for errors and warnings
-- ✅ Monitored network requests
-- ✅ Analyzed before/after screenshots
-- ✅ Provided reproduction steps for issues
-- ✅ Gave clear pass/fail status
-- ✅ Made actionable recommendations
-- ✅ Documented all findings clearly
+```bash
+case "$USER_CHOICE" in
+  "Qwen VL 32B (Recommended)")
+    VISUAL_MODEL="qwen/qwen3-vl-32b-instruct"
+    ;;
+  "Gemini 2.5 Flash")
+    VISUAL_MODEL="google/gemini-2.5-flash"
+    ;;
+  "GPT-4o")
+    VISUAL_MODEL="openai/gpt-4o"
+    ;;
+  "Free (Polaris Alpha)")
+    VISUAL_MODEL="openrouter/polaris-alpha"
+    ;;
+  *)
+    VISUAL_MODEL=""  # Skip external analysis
+    ;;
+esac
+```
 
-## Chrome DevTools Integration
+### Remember for Future Sessions
 
-The tester agent has access to these Chrome DevTools MCP tools:
+After first selection, optionally ask:
 
-**Navigation:**
-- `mcp__chrome-devtools__navigate_page` - Load URL
-- `mcp__chrome-devtools__navigate_page_history` - Back/forward
-- `mcp__chrome-devtools__new_page` - Open new page
+```
+Use AskUserQuestion tool with:
 
-**Inspection:**
-- `mcp__chrome-devtools__take_snapshot` - Get page structure with UIDs
-- `mcp__chrome-devtools__take_screenshot` - Capture visual state
-- `mcp__chrome-devtools__list_pages` - List all open pages
+question: "Save this as your default vision model for future sessions?"
+header: "Save Default"
+multiSelect: false
+options:
+  - label: "Yes, save as default"
+    description: "Use this model automatically in future sessions"
+  - label: "No, ask each time"
+    description: "Let me choose each session"
+```
 
-**Interaction:**
-- `mcp__chrome-devtools__click` - Click element by UID
-- `mcp__chrome-devtools__fill` - Type into input by UID
-- `mcp__chrome-devtools__fill_form` - Fill multiple fields at once
-- `mcp__chrome-devtools__hover` - Hover over element
-- `mcp__chrome-devtools__drag` - Drag and drop
-- `mcp__chrome-devtools__wait_for` - Wait for text to appear
+If user chooses "Yes", update `.claude/settings.json`:
 
-**Console:**
-- `mcp__chrome-devtools__list_console_messages` - Get all console output
-- `mcp__chrome-devtools__get_console_message` - Get detailed message
+```json
+{
+  "pluginSettings": {
+    "frontend": {
+      "visualAnalysisModel": "qwen/qwen3-vl-32b-instruct"
+    }
+  }
+}
+```
 
-**Network:**
-- `mcp__chrome-devtools__list_network_requests` - Get all requests
-- `mcp__chrome-devtools__get_network_request` - Get request details
+---
 
-**Advanced:**
-- `mcp__chrome-devtools__evaluate_script` - Run JavaScript
-- `mcp__chrome-devtools__handle_dialog` - Handle alerts/confirms
-- `mcp__chrome-devtools__performance_start_trace` - Start perf trace
-- `mcp__chrome-devtools__performance_stop_trace` - Stop perf trace
+## Recipe 1: Agent Self-Validation (After Implementation)
 
-## Project-Specific Considerations
+**Use Case**: Developer/UI-Developer agent validates their own work after implementing a feature.
 
-### Tech Stack Awareness
+### Pattern: Implement → Screenshot → Analyze → Report
 
-**React 19 + TanStack Router:**
-- Watch for React errors (missing keys, hook violations)
-- Check for routing issues (404s, incorrect navigation)
+```markdown
+## After Implementing UI Feature
 
-**TanStack Query:**
-- Monitor query cache invalidation
-- Check for stale data issues
-- Verify loading states
+1. **Save file changes** (Edit tool)
 
-**Tailwind CSS:**
-- Check responsive design
-- Verify styling at different screen sizes
+2. **Capture implementation screenshot**:
+   ```
+   mcp__chrome-devtools__navigate_page(url: "http://localhost:5173/your-route")
+   # Wait for page load
+   mcp__chrome-devtools__take_screenshot(filePath: "/tmp/implementation.png")
+   ```
 
-**Biome:**
-- No impact on browser testing, but note code quality
+3. **Analyze with embedded Claude** (always available):
+   - Describe what you see in the screenshot
+   - Check for obvious layout issues
+   - Verify expected elements are present
 
-### Common Issues to Watch For
+4. **Optional: Enhanced analysis with vision model**:
+   ```bash
+   # Use Qwen VL for detailed visual analysis
+   npx claudish --model qwen/qwen3-vl-32b-instruct --stdin --quiet <<EOF
+   Analyze this UI screenshot and identify any visual issues:
 
-**User Management:**
-- CRUD operations work correctly
-- Validation errors display
-- Optimistic updates function
-- Toast notifications appear
+   IMAGE: /tmp/implementation.png
 
-**API Integration:**
-- Mock vs real API behavior differences
-- Authentication token handling
-- CORS issues
-- 400/401/404 error handling
+   Check for:
+   - Layout alignment issues
+   - Spacing inconsistencies
+   - Typography problems (font sizes, weights)
+   - Color contrast issues
+   - Missing or broken elements
+   - Responsive design problems
 
-**Forms:**
-- React Hook Form validation
-- Submit button states
-- Error message display
-- Success feedback
+   Provide specific, actionable feedback.
+   EOF
+   ```
 
-## Tips for Effective Testing
+5. **Check console for errors**:
+   ```
+   mcp__chrome-devtools__list_console_messages(types: ["error", "warn"])
+   ```
 
-1. **Be systematic**: Test one feature at a time
-2. **Check console first**: Before AND after interactions
-3. **Analyze screenshots carefully**: Describe what you see
-4. **Get error details**: Don't just count errors, understand them
-5. **Track network**: API failures are common issues
-6. **Test edge cases**: Empty forms, invalid data
-7. **Verify error states**: Errors should display gracefully
-8. **Check loading states**: Async operations should show feedback
-9. **Document clearly**: Reproduction steps are critical
-10. **Prioritize issues**: Critical vs minor vs improvements
+6. **Report results to orchestrator**
+```
 
-## Example Invocation
+### Quick Self-Check (5-Point Validation)
 
-When user says: "I just implemented the user creation dialog"
+Agents should perform this quick check after any UI implementation:
 
-**Your internal process:**
-1. Recognize this needs browser testing (invoke browser-debugger Skill)
-2. Determine test scope: user creation dialog functionality
-3. Prepare comprehensive test instructions
-4. Invoke tester agent via Task tool
-5. Provide instructions to:
-   - Navigate to users page
-   - Click "Create User" button
-   - Take before/after screenshots
-   - Fill in form fields
-   - Test validation (empty, invalid)
-   - Submit form
-   - Verify user appears in table
-   - Check console for errors
-   - Check network for API call
-   - Report all findings
-6. Receive detailed report from agent
-7. Summarize findings for user
-8. Recommend next steps
+```markdown
+## Quick Self-Validation Checklist
 
-**Your response to user:**
+□ 1. Screenshot shows expected UI elements
+□ 2. No console errors (check: mcp__chrome-devtools__list_console_messages)
+□ 3. No network failures (check: mcp__chrome-devtools__list_network_requests)
+□ 4. Interactive elements respond correctly
+□ 5. Visual styling matches expectations
+```
 
-"I'll test the user creation dialog functionality in the browser to verify everything works correctly and check for any console errors or issues."
+---
 
-[Invoke tester via Task tool with detailed instructions]
+## Recipe 2: Design Fidelity Validation
 
-[After receiving report:]
+**Use Case**: Compare implementation against Figma design or design reference.
 
-"✅ Browser test completed successfully! The user creation dialog is working correctly. Here's what I verified:
+### Pattern: Design Reference → Implementation → Visual Diff
 
-**What Worked:**
-- Create User button opens the dialog
-- Form validation displays errors for empty fields
-- Invalid email format is caught
-- Successful submission adds user to table
-- Success toast notification appears
+```markdown
+## Design Fidelity Check
 
-**Console Check:**
-- No errors detected
-- No warnings present
+### Step 1: Capture Design Reference
 
-**Network Check:**
-- POST /api/users: 201 Created
-- Response time: 145ms
+**From Figma**:
+```
+# Use Figma MCP to export design
+mcp__figma__get_file_image(fileKey: "abc123", nodeId: "136-5051")
+# Save to: /tmp/design-reference.png
+```
 
-**Recommendation**: Ready to commit! The feature is working as expected with no console errors or network issues."
+**From URL**:
+```
+mcp__chrome-devtools__new_page(url: "https://figma.com/proto/...")
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/design-reference.png")
+```
 
-## Notes
+**From Local File**:
+```
+# Already have reference at: /path/to/design.png
+```
 
-- Always check if dev server is running before testing
-- Default to localhost:5173 for caremaster-tenant-frontend
-- Provide actionable, specific findings
-- Distinguish between critical bugs and minor issues
-- Give clear recommendations (DEPLOY / FIX / NEEDS WORK)
-- Be proactive: suggest testing after implementing features
+### Step 2: Capture Implementation
+
+```
+mcp__chrome-devtools__navigate_page(url: "http://localhost:5173/component")
+mcp__chrome-devtools__resize_page(width: 1440, height: 900)  # Match design viewport
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/implementation.png")
+```
+
+### Step 3: Visual Analysis with Vision Model
+
+```bash
+npx claudish --model qwen/qwen3-vl-32b-instruct --stdin --quiet <<EOF
+Compare these two UI screenshots and identify design fidelity issues:
+
+DESIGN REFERENCE: /tmp/design-reference.png
+IMPLEMENTATION: /tmp/implementation.png
+
+Analyze and report differences in:
+
+## Colors & Theming
+- Background colors (exact hex values)
+- Text colors (headings, body, muted)
+- Border and divider colors
+- Button/interactive element colors
+
+## Typography
+- Font families
+- Font sizes (px values)
+- Font weights (regular, medium, bold)
+- Line heights
+- Letter spacing
+
+## Spacing & Layout
+- Padding (top, right, bottom, left)
+- Margins between elements
+- Gap spacing in flex/grid
+- Container max-widths
+- Alignment (center, left, right)
+
+## Visual Elements
+- Border radius values
+- Box shadows (blur, spread, color)
+- Icon sizes and colors
+- Image aspect ratios
+
+## Component Structure
+- Missing elements
+- Extra elements
+- Wrong element order
+
+For EACH difference found, provide:
+1. Category (colors/typography/spacing/visual/structure)
+2. Severity (CRITICAL/MEDIUM/LOW)
+3. Expected value (from design)
+4. Actual value (from implementation)
+5. Specific Tailwind CSS fix
+
+Output as structured markdown.
+EOF
+```
+
+### Step 4: Generate Fix Recommendations
+
+Parse vision model output and create actionable fixes for ui-developer agent.
+```
+
+### Design Fidelity Scoring
+
+```markdown
+## Design Fidelity Score Card
+
+| Category | Score | Issues |
+|----------|-------|--------|
+| Colors & Theming | X/10 | [list] |
+| Typography | X/10 | [list] |
+| Spacing & Layout | X/10 | [list] |
+| Visual Elements | X/10 | [list] |
+| Responsive | X/10 | [list] |
+| **Overall** | **X/50** | |
+
+Assessment: PASS (≥40) | NEEDS WORK (30-39) | FAIL (<30)
+```
+
+---
+
+## Recipe 3: Interactive Element Testing
+
+**Use Case**: Verify buttons, forms, and interactive components work correctly.
+
+### Pattern: Snapshot → Interact → Verify → Report
+
+```markdown
+## Interactive Testing Flow
+
+### Step 1: Get Page Structure
+```
+mcp__chrome-devtools__take_snapshot()
+# Returns all elements with UIDs
+```
+
+### Step 2: Test Each Interactive Element
+
+**Button Test**:
+```
+# Before
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/before-click.png")
+
+# Click
+mcp__chrome-devtools__click(uid: "button-submit-123")
+
+# After (wait for response)
+mcp__chrome-devtools__wait_for(text: "Success", timeout: 5000)
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/after-click.png")
+
+# Check results
+mcp__chrome-devtools__list_console_messages(types: ["error"])
+mcp__chrome-devtools__list_network_requests(resourceTypes: ["fetch", "xhr"])
+```
+
+**Form Test**:
+```
+# Fill form
+mcp__chrome-devtools__fill_form(elements: [
+  { uid: "input-email", value: "test@example.com" },
+  { uid: "input-password", value: "SecurePass123!" }
+])
+
+# Submit
+mcp__chrome-devtools__click(uid: "button-submit")
+
+# Verify
+mcp__chrome-devtools__wait_for(text: "Welcome", timeout: 5000)
+```
+
+**Hover State Test**:
+```
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/before-hover.png")
+mcp__chrome-devtools__hover(uid: "button-primary")
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/after-hover.png")
+# Compare screenshots for hover state changes
+```
+
+### Step 3: Analyze Interaction Results
+
+Use vision model to compare before/after screenshots:
+```bash
+npx claudish --model google/gemini-2.5-flash --stdin --quiet <<EOF
+Compare these before/after screenshots and verify the interaction worked:
+
+BEFORE: /tmp/before-click.png
+AFTER: /tmp/after-click.png
+
+Expected behavior: [describe what should happen]
+
+Verify:
+1. Did the expected UI change occur?
+2. Are there any error states visible?
+3. Did loading states appear/disappear correctly?
+4. Is the final state correct?
+
+Report: PASS/FAIL with specific observations.
+EOF
+```
+```
+
+---
+
+## Recipe 4: Responsive Design Validation
+
+**Use Case**: Verify UI works across different screen sizes.
+
+### Pattern: Resize → Screenshot → Analyze
+
+```markdown
+## Responsive Testing
+
+### Breakpoints to Test
+
+| Breakpoint | Width | Description |
+|------------|-------|-------------|
+| Mobile | 375px | iPhone SE |
+| Mobile L | 428px | iPhone 14 Pro Max |
+| Tablet | 768px | iPad |
+| Desktop | 1280px | Laptop |
+| Desktop L | 1920px | Full HD |
+
+### Automated Responsive Check
+
+```bash
+#!/bin/bash
+# Test all breakpoints
+
+BREAKPOINTS=(375 428 768 1280 1920)
+URL="http://localhost:5173/your-route"
+
+for width in "${BREAKPOINTS[@]}"; do
+  echo "Testing ${width}px..."
+
+  # Resize and screenshot
+  mcp__chrome-devtools__resize_page(width: $width, height: 900)
+  mcp__chrome-devtools__take_screenshot(filePath: "/tmp/responsive-${width}.png")
+done
+```
+
+### Visual Analysis for Responsive Issues
+
+```bash
+npx claudish --model qwen/qwen3-vl-32b-instruct --stdin --quiet <<EOF
+Analyze these responsive screenshots for layout issues:
+
+MOBILE (375px): /tmp/responsive-375.png
+TABLET (768px): /tmp/responsive-768.png
+DESKTOP (1280px): /tmp/responsive-1280.png
+
+Check for:
+1. Text overflow or truncation
+2. Elements overlapping
+3. Improper stacking on mobile
+4. Touch targets too small (<44px)
+5. Hidden content that shouldn't be hidden
+6. Horizontal scroll issues
+7. Image scaling problems
+
+Report issues by breakpoint with specific CSS fixes.
+EOF
+```
+```
+
+---
+
+## Recipe 5: Accessibility Validation
+
+**Use Case**: Verify accessibility standards (WCAG 2.1 AA).
+
+### Pattern: Snapshot → Analyze → Check Contrast
+
+```markdown
+## Accessibility Check
+
+### Automated A11y Testing
+
+```
+# Get full accessibility tree
+mcp__chrome-devtools__take_snapshot(verbose: true)
+
+# Check for common issues:
+# - Missing alt text
+# - Missing ARIA labels
+# - Incorrect heading hierarchy
+# - Missing form labels
+```
+
+### Visual Contrast Analysis
+
+```bash
+npx claudish --model qwen/qwen3-vl-32b-instruct --stdin --quiet <<EOF
+Analyze this screenshot for accessibility issues:
+
+IMAGE: /tmp/implementation.png
+
+Check WCAG 2.1 AA compliance:
+
+1. **Color Contrast**
+   - Text contrast ratio (need 4.5:1 for normal, 3:1 for large)
+   - Interactive element contrast
+   - Focus indicator visibility
+
+2. **Visual Cues**
+   - Do links have underlines or other visual differentiation?
+   - Are error states clearly visible?
+   - Are required fields indicated?
+
+3. **Text Readability**
+   - Font size (minimum 16px for body)
+   - Line height (minimum 1.5)
+   - Line length (max 80 characters)
+
+4. **Touch Targets**
+   - Minimum 44x44px for interactive elements
+   - Adequate spacing between targets
+
+Report violations with severity and specific fixes.
+EOF
+```
+```
+
+---
+
+## Recipe 6: Console & Network Debugging
+
+**Use Case**: Investigate runtime errors and API issues.
+
+### Pattern: Monitor → Capture → Analyze
+
+```markdown
+## Debug Session
+
+### Real-Time Console Monitoring
+
+```
+# Get all console messages
+mcp__chrome-devtools__list_console_messages(includePreservedMessages: true)
+
+# Filter by type
+mcp__chrome-devtools__list_console_messages(types: ["error", "warn"])
+
+# Get specific error details
+mcp__chrome-devtools__get_console_message(msgid: 123)
+```
+
+### Network Request Analysis
+
+```
+# Get all requests
+mcp__chrome-devtools__list_network_requests()
+
+# Filter API calls only
+mcp__chrome-devtools__list_network_requests(resourceTypes: ["fetch", "xhr"])
+
+# Get failed request details
+mcp__chrome-devtools__get_network_request(reqid: 456)
+```
+
+### Error Pattern Analysis
+
+Common error patterns to look for:
+
+| Error Type | Pattern | Common Cause |
+|------------|---------|--------------|
+| React Error | "Cannot read property" | Missing null check |
+| React Error | "Invalid hook call" | Hook rules violation |
+| Network Error | "CORS" | Missing CORS headers |
+| Network Error | "401" | Auth token expired |
+| Network Error | "404" | Wrong API endpoint |
+| Network Error | "500" | Server error |
+```
+
+---
+
+## Integration with Agents
+
+### For Developer Agent
+
+After implementing any UI feature, the developer agent should:
+
+```markdown
+## Developer Self-Validation Protocol
+
+1. Save code changes
+2. Navigate to the page: `mcp__chrome-devtools__navigate_page`
+3. Take screenshot: `mcp__chrome-devtools__take_screenshot`
+4. Check console: `mcp__chrome-devtools__list_console_messages(types: ["error"])`
+5. Check network: `mcp__chrome-devtools__list_network_requests`
+6. Report: "Implementation verified - [X] console errors, [Y] network failures"
+```
+
+### For Reviewer Agent
+
+When reviewing UI changes:
+
+```markdown
+## Reviewer Validation Protocol
+
+1. Read the code changes
+2. Navigate to affected pages
+3. Take screenshots of all changed components
+4. Use vision model for visual analysis (if design reference available)
+5. Check console for new errors introduced
+6. Verify no regression in existing functionality
+7. Report: "Visual review complete - [findings]"
+```
+
+### For Tester Agent
+
+Comprehensive testing:
+
+```markdown
+## Tester Validation Protocol
+
+1. Navigate to test target
+2. Get page snapshot for element UIDs
+3. Execute test scenarios (interactions, forms, navigation)
+4. Capture before/after screenshots for each action
+5. Monitor console throughout
+6. Monitor network throughout
+7. Use vision model for visual regression detection
+8. Generate detailed test report
+```
+
+### For UI-Developer Agent
+
+After fixing UI issues:
+
+```markdown
+## UI-Developer Validation Protocol
+
+1. Apply CSS/styling fixes
+2. Take screenshot of fixed component
+3. Compare with design reference using vision model
+4. Verify fix doesn't break other viewports (responsive check)
+5. Check console for any styling-related errors
+6. Report: "Fix applied and verified - [before/after comparison]"
+```
+
+---
+
+## Quick Reference: Chrome DevTools MCP Tools
+
+### Navigation
+- `navigate_page` - Load URL or navigate back/forward/reload
+- `new_page` - Open new browser tab
+- `select_page` - Switch between tabs
+- `close_page` - Close a tab
+
+### Inspection
+- `take_snapshot` - Get DOM structure with element UIDs (for interaction)
+- `take_screenshot` - Capture visual state (PNG/JPEG/WebP)
+- `list_pages` - List all open tabs
+
+### Interaction
+- `click` - Click element by UID
+- `fill` - Type into input by UID
+- `fill_form` - Fill multiple form fields
+- `hover` - Hover over element
+- `drag` - Drag and drop
+- `press_key` - Keyboard input
+- `handle_dialog` - Accept/dismiss alerts
+
+### Console & Network
+- `list_console_messages` - Get console output
+- `get_console_message` - Get message details
+- `list_network_requests` - Get network activity
+- `get_network_request` - Get request details
+
+### Advanced
+- `evaluate_script` - Run JavaScript in page
+- `resize_page` - Change viewport size
+- `emulate` - CPU throttling, network conditions, geolocation
+- `performance_start_trace` / `performance_stop_trace` - Performance profiling
+
+---
+
+## Example: Complete Validation Flow
+
+```markdown
+## Full Validation Example: User Profile Component
+
+### Setup
+```
+URL: http://localhost:5173/profile
+Component: UserProfileCard
+Design Reference: /designs/profile-card.png
+```
+
+### Step 1: Capture Implementation
+```
+mcp__chrome-devtools__navigate_page(url: "http://localhost:5173/profile")
+mcp__chrome-devtools__resize_page(width: 1440, height: 900)
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/profile-impl.png")
+```
+
+### Step 2: Design Fidelity Check (Qwen VL)
+```bash
+npx claudish --model qwen/qwen3-vl-32b-instruct --stdin --quiet <<EOF
+Compare design vs implementation:
+DESIGN: /designs/profile-card.png
+IMPLEMENTATION: /tmp/profile-impl.png
+
+Report all visual differences with severity and Tailwind CSS fixes.
+EOF
+```
+
+### Step 3: Interactive Testing
+```
+# Get elements
+mcp__chrome-devtools__take_snapshot()
+
+# Test edit button
+mcp__chrome-devtools__click(uid: "edit-profile-btn")
+mcp__chrome-devtools__wait_for(text: "Edit Profile", timeout: 3000)
+mcp__chrome-devtools__take_screenshot(filePath: "/tmp/profile-edit-modal.png")
+```
+
+### Step 4: Console & Network Check
+```
+mcp__chrome-devtools__list_console_messages(types: ["error", "warn"])
+mcp__chrome-devtools__list_network_requests(resourceTypes: ["fetch"])
+```
+
+### Step 5: Responsive Check (Gemini Flash - fast)
+```bash
+for width in 375 768 1280; do
+  mcp__chrome-devtools__resize_page(width: $width, height: 900)
+  mcp__chrome-devtools__take_screenshot(filePath: "/tmp/profile-${width}.png")
+done
+
+npx claudish --model google/gemini-2.5-flash --stdin --quiet <<EOF
+Check responsive layout issues across these screenshots:
+/tmp/profile-375.png (mobile)
+/tmp/profile-768.png (tablet)
+/tmp/profile-1280.png (desktop)
+EOF
+```
+
+### Step 6: Generate Report
+```
+## Validation Report: UserProfileCard
+
+### Design Fidelity: 45/50 (PASS)
+- Colors: 10/10 ✓
+- Typography: 9/10 (font-weight mismatch on heading)
+- Spacing: 8/10 (padding-bottom needs increase)
+- Visual: 10/10 ✓
+- Responsive: 8/10 (mobile text truncation)
+
+### Interactive Testing: PASS
+- Edit button: ✓ Opens modal
+- Save button: ✓ Saves changes
+- Cancel button: ✓ Closes modal
+
+### Console: CLEAN
+- Errors: 0
+- Warnings: 0
+
+### Network: HEALTHY
+- GET /api/user: 200 OK (145ms)
+- PUT /api/user: 200 OK (234ms)
+
+### Recommendation: READY TO DEPLOY
+Minor fixes recommended but not blocking.
+```
+```
+
+---
+
+## Sources
+
+Research and best practices compiled from:
+- [OpenRouter Models](https://openrouter.ai/models) - Vision model pricing and capabilities
+- [Browser-Use Framework](https://browser-use.com/) - Browser automation patterns
+- [Qwen VL Documentation](https://openrouter.ai/qwen) - Visual language model specs
+- [Amazon Nova Act](https://aws.amazon.com/blogs/aws/build-reliable-ai-agents-for-ui-workflow-automation-with-amazon-nova-act-now-generally-available/) - Agent validation patterns
+- [BrowserStack Visual Testing](https://www.browserstack.com/guide/how-ai-in-visual-testing-is-evolving) - AI visual testing evolution
+- [DataCamp VLM Comparison](https://www.datacamp.com/blog/top-vision-language-models) - Vision model benchmarks

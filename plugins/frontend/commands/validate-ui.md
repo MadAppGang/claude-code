@@ -22,6 +22,78 @@ This validation workflow is also used within the `/implement` command's Phase 5 
 
 **Multi-agent orchestration command** - coordinate between designer agent (reviews UI fidelity), ui-developer agent (fixes UI issues), and optional external AI models (GPT-5 Codex, Grok) for independent expert review via Claudish CLI to iteratively validate and fix UI implementation against design references.
 
+### PRELIMINARY: Check Required Dependencies
+
+**Before starting validation, check if Chrome DevTools MCP is available for automated UI verification.**
+
+#### Check: Chrome DevTools MCP
+
+Try to detect if chrome-devtools MCP is available by attempting to list browser pages.
+
+**If Chrome DevTools MCP is NOT available:**
+
+Show this message to the user:
+
+```markdown
+## Chrome DevTools MCP Required
+
+This command requires **Chrome DevTools MCP** for automated UI validation:
+- Capture implementation screenshots
+- Compare against design references
+- Inspect DOM structure and computed CSS
+- Run automated visual regression tests
+
+### Without Chrome DevTools MCP, this command cannot function.
+
+### Easy Installation (Recommended)
+
+Install `claudeup` for easy plugin and MCP management:
+
+\`\`\`bash
+npm install -g claudeup@latest
+claudeup mcp add chrome-devtools
+\`\`\`
+
+### Manual Installation
+
+Add to your `.claude.json` or project settings:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+\`\`\`
+
+### After Installation
+
+Restart Claude Code to load the new MCP server, then run `/validate-ui` again.
+```
+
+Use AskUserQuestion:
+```
+Chrome DevTools MCP is required for UI validation but is not available.
+
+Options:
+- "Cancel - I'll install Chrome DevTools MCP first" - Recommended, enables full functionality
+- "Show me the installation steps" - Display installation instructions again
+```
+
+**IMPORTANT**: If Chrome DevTools MCP is not available, this command CANNOT proceed.
+Unlike other commands that can gracefully degrade, UI validation requires browser automation.
+
+**If Chrome DevTools MCP IS available:**
+
+Log: "✓ Chrome DevTools MCP available - proceeding with UI validation"
+
+Continue to Phase 1.
+
+---
+
 ### Phase 1: Gather User Inputs
 
 Ask the user directly for the following information:

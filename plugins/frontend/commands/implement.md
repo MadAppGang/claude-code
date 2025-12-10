@@ -133,6 +133,169 @@ architecture planning to investigate existing patterns and find the best integra
 
 ---
 
+### PRELIMINARY 2: Check Required Dependencies
+
+**Check for Chrome DevTools MCP and OpenRouter API key before starting.**
+
+These dependencies enable powerful features but are not strictly required:
+
+#### Check 1: Chrome DevTools MCP (for UI Validation)
+
+Try to detect if chrome-devtools MCP is available by checking if its tools are accessible.
+
+**If Chrome DevTools MCP is NOT available:**
+
+```markdown
+## Chrome DevTools MCP Not Available
+
+For **automated UI verification** (design fidelity validation, screenshots, browser testing),
+this command uses the Chrome DevTools MCP server.
+
+### What You'll Miss Without It
+- Automated design fidelity validation (PHASE 2.5)
+- Screenshot comparison against Figma designs
+- Browser-based UI testing
+- DOM inspection and computed CSS analysis
+
+### Easy Installation (Recommended)
+
+Install `claudeup` for easy plugin and MCP management:
+
+\`\`\`bash
+npm install -g claudeup@latest
+claudeup mcp add chrome-devtools
+\`\`\`
+
+### Manual Installation
+
+Add to your `.claude.json` or project settings:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"]
+    }
+  }
+}
+\`\`\`
+
+### Continue Without It?
+
+Implementation will work, but **UI validation will be skipped**.
+You'll need to manually verify visual changes match your designs.
+```
+
+Use AskUserQuestion to ask:
+```
+Chrome DevTools MCP is not available.
+
+Options:
+- "Continue without UI verification (Recommended)" - Skip automated UI checks, verify manually
+- "Cancel and install MCP first" - I'll set up the MCP and restart
+```
+
+Store result: `CHROME_MCP_AVAILABLE = true/false`
+
+#### Check 2: OpenRouter API Key (for Multi-Model Code Review)
+
+Check if `OPENROUTER_API_KEY` environment variable is set:
+
+```bash
+if [[ -z "${OPENROUTER_API_KEY}" ]]; then
+  echo "OPENROUTER_API_KEY not set"
+else
+  echo "OpenRouter available"
+fi
+```
+
+Also check if Claudish CLI is available:
+```bash
+npx claudish --version 2>/dev/null || echo "Claudish not found"
+```
+
+**If OpenRouter API key is NOT set:**
+
+```markdown
+## OpenRouter API Key Not Configured
+
+For **multi-model parallel code review** (3-5x faster, diverse AI perspectives),
+this command uses external AI models via OpenRouter.
+
+### What You'll Miss Without It
+- Parallel reviews from multiple AI models (Grok, Gemini, GPT-5, DeepSeek)
+- Consensus analysis highlighting issues found by multiple models
+- 3-5x faster review execution (parallel vs sequential)
+- Diverse perspectives catch more bugs
+
+### Getting Your API Key
+
+1. Sign up at **https://openrouter.ai** (free account)
+2. Get your API key from the dashboard
+3. Set the environment variable:
+
+\`\`\`bash
+export OPENROUTER_API_KEY="your-api-key-here"
+\`\`\`
+
+### Cost Information
+
+OpenRouter is **affordable** and has **FREE models**:
+
+| Model | Cost | Use Case |
+|-------|------|----------|
+| openrouter/polaris-alpha | **FREE** | Testing |
+| x-ai/grok-code-fast-1 | ~$0.10/review | Fast coding |
+| google/gemini-2.5-flash | ~$0.05/review | Affordable |
+
+**Typical code review: $0.20 - $0.80** for 3-4 external models
+
+### Easy Setup (Recommended)
+
+\`\`\`bash
+npm install -g claudeup@latest
+claudeup config set OPENROUTER_API_KEY your-api-key
+\`\`\`
+
+### Continue Without It?
+
+Implementation will work with **embedded Claude Sonnet only** for code reviews.
+Still good, just not as comprehensive as multi-model review.
+```
+
+Use AskUserQuestion to ask:
+```
+OpenRouter API key is not configured for multi-model review.
+
+Options:
+- "Continue with Claude Sonnet only (Recommended)" - Single-model review, still comprehensive
+- "Cancel and configure API key first" - I'll set up OpenRouter and restart
+```
+
+Store result: `OPENROUTER_AVAILABLE = true/false`
+
+#### Dependency Summary
+
+Log dependency status and adapt workflow:
+
+```markdown
+## Dependency Check Complete
+
+| Dependency | Status | Workflow Impact |
+|------------|--------|-----------------|
+| Chrome DevTools MCP | [✓/✗] | [Full UI validation / UI validation skipped] |
+| OpenRouter API Key | [✓/✗] | [Multi-model review / Embedded Claude only] |
+
+Proceeding with implementation...
+```
+
+**Workflow Adaptation:**
+- `CHROME_MCP_AVAILABLE=false` → Skip PHASE 2.5 (Design Fidelity Validation)
+- `OPENROUTER_AVAILABLE=false` → Use single embedded Claude reviewer in PHASE 3.5
+
+---
+
 ### STEP 0: Initialize Implementation Session (MANDATORY FIRST STEP)
 
 **BEFORE anything else, create a unique session for this implementation run.**

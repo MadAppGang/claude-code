@@ -159,6 +159,108 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
     </rule>
   </delegation_rules>
 
+  <dependency_check>
+    <title>PRELIMINARY: Check OpenRouter API Key</title>
+    <description>
+      Before starting the review, check if OpenRouter API key is configured for multi-model review.
+      This enables parallel execution with multiple AI models for more comprehensive code review.
+    </description>
+
+    <check name="OpenRouter API Key">
+      <how_to_check>
+        ```bash
+        # Check if OPENROUTER_API_KEY is set
+        if [[ -z "${OPENROUTER_API_KEY}" ]]; then
+          echo "OPENROUTER_API_KEY not set"
+        else
+          echo "OpenRouter available"
+        fi
+
+        # Also check Claudish availability
+        npx claudish --version 2>/dev/null || echo "Claudish not found"
+        ```
+      </how_to_check>
+
+      <if_not_available>
+        Show this message to the user:
+
+        ```markdown
+        ## OpenRouter API Key Not Configured
+
+        For **multi-model parallel code review** (3-5x faster, diverse AI perspectives),
+        this command uses external AI models via OpenRouter.
+
+        ### Benefits of Multi-Model Review
+        - Run multiple AI models in parallel (Grok, Gemini, GPT-5, DeepSeek)
+        - Consensus analysis highlights issues flagged by multiple models
+        - 3-5x faster than sequential execution
+        - Diverse perspectives catch more bugs
+
+        ### Getting Your API Key
+
+        1. Sign up at **https://openrouter.ai** (free account)
+        2. Get your API key from the dashboard
+        3. Set the environment variable:
+
+        \`\`\`bash
+        export OPENROUTER_API_KEY="your-api-key-here"
+        \`\`\`
+
+        ### Cost Information
+
+        OpenRouter is **affordable** and has **FREE models**:
+
+        | Model | Cost | Notes |
+        |-------|------|-------|
+        | openrouter/polaris-alpha | **FREE** | Good for testing |
+        | x-ai/grok-code-fast-1 | ~$0.10/review | Fast coding specialist |
+        | google/gemini-2.5-flash | ~$0.05/review | Fast and affordable |
+
+        **Typical code review: $0.20 - $0.80** for 3-4 external models
+
+        ### Easy Setup (Recommended)
+
+        \`\`\`bash
+        npm install -g claudeup@latest
+        claudeup config set OPENROUTER_API_KEY your-api-key
+        \`\`\`
+
+        ### Continue Without It?
+
+        You can still use this command with **embedded Claude Sonnet only**.
+        It's comprehensive but misses the benefits of multi-model consensus.
+        ```
+
+        Use AskUserQuestion:
+        ```
+        OpenRouter API key is not configured.
+
+        What would you like to do?
+
+        Options:
+        - "Continue with embedded Claude only" - Single-model review (still comprehensive!)
+        - "Cancel and configure API key first" - I'll set up OpenRouter and restart
+        ```
+      </if_not_available>
+
+      <workflow_adaptation>
+        - If OpenRouter NOT available: Skip external model selection in Phase 2, use embedded only
+        - If OpenRouter available: Proceed with full multi-model selection options
+      </workflow_adaptation>
+    </check>
+
+    <summary>
+      After dependency check, log status:
+      ```
+      Dependency Check:
+      - OpenRouter API Key: [✓ Configured / ✗ Not configured]
+      - Claudish CLI: [✓ Available / ✗ Not available]
+
+      Mode: [Multi-model review / Embedded Claude only]
+      ```
+    </summary>
+  </dependency_check>
+
   <phases>
     <phase number="0" name="Session Initialization">
       <objective>
