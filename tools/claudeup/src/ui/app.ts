@@ -6,7 +6,30 @@ import { createPluginsScreen } from './screens/plugins.js';
 import { createStatusLineScreen } from './screens/statusline.js';
 
 // Version from package.json
-export const VERSION = '0.4.2';
+export const VERSION = '0.6.2';
+
+// Suppress neo-blessed terminfo Setulc errors on exit
+function suppressTerminfoErrors(): void {
+  const filter = (chunk: unknown): boolean => {
+    const str = typeof chunk === 'string' ? chunk : String(chunk);
+    return str.includes('xterm-256color') || str.includes('Setulc') || str.includes('stack.push') || str.includes('stack.pop');
+  };
+
+  const origStdoutWrite = process.stdout.write.bind(process.stdout);
+  const origStderrWrite = process.stderr.write.bind(process.stderr);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (process.stdout as any).write = (chunk: any, ...args: any[]): boolean => {
+    if (filter(chunk)) return true;
+    return origStdoutWrite(chunk, ...args);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (process.stderr as any).write = (chunk: any, ...args: any[]): boolean => {
+    if (filter(chunk)) return true;
+    return origStderrWrite(chunk, ...args);
+  };
+}
 
 export interface AppState {
   screen: blessed.Screen;
@@ -31,29 +54,13 @@ export function createApp(): AppState {
   // Suppress neo-blessed terminfo parsing warnings (Setulc capability)
   // This warning occurs when the terminal supports underline colors but
   // neo-blessed can't parse the terminfo capability format
-  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
-  let suppressOutput = true;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (process.stdout as any).write = (chunk: any, ...args: any[]): boolean => {
-    if (suppressOutput) {
-      const str = typeof chunk === 'string' ? chunk : chunk.toString();
-      if (str.includes('xterm-256color') || str.includes('Setulc') || str.includes('stack.push')) {
-        return true;
-      }
-    }
-    return originalStdoutWrite(chunk, ...args);
-  };
+  suppressTerminfoErrors();
 
   const screen = blessed.screen({
     smartCSR: true,
     title: 'claudeup',
     fullUnicode: true,
   });
-
-  // Restore stdout after screen initialization
-  suppressOutput = false;
-  process.stdout.write = originalStdoutWrite;
 
   const state: AppState = {
     screen,
