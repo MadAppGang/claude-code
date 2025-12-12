@@ -7,7 +7,7 @@
 	},
 	"metadata": {
 		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development with LLM performance tracking",
-		"version": "4.6.0",
+		"version": "4.7.0",
 		"pluginRoot": "./plugins"
 	},
 	"plugins": [
@@ -38,8 +38,8 @@
 		{
 			"name": "code-analysis",
 			"source": "./plugins/code-analysis",
-			"description": "Deep code investigation and analysis toolkit. Features the codebase-detective agent for understanding code patterns, relationships, and architecture across complex codebases.",
-			"version": "1.3.3",
+			"description": "Deep code investigation and analysis toolkit. Features the codebase-detective agent with claude-context MCP validation (NEW v1.4.0), semantic search preference, and setup guidance for large codebase investigation.",
+			"version": "1.4.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -86,8 +86,8 @@
 		{
 			"name": "orchestration",
 			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), multi-model validation (Grok/Gemini/GPT-5), LLM performance tracking (NEW), quality gates, TDD loops, TodoWrite phase tracking, and comprehensive error recovery. Battle-tested patterns from 100+ days production use.",
-			"version": "0.2.0",
+			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery (claudish --top-models/--free), session-based workspaces, interactive model selection (AskUserQuestion), LLM performance tracking, quality gates, TDD loops, and comprehensive error recovery. Battle-tested patterns from 100+ days production use.",
+			"version": "0.3.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

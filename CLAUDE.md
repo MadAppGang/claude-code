@@ -747,14 +747,26 @@ Include marketplace in project settings (requires folder trust):
 **Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
 
 **Current Versions:**
-- Orchestration Plugin: **v0.2.0** (2025-12-09)
+- Orchestration Plugin: **v0.3.0** (2025-12-12)
 - Frontend Plugin: **v3.11.0** (2025-12-09)
-- Code Analysis Plugin: **v1.3.3** (2025-11-26)
+- Code Analysis Plugin: **v1.4.0** (2025-12-12)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.1.0** (2025-12-09)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (LLM Performance Tracking v0.2.0):**
+**Latest Changes (Multi-Model Validation v0.3.0 & Detective v1.4.0):**
+- ✅ **NEW**: Dynamic model discovery via `claudish --top-models` and `claudish --free`
+- ✅ **Session-Based Workspaces**: Unique `/tmp/review-{timestamp}-{hash}` directories
+- ✅ **Interactive Model Selection**: AskUserQuestion with multiSelect for model choice
+- ✅ **Free Model Support**: Recommended free models (qwen3-coder, devstral-2512, qwen3-235b)
+- ✅ **Pattern 0**: Session setup and model discovery workflow
+- ✅ **Pattern 8**: Data-driven model selection based on historical performance
+- ✅ **Detective Claude-Context Validation**: Checks if MCP is installed, guides setup
+- ✅ **Updated Plugins**:
+  - Orchestration v0.3.0 - multi-model-validation skill v3.0
+  - Code Analysis v1.4.0 - detective agent with claude-context validation
+
+**Previous Changes (LLM Performance Tracking v0.2.0):**
 - ✅ **NEW**: LLM Performance Tracking across all multi-model plugins
 - ✅ **Persistent Storage**: `ai-docs/llm-performance.json` tracks all external model executions
 - ✅ **Per-Model Metrics**: Execution time, issues found, quality score, success rate
@@ -795,16 +807,16 @@ Include marketplace in project settings (requires folder trust):
 - ✅ **6,774 lines** of comprehensive orchestration knowledge
 
 **Git Tags:**
-- Orchestration: `plugins/orchestration/v0.2.0`
+- Orchestration: `plugins/orchestration/v0.3.0`
 - Frontend: `plugins/frontend/v3.11.0`
 - Bun: `plugins/bun/v1.5.2`
-- Code Analysis: `plugins/code-analysis/v1.3.3`
+- Code Analysis: `plugins/code-analysis/v1.4.0`
 - Agent Development: `plugins/agentdev/v1.1.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 ---
 
 **Maintained by:** Jack Rudenko @ MadAppGang
-**Last Updated:** December 9, 2025
-**Version:** 5 plugins (Orchestration v0.2.0, Frontend v3.11.0, Code Analysis v1.3.3, Bun Backend v1.5.2, Agent Development v1.1.0)
+**Last Updated:** December 12, 2025
+**Version:** 5 plugins (Orchestration v0.3.0, Frontend v3.11.0, Code Analysis v1.4.0, Bun Backend v1.5.2, Agent Development v1.1.0)
 - do not use hardcoded path in code, docs, comments or any other files

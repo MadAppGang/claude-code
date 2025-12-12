@@ -1,15 +1,15 @@
 ---
 name: multi-model-validation
-description: Run multiple AI models in parallel for 3-5x speedup with performance statistics tracking. Use when validating with Grok, Gemini, GPT-5, DeepSeek, or Claudish proxy for code review, consensus analysis, or multi-expert validation. Includes Pattern 7 for tracking model execution times, quality scores, and generating recommendations for slow/failing models. Trigger keywords - "grok", "gemini", "gpt-5", "deepseek", "claudish", "multiple models", "parallel review", "external AI", "consensus", "multi-model", "model performance", "statistics".
-version: 0.2.0
-tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai, statistics, performance]
-keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter, statistics, performance, quality-score, execution-time]
+description: Run multiple AI models in parallel for 3-5x speedup with performance statistics tracking. Use when validating with Grok, Gemini, GPT-5, DeepSeek, or Claudish proxy for code review, consensus analysis, or multi-expert validation. Includes dynamic model discovery via `claudish --top-models` and `claudish --free`, session-based workspaces, and Pattern 7-8 for tracking model performance and generating data-driven recommendations. Trigger keywords - "grok", "gemini", "gpt-5", "deepseek", "claudish", "multiple models", "parallel review", "external AI", "consensus", "multi-model", "model performance", "statistics", "free models".
+version: 3.0.0
+tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai, statistics, performance, free-models]
+keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter, statistics, performance, quality-score, execution-time, free-models, top-models]
 ---
 
 # Multi-Model Validation
 
-**Version:** 2.0.0
-**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy with performance statistics
+**Version:** 3.0.0
+**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy with dynamic model discovery, session-based workspaces, and performance statistics
 **Status:** Production Ready
 
 ## Overview
@@ -20,19 +20,228 @@ Multi-model validation is the practice of running multiple AI models (Grok, Gemi
 - **Consensus-based prioritization** (issues flagged by all models are CRITICAL)
 - **Diverse perspectives** (different models catch different issues)
 - **Cost transparency** (know before you spend)
-- **Performance tracking** (NEW v2.0) - identify slow/failing models for future exclusion
+- **Free model discovery** (NEW v3.0) - find high-quality free models from trusted providers
+- **Performance tracking** - identify slow/failing models for future exclusion
+- **Data-driven recommendations** - optimize model shortlist based on historical performance
 
-The key innovation is the **4-Message Pattern**, which ensures true parallel execution by using only Task tool calls in a single message, avoiding the sequential execution trap caused by mixing tool types.
+**Key Innovations:**
 
-**Pattern 7 (NEW in v2.0)** adds statistics collection and analysis to help users:
-- Track execution time per model
-- Calculate quality scores (issues in consensus %)
-- Identify slow models (2x+ average)
-- Get recommendations for shortlist optimization
+1. **Dynamic Model Discovery** (NEW v3.0) - Use `claudish --top-models` and `claudish --free` to get current available models with pricing
+2. **Session-Based Workspaces** (NEW v3.0) - Each validation session gets a unique directory to prevent conflicts
+3. **4-Message Pattern** - Ensures true parallel execution by using only Task tool calls in a single message
+4. **Pattern 7-8** - Statistics collection and data-driven model recommendations
 
 This skill is extracted from the `/review` command and generalized for use in any multi-model workflow.
 
 ## Core Patterns
+
+### Pattern 0: Session Setup and Model Discovery (NEW v3.0)
+
+**Purpose:** Create isolated session workspace and discover available models dynamically.
+
+**Why Session-Based Workspaces:**
+
+Using a fixed directory like `ai-docs/reviews/` causes problems:
+- ❌ Multiple sessions overwrite each other's files
+- ❌ Stale data from previous sessions pollutes results
+- ❌ Hard to track which files belong to which session
+
+Instead, create a **unique session directory** for each validation:
+
+```bash
+# Generate unique session ID
+SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
+SESSION_DIR="/tmp/${SESSION_ID}"
+
+# Create session workspace
+mkdir -p "$SESSION_DIR"
+
+# Export for use by agents
+export SESSION_ID SESSION_DIR
+
+echo "Session: $SESSION_ID"
+echo "Directory: $SESSION_DIR"
+
+# Example output:
+# Session: review-20251212-143052-a3f2
+# Directory: /tmp/review-20251212-143052-a3f2
+```
+
+**Benefits:**
+- ✅ Each session is isolated (no cross-contamination)
+- ✅ Easy cleanup (`rm -rf $SESSION_DIR` when done)
+- ✅ Session ID can be used for tracking in statistics
+- ✅ Parallel sessions don't conflict
+
+---
+
+**Dynamic Model Discovery:**
+
+**NEVER hardcode model lists.** Models change frequently - new ones appear, old ones deprecate, pricing updates. Instead, use `claudish` to get current available models:
+
+```bash
+# Get top paid models (best value for money)
+claudish --top-models
+
+# Example output:
+#   google/gemini-3-pro-preview    Google     $7.00/1M   1048K   🔧 🧠 👁️
+#   openai/gpt-5.1-codex           Openai     $5.63/1M   400K    🔧 🧠 👁️
+#   x-ai/grok-code-fast-1          X-ai       $0.85/1M   256K    🔧 🧠
+#   minimax/minimax-m2             Minimax    $0.64/1M   262K    🔧 🧠
+#   z-ai/glm-4.6                   Z-ai       $1.07/1M   202K    🔧 🧠
+#   qwen/qwen3-vl-235b-a22b-ins... Qwen       $0.70/1M   262K    🔧    👁️
+
+# Get free models from trusted providers
+claudish --free
+
+# Example output:
+#   google/gemini-2.0-flash-exp:free  Google     FREE      1049K   ✓ · ✓
+#   mistralai/devstral-2512:free      Mistralai  FREE      262K    ✓ · ·
+#   qwen/qwen3-coder:free             Qwen       FREE      262K    ✓ · ·
+#   qwen/qwen3-235b-a22b:free         Qwen       FREE      131K    ✓ ✓ ·
+#   openai/gpt-oss-120b:free          Openai     FREE      131K    ✓ ✓ ·
+```
+
+**Recommended Free Models for Code Review:**
+
+| Model | Provider | Context | Capabilities | Why Good |
+|-------|----------|---------|--------------|----------|
+| `qwen/qwen3-coder:free` | Qwen | 262K | Tools ✓ | Coding-specialized, large context |
+| `mistralai/devstral-2512:free` | Mistral | 262K | Tools ✓ | Dev-focused, excellent for code |
+| `qwen/qwen3-235b-a22b:free` | Qwen | 131K | Tools ✓ Reasoning ✓ | Massive 235B model, reasoning |
+
+**Model Selection Flow:**
+
+```
+1. Load Historical Performance (if exists)
+   → Read ai-docs/llm-performance.json
+   → Get avg speed, quality, success rate per model
+
+2. Discover Available Models
+   → Run: claudish --top-models (paid)
+   → Run: claudish --free (free tier)
+
+3. Merge with Historical Data
+   → Add performance metrics to model list
+   → Flag: "⚡ Fast", "🎯 High Quality", "⚠️ Slow", "❌ Unreliable"
+
+4. Present to User (AskUserQuestion)
+   → Show: Model | Provider | Price | Avg Speed | Quality
+   → Suggest internal reviewer (ALWAYS)
+   → Highlight top performers
+   → Include 1-2 free models for comparison
+
+5. User Selects Models
+   → Minimum: 1 internal + 1 external
+   → Recommended: 1 internal + 2-3 external
+```
+
+**Interactive Model Selection (AskUserQuestion with multiSelect):**
+
+**CRITICAL:** Use AskUserQuestion tool with `multiSelect: true` to let users choose models interactively. This provides a better UX than just showing recommendations.
+
+```typescript
+// Use AskUserQuestion to let user select models
+AskUserQuestion({
+  questions: [{
+    question: "Which external models should validate your code? (Internal Claude reviewer always included)",
+    header: "Models",
+    multiSelect: true,
+    options: [
+      // Top paid (from claudish --top-models + historical data)
+      {
+        label: "x-ai/grok-code-fast-1 ⚡",
+        description: "$0.85/1M | Quality: 87% | Avg: 42s | Fast + accurate"
+      },
+      {
+        label: "google/gemini-3-pro-preview",
+        description: "$7.00/1M | Quality: 91% | Avg: 55s | High accuracy"
+      },
+      // Free models (from claudish --free)
+      {
+        label: "qwen/qwen3-coder:free 🆓",
+        description: "FREE | Quality: 82% | 262K context | Coding-specialized"
+      },
+      {
+        label: "mistralai/devstral-2512:free 🆓",
+        description: "FREE | 262K context | Dev-focused, new model"
+      }
+    ]
+  }]
+})
+```
+
+**Remember Selection for Session:**
+
+Store the user's model selection in the session directory so it persists throughout the validation:
+
+```bash
+# After user selects models, save to session
+save_session_models() {
+  local session_dir="$1"
+  shift
+  local models=("$@")
+
+  # Always include internal reviewer
+  echo "claude-embedded" > "$session_dir/selected-models.txt"
+
+  # Add user-selected models
+  for model in "${models[@]}"; do
+    echo "$model" >> "$session_dir/selected-models.txt"
+  done
+
+  echo "Session models saved to $session_dir/selected-models.txt"
+}
+
+# Load session models for subsequent operations
+load_session_models() {
+  local session_dir="$1"
+  cat "$session_dir/selected-models.txt"
+}
+
+# Usage:
+# After AskUserQuestion returns selected models
+save_session_models "$SESSION_DIR" "x-ai/grok-code-fast-1" "qwen/qwen3-coder:free"
+
+# Later in the session, retrieve the selection
+MODELS=$(load_session_models "$SESSION_DIR")
+```
+
+**Session Model Memory Structure:**
+
+```
+$SESSION_DIR/
+├── selected-models.txt    # User's model selection (persists for session)
+├── code-context.md        # Code being reviewed
+├── claude-review.md       # Internal review
+├── grok-review.md         # External review (if selected)
+├── qwen-coder-review.md   # External review (if selected)
+└── consolidated-review.md # Final consolidated review
+```
+
+**Why Remember the Selection:**
+
+1. **Re-runs**: If validation needs to be re-run, use same models
+2. **Consistency**: All phases of validation use identical model set
+3. **Audit trail**: Know which models produced which results
+4. **Cost tracking**: Accurate cost attribution per session
+
+**Always Include Internal Reviewer:**
+
+```
+BEST PRACTICE: Always run internal Claude reviewer alongside external models.
+
+Why?
+✓ FREE (embedded Claude, no API costs)
+✓ Fast baseline (usually fastest)
+✓ Provides comparison point
+✓ Works even if ALL external models fail
+✓ Consistent behavior (same model every time)
+
+The internal reviewer should NEVER be optional - it's your safety net.
+```
+
+---
 
 ### Pattern 1: The 4-Message Pattern (MANDATORY)
 
@@ -78,35 +287,42 @@ Message 4: Present Results
 **Example: 5-Model Parallel Code Review**
 
 ```
-Message 1: Preparation
-  Bash: mkdir -p ai-docs/reviews
-  Bash: git diff > ai-docs/code-review-context.md
-  Bash: which claudish (check if installed)
+Message 1: Preparation (Session Setup + Model Discovery)
+  # Create unique session workspace
+  Bash: SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
+  Bash: SESSION_DIR="/tmp/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
+  Bash: git diff > "$SESSION_DIR/code-context.md"
 
-Message 2: Parallel Execution
+  # Discover available models
+  Bash: claudish --top-models  # See paid options
+  Bash: claudish --free        # See free options
+
+  # User selects models via AskUserQuestion (see Pattern 0)
+
+Message 2: Parallel Execution (ONLY Task calls - single message)
   Task: senior-code-reviewer
-    Prompt: "Review ai-docs/code-review-context.md for security issues.
-             Write detailed review to ai-docs/reviews/claude-review.md
+    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
+             Write detailed review to $SESSION_DIR/claude-review.md
              Return only brief summary."
   ---
   Task: codex-code-reviewer PROXY_MODE: x-ai/grok-code-fast-1
-    Prompt: "Review ai-docs/code-review-context.md for security issues.
-             Write detailed review to ai-docs/reviews/grok-review.md
+    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
+             Write detailed review to $SESSION_DIR/grok-review.md
              Return only brief summary."
   ---
-  Task: codex-code-reviewer PROXY_MODE: google/gemini-2.5-flash
-    Prompt: "Review ai-docs/code-review-context.md for security issues.
-             Write detailed review to ai-docs/reviews/gemini-review.md
+  Task: codex-code-reviewer PROXY_MODE: qwen/qwen3-coder:free
+    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
+             Write detailed review to $SESSION_DIR/qwen-coder-review.md
              Return only brief summary."
   ---
-  Task: codex-code-reviewer PROXY_MODE: openai/gpt-5-codex
-    Prompt: "Review ai-docs/code-review-context.md for security issues.
-             Write detailed review to ai-docs/reviews/gpt5-review.md
+  Task: codex-code-reviewer PROXY_MODE: openai/gpt-5.1-codex
+    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
+             Write detailed review to $SESSION_DIR/gpt5-review.md
              Return only brief summary."
   ---
-  Task: codex-code-reviewer PROXY_MODE: deepseek/deepseek-coder
-    Prompt: "Review ai-docs/code-review-context.md for security issues.
-             Write detailed review to ai-docs/reviews/deepseek-review.md
+  Task: codex-code-reviewer PROXY_MODE: mistralai/devstral-2512:free
+    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
+             Write detailed review to $SESSION_DIR/devstral-review.md
              Return only brief summary."
 
   All 5 models execute simultaneously (5x parallelism!)
@@ -116,11 +332,11 @@ Message 3: Auto-Consolidation
 
   Task: senior-code-reviewer
     Prompt: "Consolidate 5 code reviews from:
-             - ai-docs/reviews/claude-review.md
-             - ai-docs/reviews/grok-review.md
-             - ai-docs/reviews/gemini-review.md
-             - ai-docs/reviews/gpt5-review.md
-             - ai-docs/reviews/deepseek-review.md
+             - $SESSION_DIR/claude-review.md
+             - $SESSION_DIR/grok-review.md
+             - $SESSION_DIR/qwen-coder-review.md
+             - $SESSION_DIR/gpt5-review.md
+             - $SESSION_DIR/devstral-review.md
 
              Apply consensus analysis:
              - Issues flagged by ALL 5 → UNANIMOUS (VERY HIGH confidence)
@@ -129,10 +345,21 @@ Message 3: Auto-Consolidation
              - Issues flagged by 1-2 → DIVERGENT (LOW confidence)
 
              Prioritize by consensus level and severity.
-             Write to ai-docs/consolidated-review.md"
+             Write to $SESSION_DIR/consolidated-review.md"
 
-Message 4: Present Results
+Message 4: Present Results + Update Statistics
+  # Track performance for each model (see Pattern 7)
+  track_model_performance "claude-embedded" "success" 32 8 95
+  track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 87
+  track_model_performance "qwen/qwen3-coder:free" "success" 52 5 82
+  track_model_performance "openai/gpt-5.1-codex" "success" 68 7 89
+  track_model_performance "mistralai/devstral-2512:free" "success" 48 5 84
+
+  # Record session summary
+  record_session_stats 5 5 0 68 245 3.6
+
   "Multi-model code review complete! 5 AI models analyzed your code.
+   Session: $SESSION_ID
 
    Top 5 Issues (Prioritized by Consensus):
    1. [UNANIMOUS] Missing input validation on POST /api/users
@@ -141,7 +368,19 @@ Message 4: Present Results
    4. [MAJORITY] Missing rate limiting on authentication endpoints
    5. [MAJORITY] Insufficient error handling in payment flow
 
-   See ai-docs/consolidated-review.md for complete analysis."
+   Model Performance (this session):
+   | Model                          | Time | Issues | Quality | Cost   |
+   |--------------------------------|------|--------|---------|--------|
+   | claude-embedded                | 32s  | 8      | 95%     | FREE   |
+   | x-ai/grok-code-fast-1          | 45s  | 6      | 87%     | $0.002 |
+   | qwen/qwen3-coder:free          | 52s  | 5      | 82%     | FREE   |
+   | openai/gpt-5.1-codex           | 68s  | 7      | 89%     | $0.015 |
+   | mistralai/devstral-2512:free   | 48s  | 5      | 84%     | FREE   |
+
+   Parallel Speedup: 3.6x (245s sequential → 68s parallel)
+
+   See $SESSION_DIR/consolidated-review.md for complete analysis.
+   Performance logged to ai-docs/llm-performance.json"
 ```
 
 **Performance Impact:**
@@ -212,18 +451,21 @@ Each Task must be **independent** (no dependencies):
 
 **Unique Output Files:**
 
-Each Task MUST write to a **unique output file** to avoid conflicts:
+Each Task MUST write to a **unique output file** within the session directory:
 
 ```
-✅ CORRECT - Unique Files:
-  Task: reviewer1 → ai-docs/reviews/claude-review.md
-  Task: reviewer2 → ai-docs/reviews/grok-review.md
-  Task: reviewer3 → ai-docs/reviews/gemini-review.md
+✅ CORRECT - Unique Files in Session Directory:
+  Task: reviewer1 → $SESSION_DIR/claude-review.md
+  Task: reviewer2 → $SESSION_DIR/grok-review.md
+  Task: reviewer3 → $SESSION_DIR/qwen-coder-review.md
 
 ❌ WRONG - Shared File:
-  Task: reviewer1 → ai-docs/review.md
-  Task: reviewer2 → ai-docs/review.md (overwrites reviewer1!)
-  Task: reviewer3 → ai-docs/review.md (overwrites reviewer2!)
+  Task: reviewer1 → $SESSION_DIR/review.md
+  Task: reviewer2 → $SESSION_DIR/review.md (overwrites reviewer1!)
+  Task: reviewer3 → $SESSION_DIR/review.md (overwrites reviewer2!)
+
+❌ WRONG - Fixed Directory (not session-based):
+  Task: reviewer1 → ai-docs/reviews/claude-review.md  # May conflict with other sessions!
 ```
 
 **Wait for All Before Consolidation:**
@@ -518,14 +760,14 @@ if (successful.length >= 2) {
 
 **Pass All Review File Paths:**
 
-Consolidation agent needs paths to ALL review files:
+Consolidation agent needs paths to ALL review files within the session directory:
 
 ```
 Task: senior-code-reviewer
   Prompt: "Consolidate reviews from these files:
-           - ai-docs/reviews/claude-review.md
-           - ai-docs/reviews/grok-review.md
-           - ai-docs/reviews/gemini-review.md
+           - $SESSION_DIR/claude-review.md
+           - $SESSION_DIR/grok-review.md
+           - $SESSION_DIR/qwen-coder-review.md
 
            Apply consensus analysis and prioritize issues."
 ```
@@ -542,14 +784,14 @@ Task: senior-code-reviewer
            Grok Review:
            [500 lines of review content]
 
-           Gemini Review:
+           Qwen Review:
            [500 lines of review content]"
 
-✅ CORRECT - File Paths:
+✅ CORRECT - File Paths in Session Directory:
   Prompt: "Read and consolidate reviews from:
-           - ai-docs/reviews/claude-review.md
-           - ai-docs/reviews/grok-review.md
-           - ai-docs/reviews/gemini-review.md"
+           - $SESSION_DIR/claude-review.md
+           - $SESSION_DIR/grok-review.md
+           - $SESSION_DIR/qwen-coder-review.md"
 ```
 
 ---
@@ -689,11 +931,14 @@ Instead of keyword matching, use semantic similarity:
 
 ```json
 {
-  "schemaVersion": "1.0.0",
-  "lastUpdated": "2025-12-09T10:45:00Z",
+  "schemaVersion": "2.0.0",
+  "lastUpdated": "2025-12-12T10:45:00Z",
   "models": {
     "claude-embedded": {
       "modelId": "claude-embedded",
+      "provider": "Anthropic",
+      "isFree": true,
+      "pricing": "FREE (embedded)",
       "totalRuns": 12,
       "successfulRuns": 12,
       "failedRuns": 0,
@@ -703,41 +948,66 @@ Instead of keyword matching, use semantic similarity:
       "maxExecutionTime": 52,
       "totalIssuesFound": 96,
       "avgQualityScore": 92,
-      "qualityScores": [95, 90, 88, 94, 91, ...],
-      "lastUsed": "2025-12-09T10:35:22Z",
+      "totalCost": 0,
+      "qualityScores": [95, 90, 88, 94, 91],
+      "lastUsed": "2025-12-12T10:35:22Z",
+      "trend": "stable",
       "history": [
         {
-          "timestamp": "2025-12-09T10:35:22Z",
-          "session": "review-20251209-103522-a3f2",
+          "timestamp": "2025-12-12T10:35:22Z",
+          "session": "review-20251212-103522-a3f2",
           "status": "success",
           "executionTime": 32,
           "issuesFound": 8,
-          "qualityScore": 95
+          "qualityScore": 95,
+          "cost": 0
         }
-        // ... last 20 runs
       ]
     },
     "x-ai-grok-code-fast-1": {
       "modelId": "x-ai/grok-code-fast-1",
+      "provider": "X-ai",
+      "isFree": false,
+      "pricing": "$0.85/1M",
       "totalRuns": 10,
       "successfulRuns": 9,
       "failedRuns": 1,
-      // ... same structure
+      "totalCost": 0.12,
+      "trend": "improving"
+    },
+    "qwen-qwen3-coder-free": {
+      "modelId": "qwen/qwen3-coder:free",
+      "provider": "Qwen",
+      "isFree": true,
+      "pricing": "FREE",
+      "totalRuns": 5,
+      "successfulRuns": 5,
+      "failedRuns": 0,
+      "totalCost": 0,
+      "trend": "stable"
     }
   },
   "sessions": [
     {
-      "sessionId": "review-20251209-103522-a3f2",
-      "timestamp": "2025-12-09T10:35:22Z",
+      "sessionId": "review-20251212-103522-a3f2",
+      "timestamp": "2025-12-12T10:35:22Z",
       "totalModels": 4,
       "successfulModels": 3,
       "failedModels": 1,
       "parallelTime": 120,
       "sequentialTime": 335,
-      "speedup": 2.8
+      "speedup": 2.8,
+      "totalCost": 0.018,
+      "freeModelsUsed": 2
     }
-    // ... last 50 sessions
-  ]
+  ],
+  "recommendations": {
+    "topPaid": ["x-ai/grok-code-fast-1", "google/gemini-3-pro-preview"],
+    "topFree": ["qwen/qwen3-coder:free", "mistralai/devstral-2512:free"],
+    "bestValue": ["x-ai/grok-code-fast-1"],
+    "avoid": [],
+    "lastGenerated": "2025-12-12T10:45:00Z"
+  }
 }
 ```
 
@@ -838,18 +1108,21 @@ Speedup: 235 / 120 = 1.96x
 ```bash
 # Track model performance after each model completes
 # Updates historical aggregates and adds to run history
+# Parameters: model_id, status, duration, issues, quality_score, cost, is_free
 track_model_performance() {
   local model_id="$1"
   local status="$2"
   local duration="$3"
   local issues="${4:-0}"
-  local quality_score="${5:-}"  # optional
+  local quality_score="${5:-}"
+  local cost="${6:-0}"
+  local is_free="${7:-false}"
 
   local perf_file="ai-docs/llm-performance.json"
-  local model_key=$(echo "$model_id" | tr '/' '-')
+  local model_key=$(echo "$model_id" | tr '/:' '-')  # Handle colons in free model names
 
   # Initialize file if doesn't exist
-  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"2.0.0","models":{},"sessions":[],"recommendations":{}}' > "$perf_file"
 
   jq --arg model "$model_key" \
      --arg model_full "$model_id" \
@@ -857,13 +1130,17 @@ track_model_performance() {
      --argjson duration "$duration" \
      --argjson issues "$issues" \
      --arg quality "${quality_score:-null}" \
+     --argjson cost "$cost" \
+     --argjson is_free "$is_free" \
      --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
      --arg session "${SESSION_ID:-unknown}" \
      '
      # Initialize model if not exists
-     .models[$model] //= {"modelId":$model_full,"totalRuns":0,"successfulRuns":0,"failedRuns":0,
+     .models[$model] //= {"modelId":$model_full,"provider":"unknown","isFree":$is_free,
+       "totalRuns":0,"successfulRuns":0,"failedRuns":0,
        "totalExecutionTime":0,"avgExecutionTime":0,"minExecutionTime":null,"maxExecutionTime":null,
-       "totalIssuesFound":0,"avgQualityScore":null,"qualityScores":[],"lastUsed":null,"history":[]} |
+       "totalIssuesFound":0,"avgQualityScore":null,"qualityScores":[],"totalCost":0,
+       "lastUsed":null,"trend":"new","history":[]} |
 
      # Update aggregates
      .models[$model].totalRuns += 1 |
@@ -872,30 +1149,51 @@ track_model_performance() {
      .models[$model].totalExecutionTime += $duration |
      .models[$model].avgExecutionTime = ((.models[$model].totalExecutionTime / .models[$model].totalRuns) | floor) |
      .models[$model].totalIssuesFound += $issues |
+     .models[$model].totalCost += $cost |
+     .models[$model].isFree = $is_free |
      .models[$model].lastUsed = $now |
 
      # Update min/max
      .models[$model].minExecutionTime = ([.models[$model].minExecutionTime, $duration] | map(select(. != null)) | min) |
      .models[$model].maxExecutionTime = ([.models[$model].maxExecutionTime, $duration] | max) |
 
-     # Update quality scores (if provided)
-     (if $quality != "null" then .models[$model].qualityScores += [($quality|tonumber)] |
-       .models[$model].avgQualityScore = ((.models[$model].qualityScores|add) / (.models[$model].qualityScores|length) | floor)
+     # Update quality scores and trend (if provided)
+     (if $quality != "null" then
+       .models[$model].qualityScores += [($quality|tonumber)] |
+       .models[$model].avgQualityScore = ((.models[$model].qualityScores|add) / (.models[$model].qualityScores|length) | floor) |
+       # Calculate trend (last 3 vs previous 3)
+       (if (.models[$model].qualityScores | length) >= 6 then
+         ((.models[$model].qualityScores[-3:] | add) / 3) as $recent |
+         ((.models[$model].qualityScores[-6:-3] | add) / 3) as $previous |
+         .models[$model].trend = (if ($recent - $previous) > 5 then "improving"
+           elif ($recent - $previous) < -5 then "degrading"
+           else "stable" end)
+       else . end)
      else . end) |
 
      # Add to history (keep last 20)
      .models[$model].history = ([{"timestamp":$now,"session":$session,"status":$status,
-       "executionTime":$duration,"issuesFound":$issues,
+       "executionTime":$duration,"issuesFound":$issues,"cost":$cost,
        "qualityScore":(if $quality != "null" then ($quality|tonumber) else null end)}] + .models[$model].history)[:20] |
 
      .lastUpdated = $now
      ' "$perf_file" > "${perf_file}.tmp" && mv "${perf_file}.tmp" "$perf_file"
 }
 
-# Usage:
-track_model_performance "claude-embedded" "success" 45 8 95
-track_model_performance "x-ai/grok-code-fast-1" "success" 62 6 85
-track_model_performance "deepseek/deepseek-chat" "timeout" 120 0
+# Usage examples:
+# Paid models
+track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 87 0.002 false
+track_model_performance "openai/gpt-5.1-codex" "success" 68 7 89 0.015 false
+
+# Free models (cost=0, is_free=true)
+track_model_performance "qwen/qwen3-coder:free" "success" 52 5 82 0 true
+track_model_performance "mistralai/devstral-2512:free" "success" 48 5 84 0 true
+
+# Embedded Claude (always free)
+track_model_performance "claude-embedded" "success" 32 8 95 0 true
+
+# Failed/timeout models
+track_model_performance "some-model" "timeout" 120 0 "" 0 false
 ```
 
 **Record Session Summary:**
@@ -904,19 +1202,26 @@ track_model_performance "deepseek/deepseek-chat" "timeout" 120 0
 record_session_stats() {
   local total="$1" success="$2" failed="$3"
   local parallel_time="$4" sequential_time="$5" speedup="$6"
+  local total_cost="${7:-0}" free_models_used="${8:-0}"
 
   local perf_file="ai-docs/llm-performance.json"
-  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"1.0.0","models":{},"sessions":[]}' > "$perf_file"
+  [[ -f "$perf_file" ]] || echo '{"schemaVersion":"2.0.0","models":{},"sessions":[],"recommendations":{}}' > "$perf_file"
 
   jq --arg session "${SESSION_ID:-unknown}" \
      --arg now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
      --argjson total "$total" --argjson success "$success" --argjson failed "$failed" \
      --argjson parallel "$parallel_time" --argjson sequential "$sequential_time" --argjson speedup "$speedup" \
+     --argjson cost "$total_cost" --argjson free_count "$free_models_used" \
      '.sessions = ([{"sessionId":$session,"timestamp":$now,"totalModels":$total,
        "successfulModels":$success,"failedModels":$failed,"parallelTime":$parallel,
-       "sequentialTime":$sequential,"speedup":$speedup}] + .sessions)[:50] | .lastUpdated = $now' \
+       "sequentialTime":$sequential,"speedup":$speedup,"totalCost":$cost,
+       "freeModelsUsed":$free_count}] + .sessions)[:50] | .lastUpdated = $now' \
      "$perf_file" > "${perf_file}.tmp" && mv "${perf_file}.tmp" "$perf_file"
 }
+
+# Usage:
+# record_session_stats total success failed parallel_time sequential_time speedup total_cost free_count
+record_session_stats 5 5 0 68 245 3.6 0.017 2
 ```
 
 **Get Recommendations from Historical Data:**
@@ -932,11 +1237,232 @@ get_model_recommendations() {
       "overallAvgTime": ($avg | floor),
       "slowModels": [.models | to_entries[] | select(.value.avgExecutionTime > ($avg * 2)) | .key],
       "unreliableModels": [.models | to_entries[] | select(.value.totalRuns >= 3 and (.value.failedRuns / .value.totalRuns) > 0.3) | .key],
-      "topPerformers": [.models | to_entries | map(select(.value.avgQualityScore != null and .value.avgQualityScore > 80 and .value.avgExecutionTime <= $avg)) | sort_by(-.value.avgQualityScore)[:3] | .[].key]
+      "topPaidPerformers": [.models | to_entries | map(select(.value.avgQualityScore != null and .value.avgQualityScore > 80 and .value.isFree == false and .value.avgExecutionTime <= $avg)) | sort_by(-.value.avgQualityScore)[:3] | .[].key],
+      "topFreePerformers": [.models | to_entries | map(select(.value.avgQualityScore != null and .value.avgQualityScore > 75 and .value.isFree == true)) | sort_by(-.value.avgQualityScore)[:3] | .[].key],
+      "bestValue": [.models | to_entries | map(select(.value.avgQualityScore != null and .value.totalCost > 0)) | sort_by(-(.value.avgQualityScore / (.value.totalCost / .value.totalRuns)))[:2] | .[].key],
+      "degradingModels": [.models | to_entries[] | select(.value.trend == "degrading") | .key]
     }
   ' "$perf_file"
 }
+
+# Display formatted recommendations
+display_recommendations() {
+  local perf_file="ai-docs/llm-performance.json"
+  [[ -f "$perf_file" ]] || { echo "No performance data yet. Run some validations first!"; return; }
+
+  echo "## Model Recommendations (based on historical data)"
+  echo ""
+
+  # Top paid performers
+  echo "### 💰 Top Paid Models"
+  jq -r '.models | to_entries | map(select(.value.isFree == false and .value.avgQualityScore != null)) | sort_by(-.value.avgQualityScore)[:3] | .[] | "- \(.value.modelId): Quality \(.value.avgQualityScore)%, Avg \(.value.avgExecutionTime)s, Cost $\(.value.totalCost | . * 100 | floor / 100)"' "$perf_file"
+  echo ""
+
+  # Top free performers
+  echo "### 🆓 Top Free Models"
+  jq -r '.models | to_entries | map(select(.value.isFree == true and .value.avgQualityScore != null and .key != "claude-embedded")) | sort_by(-.value.avgQualityScore)[:3] | .[] | "- \(.value.modelId): Quality \(.value.avgQualityScore)%, Avg \(.value.avgExecutionTime)s"' "$perf_file"
+  echo ""
+
+  # Models to avoid
+  echo "### ⚠️ Consider Avoiding"
+  jq -r '
+    (.models | to_entries | map(select(.value.successfulRuns > 0) | .value.avgExecutionTime) | add / length) as $avg |
+    .models | to_entries[] |
+    select(
+      (.value.avgExecutionTime > ($avg * 2)) or
+      (.value.totalRuns >= 3 and (.value.failedRuns / .value.totalRuns) > 0.3) or
+      (.value.trend == "degrading")
+    ) |
+    "- \(.key): " +
+    (if .value.avgExecutionTime > ($avg * 2) then "⏱️ Slow (2x+ avg)" else "" end) +
+    (if .value.totalRuns >= 3 and (.value.failedRuns / .value.totalRuns) > 0.3 then " ❌ Unreliable (>\(.value.failedRuns)/\(.value.totalRuns) failures)" else "" end) +
+    (if .value.trend == "degrading" then " 📉 Quality degrading" else "" end)
+  ' "$perf_file"
+}
 ```
+
+---
+
+### Pattern 8: Data-Driven Model Selection (NEW v3.0)
+
+**Purpose:** Use historical performance data to make intelligent model selection recommendations.
+
+**The Problem:**
+
+Users often select models arbitrarily or based on outdated information:
+- "I'll use GPT-5 because it's famous"
+- "Let me try this new model I heard about"
+- "I'll use the same 5 models every time"
+
+**The Solution:**
+
+Use accumulated performance data to recommend:
+1. **Top performers** (highest quality scores)
+2. **Best value** (quality/cost ratio)
+3. **Top free models** (high quality, zero cost)
+4. **Models to avoid** (slow, unreliable, or degrading)
+
+**Model Selection Algorithm:**
+
+```
+1. Load historical data from ai-docs/llm-performance.json
+
+2. Calculate metrics for each model:
+   - Success Rate = successfulRuns / totalRuns × 100
+   - Quality Score = avgQualityScore (from consensus analysis)
+   - Speed Score = avgExecutionTime relative to overall average
+   - Value Score = avgQualityScore / (totalCost / totalRuns)
+
+3. Categorize models:
+   TOP PAID: Quality > 80%, Success > 90%, Speed <= avg
+   TOP FREE: Quality > 75%, Success > 90%, isFree = true
+   BEST VALUE: Highest Quality/Cost ratio among paid models
+   AVOID: Speed > 2x avg OR Success < 70% OR trend = "degrading"
+
+4. Present recommendations with context:
+   - Show historical metrics
+   - Highlight trends (improving/stable/degrading)
+   - Flag new models with insufficient data
+```
+
+**Interactive Model Selection with Recommendations:**
+
+Instead of just displaying recommendations, use AskUserQuestion with multiSelect to let users interactively choose:
+
+```typescript
+// Build options from claudish output + historical data
+const paidModels = getTopModelsFromClaudish();  // claudish --top-models
+const freeModels = getFreeModelsFromClaudish(); // claudish --free
+const history = loadPerformanceHistory();        // ai-docs/llm-performance.json
+
+// Merge and build AskUserQuestion options
+AskUserQuestion({
+  questions: [{
+    question: "Select models for validation (Claude internal always included). Based on 25 sessions across 8 models.",
+    header: "Models",
+    multiSelect: true,
+    options: [
+      // Top paid with historical data
+      {
+        label: "x-ai/grok-code-fast-1 ⚡ (Recommended)",
+        description: "$0.85/1M | Quality: 87% | Avg: 42s | Fast + accurate"
+      },
+      {
+        label: "google/gemini-3-pro-preview 🎯",
+        description: "$7.00/1M | Quality: 91% | Avg: 55s | High accuracy"
+      },
+      // Top free models
+      {
+        label: "qwen/qwen3-coder:free 🆓",
+        description: "FREE | Quality: 82% | 262K | Coding-specialized"
+      },
+      {
+        label: "mistralai/devstral-2512:free 🆓",
+        description: "FREE | Quality: 84% | 262K | Dev-focused"
+      }
+      // Note: Models to AVOID are simply not shown in options
+      // Note: New models show "(new)" instead of quality score
+    ]
+  }]
+})
+```
+
+**Key Principles for Model Selection UI:**
+
+1. **Put recommended models first** with "(Recommended)" suffix
+2. **Include historical metrics** in description (Quality %, Avg time)
+3. **Mark free models** with 🆓 emoji
+4. **Don't show models to avoid** - just exclude them from options
+5. **Mark new models** with "(new)" when no historical data
+6. **Remember selection** - save to `$SESSION_DIR/selected-models.txt`
+
+**After Selection - Save to Session:**
+
+```bash
+# User selected: grok-code-fast-1, qwen3-coder:free
+# Save for session persistence
+save_session_models "$SESSION_DIR" "${USER_SELECTED_MODELS[@]}"
+
+# Now $SESSION_DIR/selected-models.txt contains:
+# claude-embedded
+# x-ai/grok-code-fast-1
+# qwen/qwen3-coder:free
+```
+
+**Warning Display (separate from selection):**
+
+If there are models to avoid, show a brief warning before the selection:
+
+```
+⚠️ Models excluded from selection (poor historical performance):
+- openai/gpt-5.1-codex: Slow (2.1x avg)
+- some-model: 60% success rate
+```
+
+**Automatic Shortlist Generation:**
+
+```bash
+# Generate optimal shortlist based on criteria
+generate_shortlist() {
+  local criteria="${1:-balanced}"  # balanced, quality, budget, free-only
+  local perf_file="ai-docs/llm-performance.json"
+
+  case "$criteria" in
+    "balanced")
+      # 1 internal + 1 fast paid + 1 free
+      echo "claude-embedded"
+      jq -r '.models | to_entries | map(select(.value.isFree == false and .value.avgQualityScore > 80)) | sort_by(.value.avgExecutionTime)[0].key' "$perf_file"
+      jq -r '.models | to_entries | map(select(.value.isFree == true and .key != "claude-embedded" and .value.avgQualityScore > 75)) | sort_by(-.value.avgQualityScore)[0].key' "$perf_file"
+      ;;
+    "quality")
+      # Top 3 by quality regardless of cost
+      echo "claude-embedded"
+      jq -r '.models | to_entries | map(select(.value.avgQualityScore != null and .key != "claude-embedded")) | sort_by(-.value.avgQualityScore)[:2] | .[].key' "$perf_file"
+      ;;
+    "budget")
+      # Internal + 2 cheapest performers
+      echo "claude-embedded"
+      jq -r '.models | to_entries | map(select(.value.avgQualityScore > 75 and .value.isFree == true)) | sort_by(-.value.avgQualityScore)[:2] | .[].key' "$perf_file"
+      ;;
+    "free-only")
+      # Only free models
+      echo "claude-embedded"
+      jq -r '.models | to_entries | map(select(.value.isFree == true and .key != "claude-embedded" and .value.avgQualityScore != null)) | sort_by(-.value.avgQualityScore)[:2] | .[].key' "$perf_file"
+      ;;
+  esac
+}
+
+# Usage:
+generate_shortlist "balanced"   # For most use cases
+generate_shortlist "quality"    # When accuracy is critical
+generate_shortlist "budget"     # When cost matters
+generate_shortlist "free-only"  # Zero-cost validation
+```
+
+**Integration with Model Discovery:**
+
+```
+Workflow:
+1. Run `claudish --top-models` → Get current paid models
+2. Run `claudish --free` → Get current free models
+3. Load ai-docs/llm-performance.json → Get historical performance
+4. Merge data:
+   - New models (no history): Mark as "🆕 New"
+   - Known models: Show performance metrics
+   - Deprecated models: Filter out (not in claudish output)
+5. Generate recommendations
+6. Present to user with AskUserQuestion
+```
+
+**Why This Matters:**
+
+| Selection Method | Outcome |
+|------------------|---------|
+| Random/arbitrary | Hit-or-miss, may waste money on slow models |
+| Always same models | Miss new better options, stuck with degrading ones |
+| Data-driven | Optimal quality/cost/speed balance, continuous improvement |
+
+Over time, the system learns which models work best for YOUR codebase and validation patterns.
 
 ---
 
@@ -1120,84 +1646,129 @@ Step 3: User Sees Real-Time Progress
 
 ## Examples
 
-### Example 1: 3-Model Code Review with Cost Approval
+### Example 1: Dynamic Model Discovery + Review
 
-**Scenario:** User requests "Review my changes with Grok and Gemini"
+**Scenario:** User requests "Let's run external models to validate our solution"
 
 **Execution:**
 
 ```
-Message 1: Preparation
-  Bash: mkdir -p ai-docs/reviews
-  Bash: git diff > ai-docs/code-review-context.md
-  Bash: wc -l ai-docs/code-review-context.md
-  Output: 450 lines
+Message 1: Session Setup + Model Discovery
+  # Create unique session
+  Bash: SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
+  Bash: SESSION_DIR="/tmp/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
+  Output: Session: review-20251212-143052-a3f2
 
-  Calculate costs:
-    Input: 450 × 1.5 = 675 tokens per model
-    Output: 2000-4000 tokens per model
-    Total: 3 models × (675 input + 3000 output avg) = 11,025 tokens
-    Cost: ~$0.006 ($0.004 - $0.008)
+  # Discover available models
+  Bash: claudish --top-models
+  Output:
+    google/gemini-3-pro-preview    Google     $7.00/1M   1048K   🔧 🧠 👁️
+    openai/gpt-5.1-codex           Openai     $5.63/1M   400K    🔧 🧠 👁️
+    x-ai/grok-code-fast-1          X-ai       $0.85/1M   256K    🔧 🧠
+    minimax/minimax-m2             Minimax    $0.64/1M   262K    🔧 🧠
 
-Message 2: User Approval Gate (quality-gates skill)
-  Present to user:
-    "Multi-model review will analyze 450 lines of code with 3 AI models:
-     - Claude Sonnet (embedded, free)
-     - Grok Code Fast ($0.002)
-     - Gemini 2.5 Flash ($0.001)
+  Bash: claudish --free
+  Output:
+    qwen/qwen3-coder:free          Qwen       FREE       262K    ✓ · ·
+    mistralai/devstral-2512:free   Mistralai  FREE       262K    ✓ · ·
+    qwen/qwen3-235b-a22b:free      Qwen       FREE       131K    ✓ ✓ ·
 
-     Estimated cost: $0.006 ($0.004 - $0.008)
+  # Load historical performance
+  Bash: cat ai-docs/llm-performance.json | jq '.models | keys'
+  Output: ["claude-embedded", "x-ai-grok-code-fast-1", "qwen-qwen3-coder-free"]
 
-     Proceed? (Yes/No)"
+  # Prepare code context
+  Bash: git diff > "$SESSION_DIR/code-context.md"
 
-  User: "Yes"
+Message 2: Model Selection (AskUserQuestion with multiSelect)
+  # Use AskUserQuestion tool with multiSelect: true
+  AskUserQuestion({
+    questions: [{
+      question: "Which external models should validate your code? (Internal Claude always included)",
+      header: "Models",
+      multiSelect: true,
+      options: [
+        { label: "x-ai/grok-code-fast-1 ⚡", description: "$0.85/1M | Quality: 87% | Avg: 42s" },
+        { label: "google/gemini-3-pro-preview", description: "$7.00/1M | New model, no history" },
+        { label: "qwen/qwen3-coder:free 🆓", description: "FREE | Quality: 82% | Coding-specialized" },
+        { label: "mistralai/devstral-2512:free 🆓", description: "FREE | Dev-focused, new model" }
+      ]
+    }]
+  })
 
-Message 3: Parallel Execution (Task only)
+  # User selects via interactive UI:
+  # ☑ x-ai/grok-code-fast-1
+  # ☐ google/gemini-3-pro-preview
+  # ☑ qwen/qwen3-coder:free
+  # ☑ mistralai/devstral-2512:free
+
+  # Save selection to session for later use
+  save_session_models "$SESSION_DIR" "x-ai/grok-code-fast-1" "qwen/qwen3-coder:free" "mistralai/devstral-2512:free"
+
+  # Session now has:
+  # $SESSION_DIR/selected-models.txt containing:
+  # claude-embedded (always)
+  # x-ai/grok-code-fast-1
+  # qwen/qwen3-coder:free
+  # mistralai/devstral-2512:free
+
+Message 3: Parallel Execution (Task only - single message)
   Task: senior-code-reviewer
-    Prompt: "Review ai-docs/code-review-context.md.
-             Write to ai-docs/reviews/claude-review.md
-             Return brief summary."
+    Prompt: "Review $SESSION_DIR/code-context.md.
+             Write to $SESSION_DIR/claude-review.md"
   ---
   Task: codex-code-reviewer PROXY_MODE: x-ai/grok-code-fast-1
-    Prompt: "Review ai-docs/code-review-context.md.
-             Write to ai-docs/reviews/grok-review.md
-             Return brief summary."
+    Prompt: "Review $SESSION_DIR/code-context.md.
+             Write to $SESSION_DIR/grok-review.md"
   ---
-  Task: codex-code-reviewer PROXY_MODE: google/gemini-2.5-flash
-    Prompt: "Review ai-docs/code-review-context.md.
-             Write to ai-docs/reviews/gemini-review.md
-             Return brief summary."
+  Task: codex-code-reviewer PROXY_MODE: qwen/qwen3-coder:free
+    Prompt: "Review $SESSION_DIR/code-context.md.
+             Write to $SESSION_DIR/qwen-coder-review.md"
+  ---
+  Task: codex-code-reviewer PROXY_MODE: mistralai/devstral-2512:free
+    Prompt: "Review $SESSION_DIR/code-context.md.
+             Write to $SESSION_DIR/devstral-review.md"
 
-  All 3 execute simultaneously (3x speedup)
+  All 4 execute simultaneously!
 
-Message 4: Auto-Consolidation (automatic)
-  results.length = 3 (all succeeded)
-  3 ≥ 2 ✓ (threshold met)
-
+Message 4: Auto-Consolidation + Statistics Update
+  # Consolidate
   Task: senior-code-reviewer
-    Prompt: "Consolidate 3 reviews from:
-             - ai-docs/reviews/claude-review.md
-             - ai-docs/reviews/grok-review.md
-             - ai-docs/reviews/gemini-review.md
+    Prompt: "Consolidate 4 reviews from $SESSION_DIR/*.md"
 
-             Apply consensus analysis."
-    Output: ai-docs/consolidated-review.md
+  # Track performance
+  track_model_performance "claude-embedded" "success" 32 8 95 0 true
+  track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 87 0.002 false
+  track_model_performance "qwen/qwen3-coder:free" "success" 52 5 82 0 true
+  track_model_performance "mistralai/devstral-2512:free" "success" 48 5 84 0 true
+
+  record_session_stats 4 4 0 52 177 3.4 0.002 3
 
 Message 5: Present Results
-  "Multi-model review complete! 3 AI models analyzed 450 lines.
+  "Multi-model review complete! Session: review-20251212-143052-a3f2
 
-   Top 5 Issues (Consensus):
+   Top Issues (Consensus):
    1. [UNANIMOUS] SQL injection in search endpoint
-   2. [UNANIMOUS] Missing input validation on user creation
-   3. [STRONG] Weak password hashing (2/3 models)
-   4. [MAJORITY] Missing rate limiting (2/3 models)
-   5. [DIVERGENT] Code style inconsistency (1/3 model)
+   2. [STRONG] Missing input validation (3/4 models)
+   3. [MAJORITY] Weak password hashing (2/4 models)
 
-   Actual cost: $0.0058 (within estimate)
-   See ai-docs/consolidated-review.md for details."
+   Model Performance (this session):
+   | Model                        | Time | Issues | Quality | Cost   |
+   |------------------------------|------|--------|---------|--------|
+   | claude-embedded              | 32s  | 8      | 95%     | FREE   |
+   | x-ai/grok-code-fast-1        | 45s  | 6      | 87%     | $0.002 |
+   | qwen/qwen3-coder:free        | 52s  | 5      | 82%     | FREE   |
+   | mistralai/devstral-2512:free | 48s  | 5      | 84%     | FREE   |
+
+   Session Stats:
+   - Parallel Speedup: 3.4x (177s → 52s)
+   - Total Cost: $0.002 (3 free models used!)
+
+   Performance logged to ai-docs/llm-performance.json
+   See $SESSION_DIR/consolidated-review.md for details."
 ```
 
-**Result:** 5 minutes total, consensus-based prioritization, cost transparency
+**Result:** Dynamic model discovery, user selection, 3 free models, data-driven optimization
 
 ---
 
@@ -1335,15 +1906,34 @@ Solution: Use range-based estimates, bias toward high end
 
 Multi-model validation achieves 3-5x speedup and consensus-based prioritization through:
 
-- **4-Message Pattern** (true parallel execution)
-- **Blocking proxy execution** (agents wait for external models)
-- **Auto-consolidation** (triggered when N ≥ 2 reviews complete)
-- **Consensus analysis** (unanimous → strong → majority → divergent)
-- **Cost transparency** (estimate before, report after)
-- **Error recovery** (graceful degradation on failures)
-- **Statistics collection** (NEW v2.0) - track execution times, quality scores, and generate recommendations
+- **Pattern 0: Session Setup** (NEW v3.0) - Unique session directories, dynamic model discovery
+- **Pattern 1: 4-Message Pattern** - True parallel execution
+- **Pattern 2: Parallel Architecture** - Single message, multiple Task calls
+- **Pattern 3: Proxy Mode** - Blocking execution via Claudish
+- **Pattern 4: Cost Transparency** - Estimate before, report after
+- **Pattern 5: Auto-Consolidation** - Triggered when N ≥ 2 complete
+- **Pattern 6: Consensus Analysis** - unanimous → strong → majority → divergent
+- **Pattern 7: Statistics Collection** - Track speed, cost, quality per model
+- **Pattern 8: Data-Driven Selection** (NEW v3.0) - Intelligent model recommendations
 
 Master this skill and you can validate any implementation with multiple AI perspectives in minutes, while continuously improving your model shortlist based on actual performance data.
+
+**Version 3.0 Additions:**
+- **Pattern 0: Session Setup and Model Discovery**
+  - Unique session directories (`/tmp/review-{timestamp}-{hash}`)
+  - Dynamic model discovery via `claudish --top-models` and `claudish --free`
+  - Always include internal reviewer (safety net)
+  - Recommended free models: qwen3-coder, devstral-2512, qwen3-235b
+- **Pattern 8: Data-Driven Model Selection**
+  - Historical performance tracking in `ai-docs/llm-performance.json`
+  - Per-model metrics: speed, cost, quality, success rate, trend
+  - Automatic shortlist generation (balanced, quality, budget, free-only)
+  - Model recommendations with context
+- **Enhanced Statistics**
+  - Cost tracking per model and per session
+  - Free vs paid model tracking
+  - Trend detection (improving/stable/degrading)
+  - Top free performers category
 
 **Version 2.0 Additions:**
 - Pattern 7: Statistics Collection and Analysis
@@ -1351,7 +1941,6 @@ Master this skill and you can validate any implementation with multiple AI persp
 - Quality score calculation (issues in consensus %)
 - Session summary statistics (speedup, avg time, success rate)
 - Recommendations for slow/failing models
-- Shortlist optimization based on quality/speed ratio
 
 ---
 

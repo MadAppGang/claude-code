@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "1.3.3",
-	"description": "Deep code investigation and analysis toolkit. Features the codebase-detective agent for understanding code patterns, relationships, and architecture across complex codebases.",
+	"version": "1.4.0",
+	"description": "Deep code investigation and analysis toolkit. Features the codebase-detective agent with claude-context MCP validation (NEW v1.4.0), semantic search preference, and setup guidance for large codebase investigation.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",
