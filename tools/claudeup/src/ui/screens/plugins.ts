@@ -1,6 +1,6 @@
 import blessed from 'neo-blessed';
 import type { AppState } from '../app.js';
-import { createHeader, createFooter, showMessage, showConfirm, showLoading, navigateTo } from '../app.js';
+import { createHeader, createFooter, showLoading, navigateTo } from '../app.js';
 import { defaultMarketplaces } from '../../data/marketplaces.js';
 import {
   addMarketplace,
@@ -291,29 +291,20 @@ ${actions}
       const mp = selected.marketplace;
 
       if (selected.marketplaceEnabled) {
-        // Remove marketplace
-        const confirm = await showConfirm(
-          state,
-          `Remove ${mp.displayName}?`,
-          `Plugins from this marketplace will no longer be available.\n(${isGlobal ? 'Global' : 'Project'} scope)`
-        );
-
-        if (confirm) {
-          const loading = showLoading(state, `Removing ${mp.displayName}...`);
-          try {
-            if (isGlobal) {
-              await removeGlobalMarketplace(mp.name);
-            } else {
-              await removeMarketplace(mp.name, state.projectPath);
-            }
-          } finally {
-            loading.stop();
+        // Remove marketplace - immediate, no confirmation
+        const loading = showLoading(state, `Removing ${mp.displayName}...`);
+        try {
+          if (isGlobal) {
+            await removeGlobalMarketplace(mp.name);
+          } else {
+            await removeMarketplace(mp.name, state.projectPath);
           }
-          await showMessage(state, 'Removed', `${mp.displayName} removed.`, 'success');
-          await navigateTo(state, 'plugins');
+        } finally {
+          loading.stop();
         }
+        await navigateTo(state, 'plugins');
       } else {
-        // Add marketplace
+        // Add marketplace - immediate, no confirmation
         const loading = showLoading(state, `Adding ${mp.displayName}...`);
         try {
           if (isGlobal) {
@@ -324,19 +315,26 @@ ${actions}
         } finally {
           loading.stop();
         }
-        await showMessage(
-          state,
-          'Added',
-          `${mp.displayName} added.\nPlugins are now available below.`,
-          'success'
-        );
         await navigateTo(state, 'plugins');
       }
     } else if (selected.type === 'plugin' && selected.plugin) {
       const plugin = selected.plugin;
 
-      if (plugin.installedVersion) {
-        // Toggle enabled/disabled
+      if (plugin.hasUpdate) {
+        // Update plugin - immediate when update available
+        const loading = showLoading(state, `Updating ${plugin.name}...`);
+        try {
+          if (isGlobal) {
+            await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+          } else {
+            await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
+          }
+        } finally {
+          loading.stop();
+        }
+        await navigateTo(state, 'plugins');
+      } else if (plugin.installedVersion) {
+        // Toggle enabled/disabled - immediate
         const newState = !plugin.enabled;
         const loading = showLoading(state, `${newState ? 'Enabling' : 'Disabling'} ${plugin.name}...`);
         try {
@@ -348,15 +346,9 @@ ${actions}
         } finally {
           loading.stop();
         }
-        await showMessage(
-          state,
-          newState ? 'Enabled' : 'Disabled',
-          `${plugin.name} ${newState ? 'enabled' : 'disabled'}.\nRestart Claude Code to apply.`,
-          'success'
-        );
         await navigateTo(state, 'plugins');
       } else {
-        // Install plugin
+        // Install plugin - immediate
         const loading = showLoading(state, `Installing ${plugin.name}...`);
         try {
           if (isGlobal) {
@@ -369,12 +361,6 @@ ${actions}
         } finally {
           loading.stop();
         }
-        await showMessage(
-          state,
-          'Installed',
-          `${plugin.name} v${plugin.version} installed.\nRestart Claude Code to apply.`,
-          'success'
-        );
         await navigateTo(state, 'plugins');
       }
     }
@@ -388,7 +374,7 @@ ${actions}
     await navigateTo(state, 'plugins');
   });
 
-  // Update plugin (u key)
+  // Update plugin (u key) - immediate, no confirmation
   list.key(['u'], async () => {
     if (state.isSearching) return;
     const selected = list.selected as number;
@@ -397,33 +383,23 @@ ${actions}
 
     const plugin = item.plugin;
     if (!plugin.hasUpdate) {
-      await showMessage(state, 'No Update', `${plugin.name} is at the latest version.`, 'info');
-      return;
+      return; // Silent no-op if no update available
     }
 
-    const confirm = await showConfirm(
-      state,
-      'Update Plugin?',
-      `Update ${plugin.name} to v${plugin.version}?`
-    );
-
-    if (confirm) {
-      const loading = showLoading(state, `Updating ${plugin.name}...`);
-      try {
-        if (isGlobal) {
-          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
-        } else {
-          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
-        }
-      } finally {
-        loading.stop();
+    const loading = showLoading(state, `Updating ${plugin.name}...`);
+    try {
+      if (isGlobal) {
+        await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+      } else {
+        await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
       }
-      await showMessage(state, 'Updated', `${plugin.name} updated.\nRestart Claude Code to apply.`, 'success');
-      await navigateTo(state, 'plugins');
+    } finally {
+      loading.stop();
     }
+    await navigateTo(state, 'plugins');
   });
 
-  // Uninstall plugin (d key)
+  // Uninstall plugin (d key) - immediate, no confirmation
   list.key(['d'], async () => {
     if (state.isSearching) return;
     const selected = list.selected as number;
@@ -432,27 +408,21 @@ ${actions}
 
     const plugin = item.plugin;
     if (!plugin.installedVersion) {
-      await showMessage(state, 'Not Installed', `${plugin.name} is not installed.`, 'info');
-      return;
+      return; // Silent no-op if not installed
     }
 
-    const confirm = await showConfirm(state, 'Uninstall?', `Remove ${plugin.name}?`);
-
-    if (confirm) {
-      const loading = showLoading(state, `Uninstalling ${plugin.name}...`);
-      try {
-        if (isGlobal) {
-          await removeGlobalInstalledPluginVersion(plugin.id);
-        } else {
-          await enablePlugin(plugin.id, false, state.projectPath);
-          await removeInstalledPluginVersion(plugin.id, state.projectPath);
-        }
-      } finally {
-        loading.stop();
+    const loading = showLoading(state, `Uninstalling ${plugin.name}...`);
+    try {
+      if (isGlobal) {
+        await removeGlobalInstalledPluginVersion(plugin.id);
+      } else {
+        await enablePlugin(plugin.id, false, state.projectPath);
+        await removeInstalledPluginVersion(plugin.id, state.projectPath);
       }
-      await showMessage(state, 'Uninstalled', `${plugin.name} removed.\nRestart Claude Code to apply.`, 'success');
-      await navigateTo(state, 'plugins');
+    } finally {
+      loading.stop();
     }
+    await navigateTo(state, 'plugins');
   });
 
   // Refresh (r key)
@@ -462,33 +432,27 @@ ${actions}
     await navigateTo(state, 'plugins');
   });
 
-  // Update all plugins (a key)
+  // Update all plugins (a key) - immediate, no confirmation
   list.key(['a'], async () => {
     if (state.isSearching) return;
     const updatable = allPlugins.filter((p) => p.hasUpdate);
     if (updatable.length === 0) {
-      await showMessage(state, 'All Up to Date', 'All plugins are at the latest version.', 'info');
-      return;
+      return; // Silent no-op if all up-to-date
     }
 
-    const confirm = await showConfirm(state, 'Update All?', `Update ${updatable.length} plugin(s)?`);
-
-    if (confirm) {
-      const loading = showLoading(state, `Updating ${updatable.length} plugin(s)...`);
-      try {
-        for (const plugin of updatable) {
-          if (isGlobal) {
-            await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
-          } else {
-            await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
-          }
+    const loading = showLoading(state, `Updating ${updatable.length} plugin(s)...`);
+    try {
+      for (const plugin of updatable) {
+        if (isGlobal) {
+          await saveGlobalInstalledPluginVersion(plugin.id, plugin.version);
+        } else {
+          await saveInstalledPluginVersion(plugin.id, plugin.version, state.projectPath);
         }
-      } finally {
-        loading.stop();
       }
-      await showMessage(state, 'Updated', `Updated ${updatable.length} plugin(s).\nRestart Claude Code to apply.`, 'success');
-      await navigateTo(state, 'plugins');
+    } finally {
+      loading.stop();
     }
+    await navigateTo(state, 'plugins');
   });
 
   // Navigation

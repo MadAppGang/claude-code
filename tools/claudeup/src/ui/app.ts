@@ -28,11 +28,32 @@ export const colors = {
 };
 
 export function createApp(): AppState {
+  // Suppress neo-blessed terminfo parsing warnings (Setulc capability)
+  // This warning occurs when the terminal supports underline colors but
+  // neo-blessed can't parse the terminfo capability format
+  const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+  let suppressOutput = true;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (process.stdout as any).write = (chunk: any, ...args: any[]): boolean => {
+    if (suppressOutput) {
+      const str = typeof chunk === 'string' ? chunk : chunk.toString();
+      if (str.includes('xterm-256color') || str.includes('Setulc') || str.includes('stack.push')) {
+        return true;
+      }
+    }
+    return originalStdoutWrite(chunk, ...args);
+  };
+
   const screen = blessed.screen({
     smartCSR: true,
     title: 'claudeup',
     fullUnicode: true,
   });
+
+  // Restore stdout after screen initialization
+  suppressOutput = false;
+  process.stdout.write = originalStdoutWrite;
 
   const state: AppState = {
     screen,

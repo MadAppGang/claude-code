@@ -1,6 +1,6 @@
 {
   "name": "claudeup",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "TUI tool for managing Claude Code plugins, MCPs, and configuration",
   "type": "module",
   "main": "dist/index.js",
@@ -12,9 +12,15 @@
     "dev": "tsc -w",
     "start": "node dist/index.js",
     "start:bun": "bun run src/index.ts",
-    "lint": "biome check src/",
+    "lint": "npm run eslint",
     "format": "biome format --write src/",
-    "prepublishOnly": "npm run build"
+    "eslint": "eslint \"**/*.{js,cjs,ts,mjs,jsx,tsx}\"",
+    "lintfix": "npm run eslint -- --fix",
+    "postlint": "template-oss-check",
+    "template-oss-apply": "template-oss-apply --force",
+    "snap": "tap",
+    "test": "tap",
+    "posttest": "npm run lint"
   },
   "keywords": [
     "claude",
@@ -24,13 +30,8 @@
     "tui",
     "cli"
   ],
-  "author": "Jack Rudenko <i@madappgang.com>",
+  "author": "GitHub Inc.",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MadAppGang/claude-code.git",
-    "directory": "tools/claudeup"
-  },
   "bugs": {
     "url": "https://github.com/MadAppGang/claude-code/issues"
   },
@@ -39,13 +40,13 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "dist",
-    "bin"
+    "bin/",
+    "lib/"
   ],
   "dependencies": {
-    "neo-blessed": "^0.2.0",
     "chalk": "^5.3.0",
     "fs-extra": "^11.2.0",
+    "neo-blessed": "^0.2.0",
     "semver": "^7.6.3"
   },
   "devDependencies": {
@@ -54,5 +55,15 @@
     "@types/node": "^22.9.0",
     "@types/semver": "^7.5.8",
     "typescript": "^5.6.3"
+  },
+  "templateOSS": {
+    "//@npmcli/template-oss": "This file is partially managed by @npmcli/template-oss. Edits may be overwritten.",
+    "version": "4.25.1"
+  },
+  "tap": {
+    "nyc-arg": [
+      "--exclude",
+      "tap-snapshots/**"
+    ]
   }
 }

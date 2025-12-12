@@ -2,7 +2,7 @@ import blessed from 'neo-blessed';
 import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
 import type { AppState } from '../app.js';
-import { createHeader, createFooter, showMessage } from '../app.js';
+import { createHeader, createFooter, showMessage, showLoading } from '../app.js';
 import { cliTools, type CliTool } from '../../data/cli-tools.js';
 
 const execAsync = promisify(exec);
@@ -29,6 +29,21 @@ function parseVersion(versionOutput: string): string | undefined {
   // Extract version number from various formats like "v1.2.3", "1.2.3", "aider 0.82.0"
   const match = versionOutput.match(/v?(\d+\.\d+\.\d+(?:-[\w.]+)?)/);
   return match ? match[1] : undefined;
+}
+
+async function isInstalledViaHomebrew(toolName: string): Promise<boolean> {
+  try {
+    // Get list of installed Homebrew formulas (no shell interpolation for safety)
+    const { stdout } = await execAsync('brew list --formula 2>/dev/null', {
+      timeout: 2000,
+      shell: '/bin/bash',
+    });
+    // Programmatic matching instead of shell grep to avoid injection risk
+    const formulas = stdout.trim().split('\n');
+    return formulas.some((f) => f.trim() === toolName);
+  } catch {
+    return false;
+  }
 }
 
 async function getInstalledVersion(tool: CliTool): Promise<string | undefined> {
@@ -275,7 +290,7 @@ ${actionText}
     fetchVersionInfo();
   }
 
-  // Install/Update on Enter
+  // Install/Update on Enter - with Homebrew detection
   list.on('select', async (_item: unknown, index: number) => {
     const status = toolStatuses[index];
     if (!status) return;
@@ -283,36 +298,44 @@ ${actionText}
     const { tool, installed, hasUpdate } = status;
     const action = !installed ? 'Installing' : hasUpdate ? 'Updating' : 'Reinstalling';
 
-    await showMessage(
-      state,
-      action,
-      `Running: ${tool.installCommand}\n\nThis may take a moment...`,
-      'info'
-    );
+    // Detect installation method for existing installations
+    const viaHomebrew = installed ? await isInstalledViaHomebrew(tool.name) : false;
+
+    // Choose appropriate command
+    let command: string;
+    if (!installed) {
+      // New installations always use npm
+      command = tool.installCommand;
+    } else if (viaHomebrew) {
+      // Homebrew-installed tools use brew upgrade
+      command = `brew upgrade ${tool.name}`;
+    } else {
+      // npm-installed tools use npm install -g (handles updates)
+      command = tool.installCommand;
+    }
+
+    const loading = showLoading(state, `${action} ${tool.displayName}...`);
 
     try {
-      execSync(tool.installCommand, {
+      execSync(command, {
         encoding: 'utf-8',
         stdio: 'inherit',
         shell: '/bin/bash',
       });
-
-      await showMessage(
-        state,
-        'Success',
-        `${tool.displayName} has been ${action.toLowerCase().replace('ing', 'ed')}.`,
-        'success'
-      );
     } catch (error) {
+      loading.stop();
+      // Keep error messages - critical for user to see failures
       await showMessage(
         state,
         'Error',
-        `Failed to install ${tool.displayName}.\n\nTry running manually:\n${tool.installCommand}`,
+        `Failed to ${action.toLowerCase()} ${tool.displayName}.\n\nTry running manually:\n${command}`,
         'error'
       );
+      return; // Don't refresh on error
     }
 
-    // Clear cache and refresh screen to detect new version
+    loading.stop();
+    // Success: immediate refresh, no confirmation needed
     clearCliToolsCache();
     createCliToolsScreen(state);
   });
@@ -335,34 +358,34 @@ ${actionText}
     createCliToolsScreen(state);
   });
 
-  // Update all
+  // Update all - with Homebrew detection, no confirmations
   list.key(['a'], async () => {
     const updatable = toolStatuses.filter((s) => s.hasUpdate);
     if (updatable.length === 0) {
-      await showMessage(state, 'All Up to Date', 'All tools are at the latest version.', 'info');
-      return;
+      return; // Silent no-op if all up-to-date
     }
 
-    await showMessage(
-      state,
-      'Updating All',
-      `Updating ${updatable.length} tool(s)...\n\nThis may take a while.`,
-      'info'
-    );
+    const loading = showLoading(state, `Updating ${updatable.length} tool(s)...`);
 
     for (const status of updatable) {
+      // Detect installation method per tool
+      const viaHomebrew = await isInstalledViaHomebrew(status.tool.name);
+      const command = viaHomebrew
+        ? `brew upgrade ${status.tool.name}`
+        : status.tool.installCommand;
+
       try {
-        execSync(status.tool.installCommand, {
+        execSync(command, {
           encoding: 'utf-8',
           stdio: 'inherit',
           shell: '/bin/bash',
         });
       } catch {
-        // Continue with other updates
+        // Continue with other updates (silent failure)
       }
     }
 
-    await showMessage(state, 'Done', `Updated ${updatable.length} tool(s).`, 'success');
+    loading.stop();
     clearCliToolsCache();
     createCliToolsScreen(state);
   });
