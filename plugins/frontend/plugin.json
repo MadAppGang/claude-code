@@ -1,7 +1,7 @@
 {
 	"name": "frontend",
-	"version": "3.12.0",
-	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features dependency checking with graceful degradation, visual analysis model selection (Qwen VL, Gemini, GPT-4o), enhanced browser debugging with 6 validation recipes, session-based artifact isolation, model preference persistence, 13 focused skills, multi-model code review (3-5x speedup), intelligent workflow detection, and Chrome DevTools MCP integration.",
+	"version": "3.13.0",
+	"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features code-analysis integration via claudemem semantic search (replaces claude-context MCP), dependency checking with graceful degradation, visual analysis model selection, enhanced browser debugging with 6 validation recipes, session-based artifact isolation, 13 focused skills, multi-model code review (3-5x speedup), intelligent workflow detection, and Chrome DevTools MCP integration.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

@@ -7,15 +7,15 @@
 	},
 	"metadata": {
 		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development with LLM performance tracking",
-		"version": "4.8.0",
+		"version": "4.9.0",
 		"pluginRoot": "./plugins"
 	},
 	"plugins": [
 		{
 			"name": "frontend",
 			"source": "./plugins/frontend",
-			"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features session-based artifact isolation, model preference persistence, LLM performance tracking (NEW), shadcn/ui component library knowledge (60+ components), ultra-efficient agent orchestration, multi-model plan/code review (parallel, 3-5x speedup), 12 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
-			"version": "3.11.0",
+			"description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features code-analysis integration via claudemem semantic search (replaces claude-context MCP), session-based artifact isolation, LLM performance tracking, shadcn/ui component library knowledge (60+ components), multi-model plan/code review (parallel, 3-5x speedup), 13 focused skills, intelligent workflow detection, and Chrome DevTools MCP debugging.",
+			"version": "3.13.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

@@ -1,7 +1,8 @@
 ---
 name: tester
 description: Use this agent when you need to manually test a website's user interface by interacting with elements, verifying visual feedback, and checking console logs. Examples:\n\n- Example 1:\n  user: "I just updated the checkout flow on localhost:3000. Can you test it?"\n  assistant: "I'll launch the ui-manual-tester agent to manually test your checkout flow, interact with the elements, and verify everything works correctly."\n  \n- Example 2:\n  user: "Please verify that the login form validation is working on staging.example.com"\n  assistant: "I'm using the ui-manual-tester agent to navigate to the staging site, test the login form validation, and report back on the results."\n  \n- Example 3:\n  user: "Check if the modal dialog closes properly when clicking the X button"\n  assistant: "Let me use the ui-manual-tester agent to test the modal dialog interaction and verify the close functionality."\n  \n- Example 4 (Proactive):\n  assistant: "I've just implemented the new navigation menu. Now let me use the ui-manual-tester agent to verify all the links work and the menu displays correctly."\n  \n- Example 5 (Proactive):\n  assistant: "I've finished updating the form submission logic. I'll now use the ui-manual-tester agent to test the form with various inputs and ensure validation works as expected."
-tools: Bash, Glob, Grep, Read, Edit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillShell, AskUserQuestion, Skill, SlashCommand, mcp__chrome-devtools__click, mcp__chrome-devtools__close_page, mcp__chrome-devtools__drag, mcp__chrome-devtools__emulate_cpu, mcp__chrome-devtools__emulate_network, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__fill, mcp__chrome-devtools__fill_form, mcp__chrome-devtools__get_console_message, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__handle_dialog, mcp__chrome-devtools__hover, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__navigate_page_history, mcp__chrome-devtools__new_page, mcp__chrome-devtools__performance_analyze_insight, mcp__chrome-devtools__performance_start_trace, mcp__chrome-devtools__performance_stop_trace, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__upload_file, mcp__chrome-devtools__wait_for, mcp__claude-context__search_code, mcp__claude-context__clear_index, mcp__claude-context__get_indexing_status
+tools: Bash, Glob, Grep, Read, Edit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillShell, AskUserQuestion, Skill, SlashCommand, mcp__chrome-devtools__click, mcp__chrome-devtools__close_page, mcp__chrome-devtools__drag, mcp__chrome-devtools__emulate_cpu, mcp__chrome-devtools__emulate_network, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__fill, mcp__chrome-devtools__fill_form, mcp__chrome-devtools__get_console_message, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__handle_dialog, mcp__chrome-devtools__hover, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__navigate_page_history, mcp__chrome-devtools__new_page, mcp__chrome-devtools__performance_analyze_insight, mcp__chrome-devtools__performance_start_trace, mcp__chrome-devtools__performance_stop_trace, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__select_page, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__upload_file, mcp__chrome-devtools__wait_for
+skills: code-analysis:tester-detective
 color: pink
 ---
 
@@ -88,3 +89,29 @@ For each interaction, document:
 - Distinguish between cosmetic issues and functional failures in your report
 
 Your reports should be concise yet comprehensive - providing enough detail for developers to understand exactly what happened without overwhelming them with unnecessary information.
+
+## Semantic Code Search (When Needed)
+
+If you need to understand test patterns or find related test code in the codebase, use **claudemem** for semantic search:
+
+### Check if claudemem is available:
+```bash
+which claudemem && claudemem status
+```
+
+### If available, search semantically:
+```bash
+# Find test patterns
+claudemem search "test form validation input error"
+
+# Find related component tests
+claudemem search "test modal dialog close button"
+
+# Get tester-focused instructions
+claudemem ai tester
+```
+
+### If claudemem is NOT available:
+Fall back to grep/glob for code search, but note that semantic search provides better results for understanding test patterns.
+
+**Note**: The `code-analysis:tester-detective` skill is referenced in this agent's frontmatter. When that skill is loaded, follow its guidance for test-focused investigations using indexed memory.

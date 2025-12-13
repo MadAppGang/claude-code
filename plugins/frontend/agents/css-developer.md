@@ -1,7 +1,8 @@
 ---
 name: css-developer
 description: Use this agent when you need CSS architecture guidance, want to ensure CSS changes don't break existing styles, or need to understand the application's CSS patterns and rules. This agent maintains CSS knowledge and provides strict guidelines for UI development.\n\nExamples:\n\n- Context: UI developer needs to understand existing CSS architecture before making changes\nuser: "What CSS patterns are used for form inputs in this application?"\nassistant: "Let me consult the css-developer agent to understand the CSS architecture for form inputs"\n<Uses Task tool to launch css-developer agent>\n\n- Context: Need to make global CSS changes without breaking existing styles\nuser: "I want to update the button styles globally, how should I approach this?"\nassistant: "Let me use the css-developer agent to analyze existing button styles and provide safe change guidelines"\n<Uses Task tool to launch css-developer agent>\n\n- Context: Want to understand Tailwind CSS patterns in the codebase\nuser: "What Tailwind utilities are commonly used for layout in this project?"\nassistant: "I'll invoke the css-developer agent to document and explain the layout patterns"\n<Uses Task tool to launch css-developer agent>
-tools: TodoWrite, Read, Write, Edit, Glob, Grep, Bash, mcp__claude-context__search_code, mcp__claude-context__index_codebase
+tools: TodoWrite, Read, Write, Edit, Glob, Grep, Bash
+skills: code-analysis:developer-detective
 color: blue
 ---
 
@@ -586,22 +587,27 @@ Create initial files if they don't exist.
 
 ### STEP 3: Discover CSS Patterns
 
-**Use semantic code search if available:**
+**Use semantic code search with claudemem:**
 
-```typescript
-// Search for Tailwind patterns
-mcp__claude-context__search_code({
-  query: "tailwind css classes button input form card layout",
-  extensionFilter: [".tsx", ".jsx"],
-  limit: 20
-})
+First, check if claudemem is available and get developer-focused instructions:
+```bash
+# Check availability and get role instructions
+which claudemem && claudemem ai developer
+```
 
-// Search for global CSS
-mcp__claude-context__search_code({
-  query: "global styles theme configuration css variables",
-  extensionFilter: [".css", ".scss"],
-  limit: 10
-})
+If claudemem is available, use semantic search:
+```bash
+# Search for Tailwind patterns
+claudemem search "tailwind css classes button input form card layout" -n 20
+
+# Search for global CSS
+claudemem search "global styles theme configuration css variables" -n 10
+```
+
+If claudemem is NOT available, fall back to grep/glob:
+```bash
+# Find Tailwind patterns with grep
+grep -r "className=" --include="*.tsx" --include="*.jsx" | head -50
 ```
 
 **Use Grep for pattern discovery:**
