@@ -38,10 +38,14 @@ A complete Claude Code plugin marketplace with enterprise-level architecture:
   - CSS architecture management with knowledge files
   - Pixel-perfect UI implementation with parallel design validation
   - Task decomposition for isolated, parallel implementation
-- **Code Analysis Plugin** (v2.3.0) - Deep codebase investigation with ENFORCED claudemem
+- **Code Analysis Plugin** (v2.4.0) - Deep codebase investigation with ENFORCED claudemem v0.2.0
   - 1 Specialized Agent (codebase-detective)
   - 11 Skills + 5 PreToolUse Hooks + 1 SessionStart Hook
-  - **PreToolUse Hooks** (NEW in v2.3.0) - Automatically intercept Grep/Bash/Glob/Read
+  - **Claudemem v0.2.0 LLM Enrichment** (NEW in v2.4.0) - symbol_summary and file_summary for code understanding
+    - symbol_summary: Function behavior, params, returns, side effects
+    - file_summary: File purpose, exports, architectural patterns
+    - --use-case navigation: Agent-optimized search weights
+  - **PreToolUse Hooks** - Automatically intercept Grep/Bash/Glob/Read
     - Grep → BLOCKED, replaced with claudemem search results
     - Bash grep/rg/find → BLOCKED, replaced with claudemem search
     - Glob (broad patterns) → WARNING, suggests claudemem
@@ -308,9 +312,51 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates
 **How to Use:**
 Skills auto-load when commands/agents reference them in frontmatter. Plugins that depend on orchestration get automatic access to all orchestration skills.
 
-## Claudemem Semantic Search
+## Claudemem Semantic Search (v0.2.0)
 
-The code-analysis plugin uses **claudemem** CLI for local semantic code search.
+The code-analysis plugin uses **claudemem v0.2.0** CLI with **LLM enrichment** for intelligent semantic code search.
+
+### What's New in v0.2.0: LLM Enrichment
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                   CLAUDEMEM v0.2.0 ARCHITECTURE                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SEARCH LAYER                                                               │
+│  └── Query → Embed → Vector Search + BM25 → Ranked Results                 │
+│                              ↓                                              │
+│  ENRICHMENT LAYER (LLM) ⭐NEW                                              │
+│  └── file_summary: File PURPOSE, exports, patterns (1 call/file)           │
+│  └── symbol_summary: Function BEHAVIOR, params, side effects (batched)     │
+│                              ↓                                              │
+│  INDEX LAYER                                                                │
+│  └── Tree-sitter AST → Semantic Chunks → Embeddings → LanceDB              │
+│                                                                             │
+│  SEARCH MATCHES BOTH RAW CODE AND LLM SUMMARIES                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Innovation**: Search queries now match BOTH raw code chunks AND LLM-enriched summaries (file_summary, symbol_summary). This dramatically improves semantic understanding.
+
+### Document Types
+
+| Document Type | Source | Best For |
+|---------------|--------|----------|
+| `code_chunk` | Tree-sitter AST | Exact implementations, signatures |
+| `file_summary` ⭐NEW | LLM analysis | Architecture discovery, file roles |
+| `symbol_summary` ⭐NEW | LLM analysis | Function behavior, side effects, params |
+
+### Search Use Cases
+
+| Use Case | When to Use | Command |
+|----------|-------------|---------|
+| **Search** (default) | Human searching codebase | `claudemem search "query"` |
+| **Navigation** ⭐AGENTS | AI agent exploring codebase | `claudemem search "query" --use-case navigation` |
+| **FIM** | Code completion | `claudemem search "query" --use-case fim` |
+
+**⚠️ IMPORTANT**: When using claudemem in agents, ALWAYS use `--use-case navigation` for optimized weights.
 
 ### Installation
 
@@ -342,26 +388,36 @@ claudemem --models
 | `qwen/qwen3-embedding-8b` | Best Balanced | $0.010/1M |
 | `qwen/qwen3-embedding-0.6b` | Best Value | $0.002/1M |
 
-### Usage
+### Usage (v0.2.0)
 
 ```bash
-# Index current project
-claudemem index
+# Index with LLM enrichment (RECOMMENDED)
+claudemem index --enrich
 
-# Semantic search
+# Or index first, then enrich
+claudemem index
+claudemem enrich
+
+# Semantic search (default mode)
 claudemem search "user authentication flow"
 
-# Check status
+# Search for agents (navigation mode)
+claudemem search "user authentication flow" --use-case navigation
+
+# Check status (shows enrichment)
 claudemem status
 ```
 
 ### Key Features
 
+- **3-Layer Architecture** - Search + Enrichment + Index
+- **LLM Enrichment** ⭐NEW - file_summary + symbol_summary
 - **Tree-sitter parsing** - Preserves function/class boundaries
-- **OpenRouter embeddings** - Uses voyage/voyage-code-3 by default (best code understanding)
-- **Local storage** - LanceDB in `.claudemem/` directory (add to .gitignore)
+- **OpenRouter embeddings** - Uses voyage/voyage-code-3 by default
+- **Local storage** - LanceDB in `.claudemem/` directory
 - **Hybrid search** - BM25 keyword + dense vector similarity
 - **MCP server mode** - Run with `claudemem --mcp`
+- **Use Case Modes** ⭐NEW - search, navigation (agents), fim (completion)
 
 ### ⚠️ TOOL SELECTION RULES FOR CODE INVESTIGATION
 
@@ -369,13 +425,14 @@ claudemem status
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    CODE INVESTIGATION TOOL SELECTION                 │
+│              CODE INVESTIGATION TOOL SELECTION (v0.2.0)              │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  BEFORE ANY CODE SEARCH:                                            │
 │  1. Run: claudemem status                                           │
-│  2. If indexed → USE claudemem search (semantic)                    │
-│  3. If not indexed → Index first: claudemem index -y                │
+│  2. Check: file_summary > 0, symbol_summary > 0 (enriched)          │
+│  3. If not enriched → Run: claudemem enrich                         │
+│  4. Search with: --use-case navigation (for agents)                 │
 │                                                                      │
 │  ❌ NEVER use grep/glob for:                                        │
 │     - "How does X work?"                                            │
@@ -394,9 +451,18 @@ claudemem status
 
 | User Request | ❌ DON'T | ✅ DO |
 |-------------|----------|-------|
-| "How does auth work?" | `grep -r "auth"` | `claudemem search "authentication flow"` |
-| "Find API endpoints" | `grep -r "router"` | `claudemem search "API endpoint handler"` |
-| "Audit integrations" | `grep -r "import"` | `claudemem search "external integration API"` |
+| "How does auth work?" | `grep -r "auth"` | `claudemem search "authentication flow" --use-case navigation` |
+| "Find API endpoints" | `grep -r "router"` | `claudemem search "API endpoint handler" --use-case navigation` |
+| "Audit integrations" | `grep -r "import"` | `claudemem search "external integration API" --use-case navigation` |
+
+### Why Enrichment Matters
+
+| Without Enrichment (v0.1.x) | With Enrichment (v0.2.0) |
+|-----------------------------|-----------------------------|
+| Matches code chunks only | Matches code + file_summary + symbol_summary |
+| No understanding of PURPOSE | Knows file purpose and patterns |
+| No understanding of BEHAVIOR | Knows function params, returns, side effects |
+| Good for finding syntax | Great for finding MEANING |
 
 ## Environment Variables
 
@@ -719,7 +785,7 @@ Include marketplace in project settings (requires folder trust):
 **5 Complete Plugins:**
 1. **Orchestration** (v0.5.0) - 5 skills, 2 commands, 2 hooks - Shared multi-agent coordination patterns with ENFORCED statistics
 2. **Frontend** (v3.13.0) - 11 agents, 7 commands, 11 skills - Full-featured with LLM performance tracking
-3. **Code Analysis** (v2.3.0) - 1 agent, 3 commands, 11 skills, 5 hooks - ENFORCED claudemem via PreToolUse hooks
+3. **Code Analysis** (v2.4.0) - 1 agent, 3 commands, 11 skills, 5 hooks - ENFORCED claudemem v0.2.0 with LLM enrichment
 4. **Bun Backend** (v1.5.2) - 3 agents, 3 commands, 1 skill - Production TypeScript backend with Bun
 5. **Agent Development** (v1.1.0) - 3 agents, 1 command, 3 skills - Create Claude Code agents with LLM performance tracking
 
@@ -775,12 +841,25 @@ Include marketplace in project settings (requires folder trust):
 **Current Versions:**
 - Orchestration Plugin: **v0.5.0** (2025-12-14)
 - Frontend Plugin: **v3.13.0** (2025-12-14)
-- Code Analysis Plugin: **v2.3.0** (2025-12-14)
+- Code Analysis Plugin: **v2.4.0** (2025-12-14)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.1.0** (2025-12-09)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (Orchestration v0.5.0 - Statistics Enforcement):**
+**Latest Changes (Code Analysis v2.4.0 - Claudemem v0.2.0 LLM Enrichment):**
+- ✅ **Claudemem v0.2.0 Integration**: Full support for LLM-enriched semantic search
+- ✅ **New Document Types**: symbol_summary (function behavior, side effects) and file_summary (file purpose, patterns)
+- ✅ **Navigation Search Mode**: All agents/hooks use `--use-case navigation` for optimized weights
+- ✅ **Enrichment Status Checking**: SessionStart hook and all skills verify enrichment status
+- ✅ **Detective Skills v2.0.0**: All 5 detective skills updated for document type specialization
+  - architect-detective: Uses file_summary for architecture discovery
+  - developer-detective: Uses symbol_summary for implementation understanding
+  - tester-detective: Uses symbol_summary for test purpose analysis
+  - debugger-detective: Uses symbol_summary side_effects for bug tracing
+  - ultrathink-detective: Combines all document types for multi-dimensional analysis
+- ✅ **Updated Hooks**: intercept-grep.sh and intercept-bash.sh use navigation mode
+
+**Previous Changes (Orchestration v0.5.0 - Statistics Enforcement):**
 - ✅ **SubagentStop Hook**: Automatically detects multi-model validation and warns if statistics weren't collected
 - ✅ **MANDATORY Statistics Checklist**: 6-step checklist in skill prevents incomplete reviews
 - ✅ **Timing Instrumentation Examples**: Pre-flight checklist, per-model timing, bash associative arrays
@@ -869,7 +948,7 @@ Include marketplace in project settings (requires folder trust):
 - Orchestration: `plugins/orchestration/v0.5.0`
 - Frontend: `plugins/frontend/v3.13.0`
 - Bun: `plugins/bun/v1.5.2`
-- Code Analysis: `plugins/code-analysis/v2.3.0`
+- Code Analysis: `plugins/code-analysis/v2.4.0`
 - Agent Development: `plugins/agentdev/v1.1.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
@@ -885,5 +964,5 @@ Missing any of these will cause claudeup to not see the update!
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** December 14, 2025
-**Version:** 5 plugins (Orchestration v0.5.0, Frontend v3.13.0, Code Analysis v2.3.0, Bun Backend v1.5.2, Agent Development v1.1.0)
+**Version:** 5 plugins (Orchestration v0.5.0, Frontend v3.13.0, Code Analysis v2.4.0, Bun Backend v1.5.2, Agent Development v1.1.0)
 - do not use hardcoded path in code, docs, comments or any other files

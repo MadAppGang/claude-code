@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "2.3.0",
-	"description": "Deep code investigation with ENFORCED claudemem semantic search. PreToolUse hooks intercept Grep/Bash/Glob/Read and replace with claudemem. Zero context overhead enforcement.",
+	"version": "2.4.0",
+	"description": "Deep code investigation with ENFORCED claudemem v0.2.0 semantic search. LLM-enriched symbol_summary and file_summary for understanding code behavior. PreToolUse hooks intercept Grep/Bash/Glob/Read and replace with claudemem using --use-case navigation.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

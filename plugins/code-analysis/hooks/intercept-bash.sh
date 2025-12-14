@@ -1,9 +1,11 @@
 #!/bin/bash
 # =============================================================================
-# INTERCEPT BASH GREP/RG/FIND → REPLACE WITH CLAUDEMEM
+# INTERCEPT BASH GREP/RG/FIND → REPLACE WITH CLAUDEMEM (v0.2.0)
 # =============================================================================
 # This hook intercepts Bash commands that run grep, rg, ripgrep, ag, ack,
 # git grep, or find with grep. Replaces with claudemem semantic search.
+#
+# v0.2.0 Update: Uses --use-case navigation for agent-optimized weights
 # =============================================================================
 
 set -euo pipefail
@@ -30,17 +32,22 @@ if ! command -v claudemem &>/dev/null; then
 fi
 
 # Check if claudemem is indexed
-if ! claudemem status 2>/dev/null | grep -qE "[0-9]+ chunks"; then
+STATUS_OUTPUT=$(claudemem status 2>/dev/null || echo "")
+if ! echo "$STATUS_OUTPUT" | grep -qE "[0-9]+ chunks"; then
   # Not indexed - allow with warning
   cat << 'EOF' >&3
 {
-  "additionalContext": "⚠️ **claudemem not indexed** - Search command allowed as fallback.\n\nFor semantic search, run: `claudemem index`"
+  "additionalContext": "⚠️ **claudemem not indexed** - Search command allowed as fallback.\n\nFor semantic search with LLM enrichment, run:\n```bash\nclaudemem index --enrich\n```"
 }
 EOF
   exit 0
 fi
 
 # === CLAUDEMEM IS INDEXED - REPLACE BASH SEARCH ===
+
+# Check enrichment status (v0.2.0)
+FILE_SUMMARY_COUNT=$(echo "$STATUS_OUTPUT" | grep -oE "file_summary: [0-9]+" | grep -oE "[0-9]+" || echo "0")
+SYMBOL_SUMMARY_COUNT=$(echo "$STATUS_OUTPUT" | grep -oE "symbol_summary: [0-9]+" | grep -oE "[0-9]+" || echo "0")
 
 # Extract search pattern (best effort)
 # Handles various patterns: grep "pattern", grep 'pattern', grep pattern, rg pattern
@@ -64,22 +71,32 @@ if [ -z "$PATTERN" ] || [ "$PATTERN" = "$COMMAND" ]; then
   PATTERN="code pattern"
 fi
 
-# Run claudemem search
-RESULTS=$(claudemem search "$PATTERN" -n 15 2>/dev/null || echo "No results found")
+# Run claudemem search with navigation use case (optimized for agents)
+# This prioritizes symbol_summary (35%) and file_summary (30%) over code_chunk (20%)
+RESULTS=$(claudemem search "$PATTERN" -n 15 --use-case navigation 2>/dev/null || echo "No results found")
 
 # Escape for JSON
 RESULTS_ESCAPED=$(echo "$RESULTS" | jq -Rs .)
 COMMAND_ESCAPED=$(echo "$COMMAND" | jq -Rs .)
 PATTERN_ESCAPED=$(echo "$PATTERN" | jq -Rs .)
 
+# Build enrichment status message
+if [ "$FILE_SUMMARY_COUNT" != "0" ] && [ "$SYMBOL_SUMMARY_COUNT" != "0" ]; then
+  ENRICHMENT_MSG="Fully enriched with file_summary + symbol_summary"
+elif [ "$FILE_SUMMARY_COUNT" != "0" ]; then
+  ENRICHMENT_MSG="Partial enrichment (file_summary only)"
+else
+  ENRICHMENT_MSG="Not enriched (code_chunk only). Run \`claudemem enrich\` for better results"
+fi
+
 # Return results and block
 cat << EOF >&3
 {
-  "additionalContext": "🔍 **CLAUDEMEM SEARCH** (Bash search intercepted)\n\n**Blocked command:** ${COMMAND_ESCAPED}\n**Extracted query:** ${PATTERN_ESCAPED}\n\n${RESULTS_ESCAPED}\n\n---\n✅ Semantic search complete. Use \`claudemem search \"query\"\` directly.",
+  "additionalContext": "🔍 **CLAUDEMEM SEARCH** (Bash search intercepted)\n\n**Blocked command:** ${COMMAND_ESCAPED}\n**Extracted query:** ${PATTERN_ESCAPED}\n**Mode:** navigation (agent-optimized weights)\n**Enrichment:** ${ENRICHMENT_MSG}\n\n${RESULTS_ESCAPED}\n\n---\n✅ Semantic search complete. Use \`claudemem search \"query\" --use-case navigation\` directly.",
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "grep/rg/find blocked. claudemem semantic results provided in context above."
+    "permissionDecisionReason": "grep/rg/find blocked. claudemem semantic results (--use-case navigation) provided in context above."
   }
 }
 EOF

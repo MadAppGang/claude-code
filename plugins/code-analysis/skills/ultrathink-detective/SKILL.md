@@ -1,16 +1,16 @@
 ---
 name: ultrathink-detective
-description: "⚡ PRIMARY TOOL for: 'comprehensive audit', 'deep analysis', 'full codebase review', 'multi-perspective investigation', 'complex questions'. Combines ALL detective perspectives (architect+developer+tester+debugger). Uses Opus model. REPLACES grep/glob entirely. Uses claudemem INDEXED MEMORY exclusively. GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ PRIMARY TOOL for: 'comprehensive audit', 'deep analysis', 'full codebase review', 'multi-perspective investigation', 'complex questions'. Combines ALL detective perspectives (architect+developer+tester+debugger). Uses Opus model. REPLACES grep/glob entirely. Uses claudemem v0.2.0 INDEXED MEMORY with LLM enrichment. GREP/FIND/GLOB ARE FORBIDDEN."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 model: opus
 ---
 
-# ⛔⛔⛔ CRITICAL: INDEXED MEMORY ONLY ⛔⛔⛔
+# ⛔⛔⛔ CRITICAL: INDEXED MEMORY v0.2.0 ONLY ⛔⛔⛔
 
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   🧠 THIS SKILL USES INDEXED MEMORY (claudemem) EXCLUSIVELY                  ║
+║   🧠 THIS SKILL USES INDEXED MEMORY (claudemem v0.2.0) EXCLUSIVELY           ║
 ║                                                                              ║
 ║   ❌ GREP IS FORBIDDEN                                                       ║
 ║   ❌ FIND IS FORBIDDEN                                                       ║
@@ -20,49 +20,130 @@ model: opus
 ║   ❌ Grep tool IS FORBIDDEN                                                  ║
 ║   ❌ Glob tool IS FORBIDDEN                                                  ║
 ║                                                                              ║
-║   ✅ claudemem search "query" IS THE ONLY WAY                               ║
+║   ✅ claudemem search "query" --use-case navigation IS THE ONLY WAY         ║
+║                                                                              ║
+║   ⭐ v0.2.0: Full 3-layer architecture with LLM enrichment                  ║
+║      - file_summary for ARCHITECTURE discovery                               ║
+║      - symbol_summary for IMPLEMENTATION & BEHAVIOR                          ║
+║      - code_chunk for EXACT SYNTAX                                           ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
 # Ultrathink Detective Skill
 
-**Version:** 1.1.0
+**Version:** 2.0.0
 **Role:** Senior Principal Engineer / Tech Lead
-**Purpose:** Deep multi-dimensional codebase investigation using INDEXED MEMORY
+**Purpose:** Deep multi-dimensional codebase investigation using INDEXED MEMORY with LLM enrichment
 
-## Why Indexed Memory is Non-Negotiable
+## Why Indexed Memory with Enrichment is Non-Negotiable
 
-| grep/find (FORBIDDEN) | claudemem (REQUIRED) |
-|----------------------|---------------------|
-| Text matching | MEANING understanding |
-| 500 unranked results | Top 10 ranked by relevance |
-| Misses synonyms | "auth" finds "login" |
-| No pattern recognition | Finds architectural patterns |
-| Linear file scanning | Instant vector search |
-| No code structure awareness | AST-aware chunking |
+| grep/find (FORBIDDEN) | claudemem v0.1.x | claudemem v0.2.0 (REQUIRED) |
+|----------------------|------------------|------------------------------|
+| Text matching only | Vector similarity | Vector + LLM UNDERSTANDING |
+| 500 unranked results | Top 10 ranked | Top 10 with file/symbol CONTEXT |
+| Misses synonyms | Finds similar | Understands PURPOSE and BEHAVIOR |
+| No pattern recognition | Finds some patterns | Detects ARCHITECTURAL patterns |
+| No behavior awareness | Code only | file_summary + symbol_summary |
 
-**There is NO valid reason to use grep/find when claudemem is available.**
+**v0.2.0 enrichment gives you SEMANTIC UNDERSTANDING of what each file and function DOES.**
+
+---
+
+## 🧠 CLAUDEMEM v0.2.0: The 3-Layer Semantic Memory System
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               INDEXED MEMORY ARCHITECTURE (v0.2.0 ENRICHED)                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  SEARCH LAYER                                                               │
+│  └── Query → Embed → Vector Search + BM25 → Ranked Results                 │
+│      └── Matches 3 document types with weighted scores                     │
+│                                                                             │
+│  ENRICHMENT LAYER (LLM) ⭐NEW                                              │
+│  └── file_summary: File PURPOSE, exports, patterns (1 call/file)           │
+│  └── symbol_summary: Function BEHAVIOR, params, side effects (batched)     │
+│                                                                             │
+│  INDEX LAYER                                                                │
+│  └── Tree-sitter AST → Semantic Chunks → Vector Embeddings → LanceDB       │
+│  └── code_chunk: Raw functions, classes, methods                           │
+│                                                                             │
+│  SEARCH MATCHES BOTH RAW CODE AND LLM SUMMARIES                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Document Types for Comprehensive Analysis
+
+| Document Type | Source | Best For | Ultrathink Use |
+|---------------|--------|----------|----------------|
+| `file_summary` | LLM analysis | Architecture, file roles | Dimension 1: Structure |
+| `symbol_summary` | LLM analysis | Behavior, side effects | Dimensions 2-4: Behavior, Quality, Reliability |
+| `code_chunk` | Tree-sitter | Exact implementation | All dimensions for evidence |
+
+### Navigation Mode (Agent-Optimized)
+
+**ALWAYS use `--use-case navigation`** which prioritizes:
+- symbol_summary: 35% (behavior understanding)
+- file_summary: 30% (architecture context)
+- code_chunk: 20% (implementation details)
 
 ---
 
 ## PHASE 0: MANDATORY SETUP (CANNOT BE SKIPPED)
 
+### Step 1: Verify claudemem v0.2.0
 ```bash
-# Step 1: Verify claudemem is installed
-which claudemem || command -v claudemem
-
-# Step 2: If not installed, STOP and ask user
-# DO NOT FALL BACK TO GREP
-
-# Step 3: Check status
-claudemem status
-
-# Step 4: Index if needed
-claudemem index -y
+# Check version (must be 0.2.0+)
+which claudemem && claudemem --version
 ```
 
-**If claudemem is not installed, use AskUserQuestion to install it. DO NOT proceed with grep.**
+### Step 2: If Not Installed → STOP
+
+**DO NOT FALL BACK TO GREP.** Use AskUserQuestion:
+
+```typescript
+AskUserQuestion({
+  questions: [{
+    question: "claudemem v0.2.0 (indexed memory with LLM enrichment) is required for comprehensive analysis. Grep/find are NOT acceptable alternatives. How would you like to proceed?",
+    header: "Required",
+    multiSelect: false,
+    options: [
+      { label: "Install via npm (Recommended)", description: "Run: npm install -g claude-codemem" },
+      { label: "Install via Homebrew", description: "Run: brew tap MadAppGang/claude-mem && brew install --cask claudemem (macOS)" },
+      { label: "Cancel and install manually", description: "Stop here - I'll install it myself" }
+    ]
+  }]
+})
+```
+
+### Step 3: Check Status AND Enrichment ⭐CRITICAL
+
+```bash
+claudemem status
+```
+
+**Look for:**
+```
+Document Types:
+  code_chunk: 1,234      ← Basic index
+  file_summary: 567      ← LLM enrichment (REQUIRED)
+  symbol_summary: 890    ← LLM enrichment (REQUIRED)
+Enrichment: complete
+```
+
+### Step 4: Index with Enrichment if Needed
+
+```bash
+# If file_summary = 0, run enrichment
+claudemem index --enrich
+
+# Or enrich existing index
+claudemem enrich
+```
+
+**Ultrathink analysis requires ALL THREE document types for comprehensive understanding.**
 
 ---
 
@@ -70,8 +151,8 @@ claudemem index -y
 
 You are investigating as a **Senior Principal Engineer**. Your analysis is:
 - **Holistic** - All perspectives (architecture, implementation, testing, debugging)
-- **Deep** - Beyond surface-level to root patterns
-- **Strategic** - Long-term implications and technical debt
+- **Deep** - Beyond surface-level to root patterns using symbol_summary
+- **Strategic** - Long-term implications from file_summary patterns
 - **Evidence-based** - Every conclusion backed by code from claudemem
 - **Actionable** - Clear recommendations with priorities
 
@@ -84,196 +165,239 @@ You are investigating as a **Senior Principal Engineer**. Your analysis is:
 - Post-incident root cause analysis
 - Architecture decision records
 - Security audits
+- Comprehensive code reviews
 
 ---
 
-## 🧠 CLAUDEMEM: The Semantic Memory System
+## Multi-Dimensional Analysis Framework (v0.2.0)
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     INDEXED MEMORY ARCHITECTURE                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  claudemem index                                                            │
-│  └── Tree-sitter parses code into AST                                      │
-│      └── Chunks by semantic units (functions, classes, methods)            │
-│          └── OpenRouter generates vector embeddings                        │
-│              └── LanceDB stores vectors locally                            │
-│                                                                             │
-│  claudemem search "natural language query"                                  │
-│  └── Query → Vector embedding                                              │
-│      └── Similarity search (vector + BM25 keyword)                         │
-│          └── Ranked results with file:line and score                       │
-│                                                                             │
-│  THIS IS SEMANTIC UNDERSTANDING, NOT TEXT MATCHING                          │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Multi-Dimensional Analysis Framework
-
-### Dimension 1: Architecture (Structure)
+### Dimension 1: Architecture (file_summary driven)
 ```bash
-# Layer identification
-claudemem search "controller handler endpoint API layer"
-claudemem search "service business logic domain layer"
-claudemem search "repository database data access layer"
+# Layer identification (file_summary shows file purpose)
+claudemem search "controller handler endpoint API presentation layer" --use-case navigation
+claudemem search "service business logic domain layer orchestration" --use-case navigation
+claudemem search "repository database data access persistence layer" --use-case navigation
 
-# Pattern detection
-claudemem search "factory pattern create instantiation"
-claudemem search "dependency injection container provider"
-claudemem search "event driven publish subscribe observer"
+# Pattern detection (file_summary shows patterns)
+claudemem search "factory pattern create instantiation builder" --use-case navigation
+claudemem search "dependency injection container provider" --use-case navigation
+claudemem search "event driven publish subscribe observer pattern" --use-case navigation
 ```
 
-### Dimension 2: Implementation (Behavior)
+### Dimension 2: Implementation (symbol_summary driven)
 ```bash
-# Data flow
-claudemem search "transform map convert data flow"
-claudemem search "validate input sanitize check"
-claudemem search "persist save store database"
+# Data flow (symbol_summary shows params/returns)
+claudemem search "transform map convert data flow processing" --use-case navigation
+claudemem search "validate input sanitize check guard" --use-case navigation
+claudemem search "persist save store database insert update" --use-case navigation
 
-# Side effects
-claudemem search "external API call network request"
-claudemem search "file system read write"
-claudemem search "emit event notification message"
+# Side effects (symbol_summary lists these explicitly)
+claudemem search "external API call network request fetch" --use-case navigation
+claudemem search "file system read write storage" --use-case navigation
+claudemem search "emit event notification message publish" --use-case navigation
 ```
 
-### Dimension 3: Quality (Testing)
+### Dimension 3: Quality (symbol_summary shows test purpose)
 ```bash
-# Test coverage
-claudemem search "describe it test spec should"
-claudemem search "mock stub fake spy"
-claudemem search "assert expect toBe toEqual"
+# Test coverage (symbol_summary shows what tests verify)
+claudemem search "describe it test spec should verify" --use-case navigation
+claudemem search "mock stub fake spy vi.mock jest.mock" --use-case navigation
+claudemem search "assert expect toBe toEqual toThrow" --use-case navigation
 
-# Test gaps
-claudemem search "error throw exception" -n 15
-claudemem search "edge case boundary null empty"
+# Test gaps (compare implementation vs test symbol_summary)
+claudemem search "error throw exception handler" -n 15 --use-case navigation
+claudemem search "edge case boundary null undefined empty" --use-case navigation
 ```
 
-### Dimension 4: Reliability (Error Handling)
+### Dimension 4: Reliability (symbol_summary shows error paths)
 ```bash
-# Error handling patterns
-claudemem search "try catch finally error handling"
-claudemem search "throw new Error custom exception"
-claudemem search "error response status code message"
+# Error handling patterns (symbol_summary shows error behavior)
+claudemem search "try catch finally error handling recovery" --use-case navigation
+claudemem search "throw new Error custom exception class" --use-case navigation
+claudemem search "error response status code message format" --use-case navigation
 
-# Failure modes
-claudemem search "timeout retry backoff failure"
-claudemem search "fallback default graceful degradation"
+# Failure modes (symbol_summary shows failure side effects)
+claudemem search "timeout retry backoff failure circuit breaker" --use-case navigation
+claudemem search "fallback default graceful degradation" --use-case navigation
 ```
 
-### Dimension 5: Security (Vulnerabilities)
+### Dimension 5: Security (file_summary + symbol_summary)
 ```bash
-# Authentication/Authorization
-claudemem search "authentication token JWT session"
-claudemem search "authorization permission role check"
+# Authentication/Authorization (file_summary shows auth patterns)
+claudemem search "authentication token JWT session middleware" --use-case navigation
+claudemem search "authorization permission role check guard" --use-case navigation
 
-# Input validation
-claudemem search "sanitize escape validate input"
-claudemem search "SQL injection XSS CSRF prevention"
+# Input validation (symbol_summary shows validation)
+claudemem search "sanitize escape validate input XSS prevention" --use-case navigation
+claudemem search "SQL injection prepared statement parameterized" --use-case navigation
 ```
 
-### Dimension 6: Performance (Efficiency)
+### Dimension 6: Performance (symbol_summary shows side effects)
 ```bash
-# N+1 queries
-claudemem search "loop database query fetch each"
+# N+1 queries (symbol_summary shows database calls)
+claudemem search "loop database query fetch each N+1" --use-case navigation
 
-# Caching
-claudemem search "cache memoize store reuse"
+# Caching (file_summary shows caching patterns)
+claudemem search "cache memoize store reuse Redis" --use-case navigation
 
-# Async patterns
-claudemem search "Promise.all parallel concurrent batch"
+# Async patterns (symbol_summary shows async side effects)
+claudemem search "Promise.all parallel concurrent batch async" --use-case navigation
 ```
 
 ---
 
-## Comprehensive Analysis Workflow
+## Comprehensive Analysis Workflow (v0.2.0)
 
-### Phase 1: Initialize (5 min)
+### Phase 1: Initialize with Enrichment (5 min)
 ```bash
-# Verify setup
+# Verify setup AND enrichment
 which claudemem && claudemem status
 
-# Fresh index for accurate results
-claudemem index -f
+# Ensure enriched (file_summary + symbol_summary > 0)
+# If not, run:
+claudemem index --enrich
 ```
 
 ### Phase 2: Architecture Mapping (10 min)
 ```bash
-claudemem search "main entry bootstrap application" -n 5
-claudemem search "module export public interface" -n 20
-claudemem search "controller service repository" -n 20
-claudemem search "pattern factory strategy decorator" -n 15
+# Entry points (file_summary shows file purpose)
+claudemem search "main entry bootstrap application startup" -n 5 --use-case navigation
+
+# Module structure (file_summary shows exports)
+claudemem search "module export public interface boundary" -n 20 --use-case navigation
+
+# Layer identification
+claudemem search "controller service repository pattern layer" -n 20 --use-case navigation
+
+# Design patterns (file_summary shows patterns)
+claudemem search "factory strategy decorator middleware pattern" -n 15 --use-case navigation
 ```
 
 ### Phase 3: Critical Path Analysis (15 min)
 ```bash
-claudemem search "payment transaction order checkout" -n 15
-claudemem search "authentication login session security" -n 15
-claudemem search "user data personal information" -n 15
+# Payment flow (symbol_summary shows side effects)
+claudemem search "payment transaction order checkout process" -n 15 --use-case navigation
+
+# Authentication (file_summary + symbol_summary)
+claudemem search "authentication login session security token" -n 15 --use-case navigation
+
+# User data (symbol_summary shows data operations)
+claudemem search "user data personal information PII" -n 15 --use-case navigation
 ```
 
 ### Phase 4: Quality Assessment (10 min)
 ```bash
-claudemem search "describe test spec" -n 20
-claudemem search "try catch error handling" -n 20
-claudemem search "type interface any unknown" -n 15
+# Test coverage (symbol_summary shows what tests verify)
+claudemem search "describe test spec verify assert" -n 20 --use-case navigation
+
+# Error handling (symbol_summary shows error behavior)
+claudemem search "try catch error handling exception" -n 20 --use-case navigation
+
+# Type safety
+claudemem search "type interface any unknown strict" -n 15 --use-case navigation
 ```
 
 ### Phase 5: Risk Identification (10 min)
 ```bash
-claudemem search "password hash salt" -n 5
-claudemem search "SQL query database" -n 10
-claudemem search "user input form data" -n 10
+# Security (symbol_summary shows sensitive operations)
+claudemem search "password hash salt bcrypt" -n 5 --use-case navigation
+claudemem search "SQL query database parameterized" -n 10 --use-case navigation
+claudemem search "user input form data validation" -n 10 --use-case navigation
 ```
 
 ### Phase 6: Technical Debt Inventory (10 min)
 ```bash
-claudemem search "TODO FIXME HACK workaround" -n 30
-claudemem search "god class large file" -n 10
-claudemem search "duplicate code copy paste" -n 10
-claudemem search "deprecated old legacy" -n 10
+# TODOs and FIXMEs
+claudemem search "TODO FIXME HACK workaround technical debt" -n 30 --use-case navigation
+
+# Code smells (file_summary shows file complexity)
+claudemem search "god class large file monolithic" -n 10 --use-case navigation
+claudemem search "duplicate code copy paste DRY" -n 10 --use-case navigation
+claudemem search "deprecated old legacy outdated" -n 10 --use-case navigation
 ```
 
 ---
 
-## Output Format: Comprehensive Report
+## Output Format: Comprehensive Report (v0.2.0)
 
 ### Executive Summary
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                 CODEBASE COMPREHENSIVE ANALYSIS                  │
+│           CODEBASE COMPREHENSIVE ANALYSIS (v0.2.0)               │
 ├─────────────────────────────────────────────────────────────────┤
 │  Overall Health: 🟡 MODERATE (7.2/10)                           │
+│  Search Method: claudemem v0.2.0 (enriched)                     │
+│  Enrichment: ✅ file_summary + symbol_summary available        │
 │                                                                  │
 │  Dimensions:                                                     │
-│  ├── Architecture:    🟢 GOOD      (8/10)                       │
-│  ├── Implementation:  🟡 MODERATE  (7/10)                       │
-│  ├── Testing:         🔴 POOR      (5/10)                       │
-│  ├── Reliability:     🟢 GOOD      (8/10)                       │
-│  ├── Security:        🟡 MODERATE  (7/10)                       │
-│  └── Performance:     🟢 GOOD      (8/10)                       │
+│  ├── Architecture:    🟢 GOOD      (8/10) [file_summary driven]│
+│  ├── Implementation:  🟡 MODERATE  (7/10) [symbol_summary driven]│
+│  ├── Testing:         🔴 POOR      (5/10) [test symbol_summary] │
+│  ├── Reliability:     🟢 GOOD      (8/10) [error side_effects] │
+│  ├── Security:        🟡 MODERATE  (7/10) [auth patterns]      │
+│  └── Performance:     🟢 GOOD      (8/10) [async side_effects] │
 │                                                                  │
 │  Critical: 3 | Major: 7 | Minor: 15                             │
 └─────────────────────────────────────────────────────────────────┘
+```
+
+### Dimension Details (with enrichment context)
+
+#### Architecture (from file_summary)
+```
+Layers Identified:
+├── Presentation: src/controllers/ (12 files)
+│   └── file_summary: "HTTP request handling, routing"
+├── Business: src/services/ (18 files)
+│   └── file_summary: "Business logic orchestration"
+├── Data: src/repositories/ (8 files)
+│   └── file_summary: "Database access, persistence"
+└── Domain: src/entities/ (15 files)
+    └── file_summary: "Core domain models"
+
+Patterns Detected (from file_summary.patterns):
+├── Repository: src/repositories/*.ts
+├── Factory: src/factories/*.ts
+├── Middleware: src/middleware/*.ts
+└── Observer: src/events/*.ts
+```
+
+#### Implementation (from symbol_summary)
+```
+Critical Side Effects Identified:
+
+Payment Processing:
+├── processPayment() [src/services/payment.ts:45]
+│   └── symbol_summary: "Charges card, creates transaction"
+│   └── side_effects: ["Stripe API call", "Database INSERT", "Email send"]
+│
+Authentication:
+├── login() [src/services/auth.ts:23]
+│   └── symbol_summary: "Validates credentials, creates session"
+│   └── side_effects: ["Database lookup", "JWT generation", "Session store"]
 ```
 
 ### Action Items (Prioritized)
 ```
 🔴 IMMEDIATE (This Sprint)
    1. Add database transaction to order processing
+      └── symbol_summary shows side effects without rollback
    2. Sanitize user content with DOMPurify
+      └── symbol_summary shows unvalidated input to DOM
    3. Add rate limiting middleware
+      └── file_summary shows no rate limiting pattern
 
 🟠 SHORT-TERM (Next 2 Sprints)
    4. Increase test coverage for payment flow
+      └── No test symbol_summary for processRefund()
    5. Extract business logic from controllers
+      └── Controller file_summary shows business logic
 
 🟡 MEDIUM-TERM (This Quarter)
-   7. Refactor validation to shared utilities
-   8. Add monitoring and alerting
+   6. Refactor validation to shared utilities
+      └── Duplicate symbol_summary patterns detected
+   7. Add monitoring and alerting
+      └── No observability file_summary patterns
 ```
 
 ---
@@ -294,7 +418,7 @@ Grep({ pattern: "function" })
 
 ```bash
 # ✅ THE ONLY ACCEPTABLE SEARCH METHOD
-claudemem search "what you're looking for"
+claudemem search "what you're looking for" --use-case navigation
 ```
 
 ---
@@ -324,12 +448,16 @@ skills: code-analysis:ultrathink-detective
 ```
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   ULTRATHINK = INDEXED MEMORY ONLY                                           ║
+║   ULTRATHINK = INDEXED MEMORY v0.2.0 + ENRICHMENT                           ║
 ║                                                                              ║
-║   ✅ claudemem search "query"                                               ║
+║   1. claudemem status (check file_summary + symbol_summary > 0)             ║
+║   2. claudemem enrich (if enrichment incomplete)                            ║
+║   3. claudemem search "query" --use-case navigation                          ║
+║                                                                              ║
 ║   ❌ grep, find, rg, Glob, Grep tool                                        ║
 ║                                                                              ║
-║   Semantic Understanding > Text Matching. Always. No Exceptions.             ║
+║   Enriched Memory = file_summary + symbol_summary + code_chunk              ║
+║   This gives you SEMANTIC UNDERSTANDING, not just text matching.            ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
@@ -337,5 +465,5 @@ skills: code-analysis:ultrathink-detective
 ---
 
 **Maintained by:** MadAppGang
-**Plugin:** code-analysis
+**Plugin:** code-analysis v2.4.0
 **Last Updated:** December 2025
