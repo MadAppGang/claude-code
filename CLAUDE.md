@@ -312,51 +312,56 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates
 **How to Use:**
 Skills auto-load when commands/agents reference them in frontmatter. Plugins that depend on orchestration get automatic access to all orchestration skills.
 
-## Claudemem Semantic Search (v0.2.0)
+## Claudemem AST Structural Analysis (v0.3.0)
 
-The code-analysis plugin uses **claudemem v0.2.0** CLI with **LLM enrichment** for intelligent semantic code search.
+The code-analysis plugin uses **claudemem v0.3.0** CLI with **AST structural analysis** and **PageRank-based symbol importance**.
 
-### What's New in v0.2.0: LLM Enrichment
+### What's New in v0.3.0: AST Structural Navigation
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                   CLAUDEMEM v0.2.0 ARCHITECTURE                              │
+│                   CLAUDEMEM v0.3.0 ARCHITECTURE                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  SEARCH LAYER                                                               │
-│  └── Query → Embed → Vector Search + BM25 → Ranked Results                 │
+│  AST STRUCTURAL LAYER ⭐NEW                                                 │
+│  └── map: Architecture overview with PageRank                              │
+│  └── symbol: Exact file:line location                                      │
+│  └── callers: What calls this? (impact analysis)                           │
+│  └── callees: What does this call? (dependencies)                          │
+│  └── context: Full call chain (callers + callees)                          │
 │                              ↓                                              │
-│  ENRICHMENT LAYER (LLM) ⭐NEW                                              │
-│  └── file_summary: File PURPOSE, exports, patterns (1 call/file)           │
-│  └── symbol_summary: Function BEHAVIOR, params, side effects (batched)     │
+│  SEMANTIC LAYER                                                             │
+│  └── search: Vector + BM25 semantic search                                 │
 │                              ↓                                              │
 │  INDEX LAYER                                                                │
-│  └── Tree-sitter AST → Semantic Chunks → Embeddings → LanceDB              │
+│  └── Tree-sitter AST → Symbol Graph → PageRank → LanceDB                   │
 │                                                                             │
-│  SEARCH MATCHES BOTH RAW CODE AND LLM SUMMARIES                            │
+│  STRUCTURE FIRST, THEN SEMANTIC IF NEEDED                                  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Innovation**: Search queries now match BOTH raw code chunks AND LLM-enriched summaries (file_summary, symbol_summary). This dramatically improves semantic understanding.
+**Key Innovation**: Navigate code by STRUCTURE (call graphs, dependencies) before resorting to semantic search. PageRank identifies architectural pillars.
 
-### Document Types
+### AST Commands (v0.3.0)
 
-| Document Type | Source | Best For |
-|---------------|--------|----------|
-| `code_chunk` | Tree-sitter AST | Exact implementations, signatures |
-| `file_summary` ⭐NEW | LLM analysis | Architecture discovery, file roles |
-| `symbol_summary` ⭐NEW | LLM analysis | Function behavior, side effects, params |
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `map` | Architecture overview with PageRank | Always FIRST - understand structure |
+| `symbol` | Find exact file:line location | When you know the symbol name |
+| `callers` | What calls this code? | BEFORE modifying any code |
+| `callees` | What does this code call? | Trace data flow, dependencies |
+| `context` | Full call chain (both) | Complex debugging, refactoring |
+| `search` | Semantic vector search | Last resort for broad queries |
 
-### Search Use Cases
+### PageRank Importance Guide
 
-| Use Case | When to Use | Command |
-|----------|-------------|---------|
-| **Search** (default) | Human searching codebase | `claudemem search "query"` |
-| **Navigation** ⭐AGENTS | AI agent exploring codebase | `claudemem search "query" --use-case navigation` |
-| **FIM** | Code completion | `claudemem search "query" --use-case fim` |
-
-**⚠️ IMPORTANT**: When using claudemem in agents, ALWAYS use `--use-case navigation` for optimized weights.
+| PageRank | Meaning | Action |
+|----------|---------|--------|
+| > 0.05 | Core abstraction | Understand FIRST - everything depends on it |
+| 0.01-0.05 | Important symbol | Key functionality, worth understanding |
+| 0.001-0.01 | Standard symbol | Normal code, read as needed |
+| < 0.001 | Utility/leaf | Helper functions, skip for architecture |
 
 ### Installation
 
@@ -376,73 +381,74 @@ claudemem init
 
 # Get API key at: https://openrouter.ai/keys
 
-# See available embedding models
-claudemem --models
+# Check version (must be 0.3.0+)
+claudemem --version
 ```
 
-### Embedding Models
-
-| Model | Best For | Price |
-|-------|----------|-------|
-| `voyage/voyage-code-3` | **Best Quality** (default) | $0.180/1M |
-| `qwen/qwen3-embedding-8b` | Best Balanced | $0.010/1M |
-| `qwen/qwen3-embedding-0.6b` | Best Value | $0.002/1M |
-
-### Usage (v0.2.0)
+### Usage (v0.3.0)
 
 ```bash
-# Index with LLM enrichment (RECOMMENDED)
-claudemem index --enrich
-
-# Or index first, then enrich
+# Index project (builds AST symbol graph)
 claudemem index
-claudemem enrich
 
-# Semantic search (default mode)
-claudemem search "user authentication flow"
+# STEP 1: Map architecture (always first)
+claudemem --nologo map --raw
+claudemem --nologo map "authentication" --raw
 
-# Search for agents (navigation mode)
-claudemem search "user authentication flow" --use-case navigation
+# STEP 2: Find specific symbol
+claudemem --nologo symbol AuthService --raw
 
-# Check status (shows enrichment)
-claudemem status
+# STEP 3: Check impact BEFORE modifying
+claudemem --nologo callers AuthService --raw
+
+# STEP 4: Trace dependencies
+claudemem --nologo callees AuthService --raw
+
+# STEP 5: Full context for complex work
+claudemem --nologo context AuthService --raw
+
+# Semantic search (only if structural commands insufficient)
+claudemem --nologo search "error handling" --raw
 ```
 
 ### Key Features
 
-- **3-Layer Architecture** - Search + Enrichment + Index
-- **LLM Enrichment** ⭐NEW - file_summary + symbol_summary
-- **Tree-sitter parsing** - Preserves function/class boundaries
-- **OpenRouter embeddings** - Uses voyage/voyage-code-3 by default
+- **AST Symbol Graph** ⭐NEW - Navigate by structure, not text
+- **PageRank Ranking** ⭐NEW - Identify architectural pillars
+- **Callers/Callees** ⭐NEW - Trace dependencies and impact
+- **Context Command** ⭐NEW - Full call chain in one query
+- **Tree-sitter parsing** - TypeScript, Go, Python, Rust support
 - **Local storage** - LanceDB in `.claudemem/` directory
-- **Hybrid search** - BM25 keyword + dense vector similarity
-- **MCP server mode** - Run with `claudemem --mcp`
-- **Use Case Modes** ⭐NEW - search, navigation (agents), fim (completion)
+- **80% Token Efficiency** - Targeted navigation vs bulk reads
 
 ### ⚠️ TOOL SELECTION RULES FOR CODE INVESTIGATION
 
-**CRITICAL**: When investigating code, ALWAYS prefer claudemem over grep/glob.
+**CRITICAL**: Use claudemem AST commands, NOT grep/glob.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│              CODE INVESTIGATION TOOL SELECTION (v0.2.0)              │
+│              CODE INVESTIGATION WORKFLOW (v0.3.0)                    │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  BEFORE ANY CODE SEARCH:                                            │
-│  1. Run: claudemem status                                           │
-│  2. Check: file_summary > 0, symbol_summary > 0 (enriched)          │
-│  3. If not enriched → Run: claudemem enrich                         │
-│  4. Search with: --use-case navigation (for agents)                 │
+│  MANDATORY WORKFLOW (in order):                                      │
 │                                                                      │
-│  ❌ NEVER use grep/glob for:                                        │
-│     - "How does X work?"                                            │
-│     - "Find implementations of"                                     │
-│     - "Audit architecture"                                          │
-│     - "Trace data flow"                                             │
+│  1. claudemem --nologo map "topic" --raw                            │
+│     → Get structure with PageRank                                    │
 │                                                                      │
-│  ✅ ONLY use grep for:                                              │
-│     - Exact string matches: grep -r "SPECIFIC_CONSTANT"             │
-│     - Symbol lookup: grep -r "class ExactName"                      │
+│  2. claudemem --nologo symbol <name> --raw                          │
+│     → Find exact file:line                                          │
+│                                                                      │
+│  3. claudemem --nologo callers <name> --raw                         │
+│     → ALWAYS before modifying code                                   │
+│                                                                      │
+│  4. claudemem --nologo callees <name> --raw                         │
+│     → Trace dependencies                                             │
+│                                                                      │
+│  5. Read specific file:line (NOT whole files)                       │
+│                                                                      │
+│  ❌ NEVER: grep, find, Glob, Read whole files without mapping       │
+│  ❌ NEVER: Search before mapping                                     │
+│  ❌ NEVER: Modify without checking callers                          │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -451,18 +457,20 @@ claudemem status
 
 | User Request | ❌ DON'T | ✅ DO |
 |-------------|----------|-------|
-| "How does auth work?" | `grep -r "auth"` | `claudemem search "authentication flow" --use-case navigation` |
-| "Find API endpoints" | `grep -r "router"` | `claudemem search "API endpoint handler" --use-case navigation` |
-| "Audit integrations" | `grep -r "import"` | `claudemem search "external integration API" --use-case navigation` |
+| "How does auth work?" | `grep -r "auth"` | `claudemem --nologo map "auth" --raw` then `callers`/`callees` |
+| "Find API endpoints" | `grep -r "router"` | `claudemem --nologo map "controller endpoint" --raw` |
+| "What calls this?" | `grep -r "functionName"` | `claudemem --nologo callers functionName --raw` |
+| "What are the deps?" | Read all files | `claudemem --nologo callees ServiceName --raw` |
 
-### Why Enrichment Matters
+### Why AST Analysis Matters
 
-| Without Enrichment (v0.1.x) | With Enrichment (v0.2.0) |
-|-----------------------------|-----------------------------|
-| Matches code chunks only | Matches code + file_summary + symbol_summary |
-| No understanding of PURPOSE | Knows file purpose and patterns |
-| No understanding of BEHAVIOR | Knows function params, returns, side effects |
-| Good for finding syntax | Great for finding MEANING |
+| grep/find (FORBIDDEN) | claudemem v0.3.0 (REQUIRED) |
+|-----------------------|-----------------------------|
+| Text matching only | AST structural relationships |
+| No importance ranking | PageRank shows architecture |
+| Miss synonyms/patterns | Callers/callees show real usage |
+| Can't trace dependencies | Full call chain in one command |
+| Read entire files | Precise file:line locations |
 
 ## Environment Variables
 
@@ -841,23 +849,30 @@ Include marketplace in project settings (requires folder trust):
 **Current Versions:**
 - Orchestration Plugin: **v0.5.0** (2025-12-14)
 - Frontend Plugin: **v3.13.0** (2025-12-14)
-- Code Analysis Plugin: **v2.4.0** (2025-12-14)
+- Code Analysis Plugin: **v2.5.0** (2025-12-14)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.1.0** (2025-12-09)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (Code Analysis v2.4.0 - Claudemem v0.2.0 LLM Enrichment):**
-- ✅ **Claudemem v0.2.0 Integration**: Full support for LLM-enriched semantic search
-- ✅ **New Document Types**: symbol_summary (function behavior, side effects) and file_summary (file purpose, patterns)
-- ✅ **Navigation Search Mode**: All agents/hooks use `--use-case navigation` for optimized weights
-- ✅ **Enrichment Status Checking**: SessionStart hook and all skills verify enrichment status
-- ✅ **Detective Skills v2.0.0**: All 5 detective skills updated for document type specialization
-  - architect-detective: Uses file_summary for architecture discovery
-  - developer-detective: Uses symbol_summary for implementation understanding
-  - tester-detective: Uses symbol_summary for test purpose analysis
-  - debugger-detective: Uses symbol_summary side_effects for bug tracing
-  - ultrathink-detective: Combines all document types for multi-dimensional analysis
-- ✅ **Updated Hooks**: intercept-grep.sh and intercept-bash.sh use navigation mode
+**Latest Changes (Code Analysis v2.5.0 - Claudemem v0.3.0 AST Structural Analysis):**
+- ✅ **Claudemem v0.3.0 Integration**: Full AST structural analysis with PageRank ranking
+- ✅ **New AST Commands**: map, symbol, callers, callees, context for structural navigation
+- ✅ **PageRank Symbol Importance**: High PageRank (>0.05) = architectural pillars
+- ✅ **Callers/Callees Analysis**: Impact analysis and dependency tracing
+- ✅ **Detective Skills v3.0.0**: All 5 detective skills updated for AST commands
+  - architect-detective: Uses `map` command for architecture discovery
+  - developer-detective: Uses `callers`/`callees` for implementation understanding
+  - tester-detective: Uses `callers` to find tests (tests are callers)
+  - debugger-detective: Uses `context` for full call chain tracing
+  - ultrathink-detective: Combines ALL AST commands for multi-dimensional analysis
+- ✅ **Updated Hooks**: All hooks updated for AST commands (map, symbol, callers)
+- ✅ **80% Token Efficiency**: Targeted AST navigation vs bulk file reads
+
+**Previous Changes (Code Analysis v2.4.0 - Claudemem v0.2.0 LLM Enrichment):**
+- ✅ Claudemem v0.2.0 Integration with LLM-enriched semantic search
+- ✅ New Document Types: symbol_summary and file_summary
+- ✅ Navigation Search Mode with `--use-case navigation`
+- ✅ Detective Skills v2.0.0 for document type specialization
 
 **Previous Changes (Orchestration v0.5.0 - Statistics Enforcement):**
 - ✅ **SubagentStop Hook**: Automatically detects multi-model validation and warns if statistics weren't collected
@@ -964,5 +979,5 @@ Missing any of these will cause claudeup to not see the update!
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** December 14, 2025
-**Version:** 5 plugins (Orchestration v0.5.0, Frontend v3.13.0, Code Analysis v2.4.0, Bun Backend v1.5.2, Agent Development v1.1.0)
+**Version:** 5 plugins (Orchestration v0.5.0, Frontend v3.13.0, Code Analysis v2.5.0, Bun Backend v1.5.2, Agent Development v1.1.0)
 - do not use hardcoded path in code, docs, comments or any other files
