@@ -33,6 +33,40 @@ Multi-model validation is the practice of running multiple AI models (Grok, Gemi
 
 This skill is extracted from the `/review` command and generalized for use in any multi-model workflow.
 
+---
+
+## Related Skills
+
+> **CRITICAL: Tracking Protocol Required**
+>
+> Before using any patterns in this skill, ensure you have completed the
+> pre-launch setup from `orchestration:model-tracking-protocol`.
+>
+> Launching models without tracking setup = INCOMPLETE validation.
+
+**Cross-References:**
+
+- **orchestration:model-tracking-protocol** - MANDATORY tracking templates and protocols (NEW in v0.6.0)
+  - Pre-launch checklist (8 required items)
+  - Tracking table templates
+  - Failure documentation format
+  - Results presentation template
+- **orchestration:quality-gates** - Approval gates and severity classification
+- **orchestration:todowrite-orchestration** - Progress tracking during execution
+- **orchestration:error-recovery** - Handling failures and retries
+
+**Skill Integration:**
+
+This skill (`multi-model-validation`) defines **execution patterns** (how to run models in parallel).
+The `model-tracking-protocol` skill defines **tracking infrastructure** (how to collect and present results).
+
+**Use both together:**
+```yaml
+skills: orchestration:multi-model-validation, orchestration:model-tracking-protocol
+```
+
+---
+
 ## Core Patterns
 
 ### Pattern 0: Session Setup and Model Discovery (NEW v3.0)
@@ -1915,6 +1949,19 @@ Real-world feedback showed that agents often:
 - ❌ Present results without performance data
 
 **This checklist prevents those failures.**
+
+### Complete Tracking Protocol
+
+For the complete tracking protocol including:
+- Pre-launch checklist (8 required items)
+- Tracking table templates (simple, detailed, session-based)
+- Failure documentation format
+- Consensus analysis requirements
+- Results presentation template
+
+**See:** `orchestration:model-tracking-protocol`
+
+The tracking protocol skill provides copy-paste templates that make compliance easy and unforgettable.
 
 ### Pre-Flight Checklist (Before Launching Models)
 

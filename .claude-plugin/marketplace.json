@@ -88,8 +88,8 @@
 		{
 			"name": "orchestration",
 			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery, session-based workspaces, LLM performance tracking with ENFORCEMENT. NEW in v0.5.0: SubagentStop hook enforces statistics collection, MANDATORY checklist prevents incomplete reviews, timing instrumentation examples, verification scripts.",
-			"version": "0.5.0",
+			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery, session-based workspaces, LLM performance tracking with ENFORCEMENT. NEW in v0.6.0: model-tracking-protocol skill with MANDATORY pre-launch checklist, file-based tracking detection (fixes env var issues), PreToolUse hook warns before Task calls, optional STRICT_MODE blocking, 5-component validation in SubagentStop.",
+			"version": "0.6.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

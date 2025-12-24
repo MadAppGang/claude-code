@@ -1,132 +1,101 @@
 {
-  "version": "1.0.0",
-  "lastUpdated": "2025-12-23T19:15:00Z",
+  "schemaVersion": "2.0.0",
+  "lastUpdated": "2025-12-24T01:23:09Z",
+  "models": {
+    "claude-embedded": {
+      "modelId": "claude-embedded",
+      "isFree": true,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "minimax-minimax-m2-1": {
+      "modelId": "minimax/minimax-m2.1",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "z-ai-glm-4-7": {
+      "modelId": "z-ai/glm-4.7",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "google-gemini-3-flash-preview": {
+      "modelId": "google/gemini-3-flash-preview",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "mistralai-mistral-small-creative": {
+      "modelId": "mistralai/mistral-small-creative",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "openai-gpt-5-2": {
+      "modelId": "openai/gpt-5.2",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "openai-gpt-5-1-codex-max": {
+      "modelId": "openai/gpt-5.1-codex-max",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "deepseek-deepseek-v3-2": {
+      "modelId": "deepseek/deepseek-v3.2",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    },
+    "qwen-qwen3-coder-plus": {
+      "modelId": "qwen/qwen3-coder-plus",
+      "isFree": false,
+      "totalRuns": 1,
+      "successfulRuns": 1,
+      "failedRuns": 0,
+      "lastUsed": "2025-12-24T01:23:09Z",
+      "history": [{"timestamp": "2025-12-24T01:23:09Z", "session": "review-20251224-121612-08c62679", "status": "success", "task": "plan-review"}]
+    }
+  },
   "sessions": [
     {
-      "sessionId": "claudemem-v0.4.0-integration-20251223",
-      "date": "2025-12-23",
-      "task": "Claudemem v0.4.0 Feature Integration",
-      "phases": [
-        {
-          "phase": "1.5-plan-review",
-          "parallelTime": 344,
-          "estimatedSequential": 1376,
-          "speedup": 4.0,
-          "models": [
-            {
-              "model": "x-ai/grok-code-fast-1",
-              "status": "success",
-              "estimatedTime": 86,
-              "issuesFound": 6,
-              "qualityScore": 88,
-              "verdict": "APPROVED with modifications"
-            },
-            {
-              "model": "google/gemini-2.5-flash",
-              "status": "success",
-              "estimatedTime": 86,
-              "issuesFound": 8,
-              "qualityScore": 82,
-              "verdict": "CONDITIONAL PASS"
-            },
-            {
-              "model": "google/gemini-2.5-pro",
-              "status": "success",
-              "estimatedTime": 86,
-              "issuesFound": 6,
-              "qualityScore": 90,
-              "verdict": "CONDITIONAL PASS"
-            },
-            {
-              "model": "deepseek/deepseek-chat",
-              "status": "success",
-              "estimatedTime": 86,
-              "issuesFound": 5,
-              "qualityScore": 78,
-              "verdict": "APPROVED with phased rollout"
-            }
-          ]
-        },
-        {
-          "phase": "3-quality-review",
-          "parallelTime": 169,
-          "estimatedSequential": 676,
-          "speedup": 4.0,
-          "models": [
-            {
-              "model": "x-ai/grok-code-fast-1",
-              "status": "success",
-              "estimatedTime": 42,
-              "issuesFound": 5,
-              "qualityScore": 92,
-              "verdict": "PASS"
-            },
-            {
-              "model": "google/gemini-2.5-flash",
-              "status": "success",
-              "estimatedTime": 42,
-              "issuesFound": 6,
-              "qualityScore": 82,
-              "verdict": "CONDITIONAL PASS"
-            },
-            {
-              "model": "google/gemini-2.5-pro",
-              "status": "success",
-              "estimatedTime": 42,
-              "issuesFound": 5,
-              "qualityScore": 80,
-              "verdict": "CONDITIONAL PASS"
-            },
-            {
-              "model": "deepseek/deepseek-chat",
-              "status": "success",
-              "estimatedTime": 42,
-              "issuesFound": 8,
-              "qualityScore": 84,
-              "verdict": "CONDITIONAL PASS"
-            }
-          ]
-        }
-      ],
-      "summary": {
-        "totalParallelTime": 513,
-        "totalSequentialEstimate": 2052,
-        "overallSpeedup": 4.0,
-        "modelsUsed": 4,
-        "successRate": 100,
-        "averageQuality": 85
-      }
+      "sessionId": "review-20251224-121612-08c62679",
+      "timestamp": "2025-12-24T01:23:09Z",
+      "totalModels": 9,
+      "successfulModels": 9,
+      "failedModels": 0,
+      "task": "plan-review-orchestration-v0.6.0"
     }
   ],
-  "aggregateStats": {
-    "totalSessions": 1,
-    "totalReviews": 8,
-    "avgParallelSpeedup": 4.0,
-    "modelPerformance": {
-      "x-ai/grok-code-fast-1": {
-        "runs": 2,
-        "avgTime": 64,
-        "avgQuality": 90,
-        "successRate": 100
-      },
-      "google/gemini-2.5-flash": {
-        "runs": 2,
-        "avgTime": 64,
-        "avgQuality": 82,
-        "successRate": 100
-      },
-      "google/gemini-2.5-pro": {
-        "runs": 2,
-        "avgTime": 64,
-        "avgQuality": 85,
-        "successRate": 100
-      },
-      "deepseek/deepseek-chat": {
-        "runs": 2,
-        "avgTime": 64,
-        "avgQuality": 81,
-        "successRate": 100
-      }
-    }
+  "recommendations": {
+    "topPerformers": ["minimax/minimax-m2.1", "mistralai/mistral-small-creative", "openai/gpt-5.2"],
+    "lastGenerated": "2025-12-24T01:23:09Z"
   }
 }
