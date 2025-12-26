@@ -2,6 +2,7 @@
 description: |
   Interactive setup wizard for SEO analytics integrations.
   Configures Google Analytics 4, Google Search Console, and SE Ranking.
+  Supports claudeup for easy MCP server installation.
   Validates credentials and tests API connections before saving.
 allowed-tools: Bash, AskUserQuestion, Read, Write
 ---
@@ -47,6 +48,31 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
       Only save credentials if test succeeds.
     </validation>
   </critical_constraints>
+
+  <claudeup_quick_setup>
+    **RECOMMENDED: Use claudeup for Easy MCP Server Setup**
+
+    claudeup is the easiest way to install and configure MCP servers:
+
+    ```bash
+    # Install all SEO analytics MCP servers
+    claudeup install mcp-server-google-analytics
+    claudeup install mcp-server-gsc
+    claudeup install seo-data-api-mcp-server
+
+    # Or install individually with configuration
+    claudeup install mcp-server-google-analytics --env GA_PROPERTY_ID=properties/123456789
+    ```
+
+    **Benefits of claudeup:**
+    - Automatic dependency management
+    - Credential prompts and validation
+    - Config file generation
+    - Easy updates and uninstallation
+
+    If user prefers claudeup, guide them to run the install commands above.
+    Otherwise, proceed with manual configuration below.
+  </claudeup_quick_setup>
 
   <workflow>
     <phase number="1" name="Current State Assessment">

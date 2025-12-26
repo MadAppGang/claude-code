@@ -86,41 +86,43 @@ get_url_inspection({
 | device | Desktop/mobile/tablet |
 | date | Date (for trending) |
 
-### SE Ranking API
+### SE Ranking (Official MCP Server)
 
-**Base URL**: `https://api4.seranking.com`
+**MCP Server**: `seo-data-api-mcp` (official SE Ranking MCP)
 
-**Authentication**: `Authorization: Token {API_KEY}`
+**Repository**: https://github.com/seranking/seo-data-api-mcp-server
 
-**Key Endpoints**:
-
+**Installation** (via claudeup - recommended):
 ```bash
-# Competitor Overview
-GET /research/competitor/overview?domain={domain}
-
-# Keyword Rankings
-GET /project/{project_id}/positions?date={YYYY-MM-DD}
-
-# Backlinks Summary
-GET /backlinks/summary?domain={domain}
-
-# Organic Keywords
-GET /research/organic/keywords?domain={domain}&limit=100
+claudeup install seo-data-api-mcp-server
 ```
 
-**Response Structure** (Keyword Rankings):
-```json
-{
-  "data": [
-    {
-      "keyword": "seo guide",
-      "position": 4,
-      "prev_position": 6,
-      "search_volume": 12100,
-      "url": "https://example.com/seo-guide"
-    }
-  ]
-}
+**Manual Installation**:
+```bash
+git clone https://github.com/seranking/seo-data-api-mcp-server.git
+cd seo-data-api-mcp-server
+docker compose build
+```
+
+**Environment Variable**: `SERANKING_API_TOKEN`
+
+**Available MCP Tools**:
+
+| Tool | Description | Use Case |
+|------|-------------|----------|
+| `domainOverview` | Domain performance metrics | Overall domain health |
+| `domainKeywords` | Keyword rankings for domain | Track ranking positions |
+| `domainCompetitors` | Identify competitors | Competitive analysis |
+| `domainKeywordsComparison` | Compare keywords across domains | Gap analysis |
+| `backlinksAll` | Retrieve backlink data | Link profile audit |
+| `relatedKeywords` | Related keyword discovery | Content expansion |
+| `similarKeywords` | Similar keyword suggestions | Keyword clustering |
+
+**Example MCP Calls**:
+```
+MCP: seo-data-api-mcp.domainOverview({ domain: "example.com" })
+MCP: seo-data-api-mcp.domainKeywords({ domain: "example.com", limit: 100 })
+MCP: seo-data-api-mcp.backlinksAll({ domain: "example.com" })
 ```
 
 ## Parallel Execution Pattern

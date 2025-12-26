@@ -18,13 +18,12 @@
     },
     "description": "Google Search Console for search performance and Core Web Vitals"
   },
-  "se-ranking": {
-    "command": "npx",
-    "args": ["-y", "@anthropic/mcp-server-fetch"],
+  "seo-data-api-mcp": {
+    "command": "docker",
+    "args": ["run", "-i", "--rm", "-e", "SERANKING_API_TOKEN", "se-ranking/seo-data-api-mcp-server"],
     "env": {
-      "SE_RANKING_API_KEY": "${SE_RANKING_API_KEY}",
-      "SE_RANKING_PROJECT_ID": "${SE_RANKING_PROJECT_ID}"
+      "SERANKING_API_TOKEN": "${SERANKING_API_TOKEN}"
     },
-    "description": "SE Ranking API via fetch MCP for keyword rankings and backlinks"
+    "description": "Official SE Ranking MCP server for keyword rankings, backlinks, and competitor analysis"
   }
 }

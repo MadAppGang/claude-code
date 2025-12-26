@@ -1,5 +1,6 @@
 {
   "_comment": "Copy this to mcp-config.json and configure your credentials",
+  "_claudeup": "RECOMMENDED: Use 'claudeup install <server-name>' for easy setup",
 
   "google-analytics": {
     "command": "npx",
@@ -32,18 +33,26 @@
     ]
   },
 
-  "se-ranking": {
-    "command": "npx",
-    "args": ["-y", "@anthropic/mcp-server-fetch"],
+  "seo-data-api-mcp": {
+    "command": "docker",
+    "args": ["run", "-i", "--rm", "-e", "SERANKING_API_TOKEN", "se-ranking/seo-data-api-mcp-server"],
     "env": {
-      "SE_RANKING_API_KEY": "your-api-key-here",
-      "SE_RANKING_PROJECT_ID": "123456"
+      "SERANKING_API_TOKEN": "your-api-token-here"
     },
     "_setup": [
-      "1. Log into SE Ranking dashboard",
-      "2. Go to Settings > API",
-      "3. Generate new API key",
-      "4. Find Project ID in project settings URL"
+      "1. Clone: git clone https://github.com/seranking/seo-data-api-mcp-server.git",
+      "2. Build: cd seo-data-api-mcp-server && docker compose build",
+      "3. Get API token from SE Ranking dashboard (Settings > API)",
+      "4. Set SERANKING_API_TOKEN environment variable"
+    ],
+    "_tools": [
+      "domainOverview - Domain performance metrics",
+      "domainKeywords - Keyword rankings for domain",
+      "domainCompetitors - Competitor identification",
+      "domainKeywordsComparison - Compare keywords across domains",
+      "backlinksAll - Retrieve backlink data",
+      "relatedKeywords - Related keyword discovery",
+      "similarKeywords - Similar keyword suggestions"
     ]
   }
 }

@@ -25,14 +25,12 @@ if [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ] || [ -n "${GOOGLE_CLIENT_EMAIL:-
   fi
 fi
 
-# Check for SE Ranking configuration
+# Check for SE Ranking configuration (official MCP server)
 SER_STATUS="NOT CONFIGURED"
 SER_DETAILS=""
-if [ -n "${SE_RANKING_API_KEY:-}" ]; then
+if [ -n "${SERANKING_API_TOKEN:-}" ]; then
   SER_STATUS="CONFIGURED"
-  if [ -n "${SE_RANKING_PROJECT_ID:-}" ]; then
-    SER_DETAILS=" (Project: ${SE_RANKING_PROJECT_ID})"
-  fi
+  SER_DETAILS=" (seo-data-api-mcp)"
 fi
 
 # Build status message
