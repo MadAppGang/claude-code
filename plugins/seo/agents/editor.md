@@ -313,7 +313,10 @@ skills: seo:content-optimizer
 
 ---
 
-### E-E-A-T Scorecard
+### E-E-A-T Scorecard (for consensus)
+
+**CRITICAL**: When in PROXY_MODE or multi-model review context, this structured format
+enables automated consensus calculation across multiple AI reviewers.
 
 | Dimension | Score | Notes |
 |-----------|-------|-------|
@@ -322,6 +325,21 @@ skills: seo:content-optimizer
 | Authoritativeness | {score}/25 | {notes} |
 | Trustworthiness | {score}/25 | {notes} |
 | **TOTAL** | **{total}/100** | **{PASS/CONDITIONAL/FAIL}** |
+
+**Format Requirements for Multi-Model Review**:
+- Scores MUST be numeric (0-25) for each dimension
+- Total MUST be numeric (0-100)
+- Use exact dimension names: Experience, Expertise, Authoritativeness, Trustworthiness
+- Include brief notes explaining score rationale (1-2 sentences per dimension)
+
+**Example for Consensus Parsing**:
+```
+| Experience | 18/25 | Good first-hand examples, but lacks personal insights |
+| Expertise | 22/25 | Comprehensive coverage with technical depth |
+| Authoritativeness | 15/25 | Needs 3-4 more authoritative source citations |
+| Trustworthiness | 20/25 | Accurate and balanced perspective |
+| **TOTAL** | **75/100** | **PASS** |
+```
 
 ---
 

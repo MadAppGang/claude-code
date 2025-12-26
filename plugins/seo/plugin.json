@@ -1,7 +1,7 @@
 {
   "name": "seo",
-  "version": "1.0.0",
-  "description": "Comprehensive SEO toolkit with keyword research, content optimization, technical audits, and multi-agent content workflows. Features SERP analysis, intent classification, semantic clustering, content brief generation, and E-E-A-T compliance validation.",
+  "version": "1.1.0",
+  "description": "Comprehensive SEO toolkit with keyword research, content optimization, technical audits, and multi-agent content workflows. Features SERP analysis, intent classification, semantic clustering, content brief generation, E-E-A-T compliance validation, and multi-model orchestration for parallel content review and A/B alternative generation.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -30,7 +30,9 @@
     "./commands/research.md",
     "./commands/optimize.md",
     "./commands/brief.md",
-    "./commands/audit.md"
+    "./commands/audit.md",
+    "./commands/review.md",
+    "./commands/alternatives.md"
   ],
   "skills": [
     "./skills/keyword-cluster-builder",
