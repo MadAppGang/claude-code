@@ -1,0 +1,49 @@
+{
+  "_comment": "Copy this to mcp-config.json and configure your credentials",
+
+  "google-analytics": {
+    "command": "npx",
+    "args": ["-y", "mcp-server-google-analytics"],
+    "env": {
+      "GOOGLE_CLIENT_EMAIL": "your-service-account@project.iam.gserviceaccount.com",
+      "GOOGLE_PRIVATE_KEY": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+      "GA_PROPERTY_ID": "properties/123456789"
+    },
+    "_setup": [
+      "1. Create Service Account in Google Cloud Console",
+      "2. Enable Analytics Data API",
+      "3. Grant Service Account 'Viewer' access to GA4 property",
+      "4. Download JSON credentials and extract email + private key"
+    ]
+  },
+
+  "google-search-console": {
+    "command": "npx",
+    "args": ["-y", "mcp-server-gsc"],
+    "env": {
+      "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account.json",
+      "GSC_SITE_URL": "https://example.com"
+    },
+    "_setup": [
+      "1. Use same Service Account as GA4 (shared auth)",
+      "2. Add Service Account email as user in Search Console",
+      "3. Grant 'Full' permission level",
+      "4. Point to JSON credentials file"
+    ]
+  },
+
+  "se-ranking": {
+    "command": "npx",
+    "args": ["-y", "@anthropic/mcp-server-fetch"],
+    "env": {
+      "SE_RANKING_API_KEY": "your-api-key-here",
+      "SE_RANKING_PROJECT_ID": "123456"
+    },
+    "_setup": [
+      "1. Log into SE Ranking dashboard",
+      "2. Go to Settings > API",
+      "3. Generate new API key",
+      "4. Find Project ID in project settings URL"
+    ]
+  }
+}

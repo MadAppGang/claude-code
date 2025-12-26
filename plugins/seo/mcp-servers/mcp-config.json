@@ -1,0 +1,30 @@
+{
+  "google-analytics": {
+    "command": "npx",
+    "args": ["-y", "mcp-server-google-analytics"],
+    "env": {
+      "GOOGLE_CLIENT_EMAIL": "${GOOGLE_CLIENT_EMAIL}",
+      "GOOGLE_PRIVATE_KEY": "${GOOGLE_PRIVATE_KEY}",
+      "GA_PROPERTY_ID": "${GA_PROPERTY_ID}"
+    },
+    "description": "Google Analytics 4 data extraction for page performance metrics"
+  },
+  "google-search-console": {
+    "command": "npx",
+    "args": ["-y", "mcp-server-gsc"],
+    "env": {
+      "GOOGLE_APPLICATION_CREDENTIALS": "${GOOGLE_APPLICATION_CREDENTIALS}",
+      "GSC_SITE_URL": "${GSC_SITE_URL}"
+    },
+    "description": "Google Search Console for search performance and Core Web Vitals"
+  },
+  "se-ranking": {
+    "command": "npx",
+    "args": ["-y", "@anthropic/mcp-server-fetch"],
+    "env": {
+      "SE_RANKING_API_KEY": "${SE_RANKING_API_KEY}",
+      "SE_RANKING_PROJECT_ID": "${SE_RANKING_PROJECT_ID}"
+    },
+    "description": "SE Ranking API via fetch MCP for keyword rankings and backlinks"
+  }
+}

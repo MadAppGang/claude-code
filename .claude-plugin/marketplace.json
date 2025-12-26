@@ -7,7 +7,7 @@
 	},
 	"metadata": {
 		"description": "MAG team's curated collection of Claude Code plugins for modern full-stack development with LLM performance tracking",
-		"version": "5.5.0",
+		"version": "5.6.0",
 		"pluginRoot": "./plugins"
 	},
 	"plugins": [
@@ -139,8 +139,8 @@
 		{
 			"name": "seo",
 			"source": "./plugins/seo",
-			"description": "Comprehensive SEO toolkit with keyword research, content optimization, technical audits, and multi-agent content workflows. Features SERP analysis, intent classification, semantic clustering, content brief generation, E-E-A-T compliance validation, multi-model parallel review with consensus analysis, A/B alternative content generation, and four-role agent architecture (Analyst → Researcher → Writer → Editor).",
-			"version": "1.1.0",
+			"description": "Comprehensive SEO toolkit with keyword research, content optimization, technical audits, multi-agent workflows, and analytics integrations (GA4, GSC, SE Ranking). Features multi-model parallel review, A/B alternative generation, E-E-A-T compliance validation, data-driven performance analysis, and five-role agent architecture (Analyst → Researcher → Writer → Editor → Data Analyst).",
+			"version": "1.2.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -154,8 +154,10 @@
 				"serp-analysis",
 				"technical-seo",
 				"content-strategy",
-				"e-e-a-t",
-				"multi-agent"
+				"google-analytics",
+				"search-console",
+				"se-ranking",
+				"performance-analysis"
 			],
 			"strict": true
 		}
