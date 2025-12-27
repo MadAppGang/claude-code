@@ -13,6 +13,13 @@ export interface LocalMarketplacePlugin {
   source?: string;
   category?: string;
   author?: { name: string; email?: string };
+  // Extended info from plugin.json or marketplace.json
+  strict?: boolean;
+  lspServers?: Record<string, unknown>;
+  agents?: string[];
+  commands?: string[];
+  skills?: string[];
+  mcpServers?: string[];
 }
 
 export interface LocalMarketplace {
@@ -136,6 +143,44 @@ export async function scanLocalMarketplaces(): Promise<Map<string, LocalMarketpl
         const plugins: LocalMarketplacePlugin[] = [];
         if (manifest.plugins && Array.isArray(manifest.plugins)) {
           for (const plugin of manifest.plugins) {
+            // Try to scan plugin directory for component counts
+            let agents: string[] = [];
+            let commands: string[] = [];
+            let skills: string[] = [];
+            let mcpServers: string[] = [];
+
+            if (plugin.source) {
+              const pluginPath = path.join(marketplacePath, plugin.source.replace('./', ''));
+              try {
+                // Scan for agents
+                const agentsDir = path.join(pluginPath, 'agents');
+                if (await fs.pathExists(agentsDir)) {
+                  const agentFiles = await fs.readdir(agentsDir);
+                  agents = agentFiles.filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
+                }
+                // Scan for commands
+                const commandsDir = path.join(pluginPath, 'commands');
+                if (await fs.pathExists(commandsDir)) {
+                  const cmdFiles = await fs.readdir(commandsDir);
+                  commands = cmdFiles.filter(f => f.endsWith('.md')).map(f => f.replace('.md', ''));
+                }
+                // Scan for skills
+                const skillsDir = path.join(pluginPath, 'skills');
+                if (await fs.pathExists(skillsDir)) {
+                  const skillFiles = await fs.readdir(skillsDir);
+                  skills = skillFiles.filter(f => f.endsWith('.md') || (fs.statSync(path.join(skillsDir, f)).isDirectory()));
+                }
+                // Scan for MCP servers
+                const mcpDir = path.join(pluginPath, 'mcp-servers');
+                if (await fs.pathExists(mcpDir)) {
+                  const mcpFiles = await fs.readdir(mcpDir);
+                  mcpServers = mcpFiles.filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
+                }
+              } catch {
+                // Ignore scan errors
+              }
+            }
+
             plugins.push({
               name: plugin.name,
               version: plugin.version || '0.0.0',
@@ -143,6 +188,12 @@ export async function scanLocalMarketplaces(): Promise<Map<string, LocalMarketpl
               source: plugin.source,
               category: plugin.category,
               author: plugin.author,
+              strict: plugin.strict,
+              lspServers: plugin.lspServers,
+              agents,
+              commands,
+              skills,
+              mcpServers,
             });
           }
         }
@@ -204,10 +255,11 @@ async function refreshSingleMarketplace(marketplacePath: string, name: string): 
       timeout: 5000,
     });
 
-    // Run git pull (async)
-    await execAsync('git pull --ff-only', {
+    // Run git pull (async) - suppress all output to prevent interference with TUI
+    await execAsync('git pull --ff-only >/dev/null 2>&1', {
       cwd: marketplacePath,
       timeout: 30000, // 30s timeout for network operation
+      shell: '/bin/bash',
     });
 
     // Get HEAD after pull (async)
@@ -329,10 +381,11 @@ export async function cloneMarketplace(repo: string): Promise<CloneResult> {
   }
 
   try {
-    // Clone the repository
+    // Clone the repository - suppress output to prevent TUI interference
     const cloneUrl = `https://github.com/${normalizedRepo}.git`;
-    await execAsync(`git clone --depth 1 "${cloneUrl}" "${marketplacePath}"`, {
+    await execAsync(`git clone --depth 1 "${cloneUrl}" "${marketplacePath}" >/dev/null 2>&1`, {
       timeout: 60000, // 60s timeout for clone
+      shell: '/bin/bash',
     });
 
     // Verify it's a valid marketplace (has .claude-plugin/marketplace.json)

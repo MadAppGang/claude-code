@@ -4,16 +4,6 @@ import { formatMarketplaceName } from '../utils/string-utils.js';
 
 export const defaultMarketplaces: Marketplace[] = [
   {
-    name: 'claude-code-plugins',
-    displayName: 'Anthropic Official',
-    source: {
-      source: 'github',
-      repo: 'anthropics/claude-code',
-    },
-    description: 'Official Anthropic plugins for Claude Code',
-    official: true,
-  },
-  {
     name: 'mag-claude-plugins',
     displayName: 'MadAppGang Plugins',
     source: {
@@ -22,6 +12,26 @@ export const defaultMarketplaces: Marketplace[] = [
     },
     description: 'Professional plugins for frontend, backend, and code analysis',
     official: false,
+  },
+  {
+    name: 'claude-plugins-official',
+    displayName: 'Anthropic Official',
+    source: {
+      source: 'github',
+      repo: 'anthropics/claude-plugins-official',
+    },
+    description: 'Official Anthropic-managed directory of high quality Claude Code plugins',
+    official: true,
+  },
+  {
+    name: 'claude-code-plugins',
+    displayName: 'Anthropic Deprecated',
+    source: {
+      source: 'github',
+      repo: 'anthropics/claude-code',
+    },
+    description: 'Legacy demo plugins from Anthropic (deprecated - use Official instead)',
+    official: true,
   },
 ];
 

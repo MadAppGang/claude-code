@@ -9,7 +9,7 @@ export interface McpServer {
   type?: 'http';
   url?: string;
   // Common fields
-  category: 'browser' | 'ai' | 'design' | 'dev-tools' | 'cloud' | 'database' | 'productivity';
+  category: 'browser' | 'ai' | 'design' | 'dev-tools' | 'cloud' | 'database' | 'productivity' | 'seo';
   requiresConfig?: boolean;
   configFields?: ConfigField[];
 }

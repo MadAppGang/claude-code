@@ -1,17 +1,18 @@
 {
   "name": "claudeup",
-  "version": "0.6.4",
+  "version": "1.0.0",
   "description": "TUI tool for managing Claude Code plugins, MCPs, and configuration",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "bin": {
     "claudeup": "bin/claudeup.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w",
-    "start": "node dist/index.js",
-    "start:bun": "bun run src/index.ts",
+    "dev": "bun --watch src/main.tsx",
+    "dev:tsc": "tsc -w",
+    "start": "node dist/main.js",
+    "start:bun": "bun run src/main.tsx",
     "lint": "npm run eslint",
     "format": "biome format --write src/",
     "eslint": "eslint \"**/*.{js,cjs,ts,mjs,jsx,tsx}\"",
@@ -28,7 +29,9 @@
     "mcp",
     "plugins",
     "tui",
-    "cli"
+    "cli",
+    "ink",
+    "react"
   ],
   "author": "Jack Rudenko <i@madappgang.com>",
   "license": "MIT",
@@ -48,16 +51,25 @@
     "dist/"
   ],
   "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "@pppp606/ink-chart": "^0.2.3",
     "chalk": "^5.3.0",
     "fs-extra": "^11.2.0",
-    "neo-blessed": "^0.2.0",
+    "ink": "^5.1.0",
+    "ink-chart": "^0.1.1",
+    "ink-markdown": "^1.0.4",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1",
     "semver": "^7.6.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.9.0",
+    "@types/react": "^18.3.18",
     "@types/semver": "^7.5.8",
+    "ink-testing-library": "^4.0.0",
     "typescript": "^5.6.3"
   },
   "templateOSS": {

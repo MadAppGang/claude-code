@@ -13,5 +13,20 @@
       }
     }
   },
-  "statusLine": ""
+  "statusLine": "",
+  "enabledPlugins": {
+    "orchestration@mag-claude-plugins": false,
+    "commit-commands@claude-plugins-official": false,
+    "csharp-lsp@claude-plugins-official": false,
+    "lua-lsp@claude-plugins-official": false,
+    "bun@mag-claude-plugins": false,
+    "gopls-lsp@claude-plugins-official": false,
+    "pr-review-toolkit@claude-plugins-official": false,
+    "frontend@mag-claude-plugins": true,
+    "feature-dev@claude-plugins-official": true
+  },
+  "installedPluginVersions": {
+    "frontend@mag-claude-plugins": "3.13.0",
+    "feature-dev@claude-plugins-official": "0.0.0"
+  }
 }

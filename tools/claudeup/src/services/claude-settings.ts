@@ -234,6 +234,53 @@ export async function getEnabledPlugins(projectPath?: string): Promise<Record<st
   return settings.enabledPlugins || {};
 }
 
+export async function getLocalEnabledPlugins(projectPath?: string): Promise<Record<string, boolean>> {
+  const settings = await readLocalSettings(projectPath);
+  return settings.enabledPlugins || {};
+}
+
+export async function getLocalInstalledPluginVersions(projectPath?: string): Promise<Record<string, string>> {
+  const settings = await readLocalSettings(projectPath);
+  return settings.installedPluginVersions || {};
+}
+
+// Local plugin management (writes to settings.local.json)
+export async function enableLocalPlugin(
+  pluginId: string,
+  enabled: boolean,
+  projectPath?: string
+): Promise<void> {
+  const settings = await readLocalSettings(projectPath);
+  settings.enabledPlugins = settings.enabledPlugins || {};
+  settings.enabledPlugins[pluginId] = enabled;
+  await writeLocalSettings(settings, projectPath);
+}
+
+export async function saveLocalInstalledPluginVersion(
+  pluginId: string,
+  version: string,
+  projectPath?: string
+): Promise<void> {
+  const settings = await readLocalSettings(projectPath);
+  settings.installedPluginVersions = settings.installedPluginVersions || {};
+  settings.installedPluginVersions[pluginId] = version;
+  await writeLocalSettings(settings, projectPath);
+}
+
+export async function removeLocalInstalledPluginVersion(
+  pluginId: string,
+  projectPath?: string
+): Promise<void> {
+  const settings = await readLocalSettings(projectPath);
+  if (settings.installedPluginVersions) {
+    delete settings.installedPluginVersions[pluginId];
+  }
+  if (settings.enabledPlugins) {
+    delete settings.enabledPlugins[pluginId];
+  }
+  await writeLocalSettings(settings, projectPath);
+}
+
 // Status line management
 export async function setStatusLine(template: string, projectPath?: string): Promise<void> {
   const settings = await readSettings(projectPath);

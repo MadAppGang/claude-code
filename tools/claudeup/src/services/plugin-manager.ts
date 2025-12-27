@@ -6,6 +6,8 @@ import {
   getGlobalConfiguredMarketplaces,
   getGlobalEnabledPlugins,
   getGlobalInstalledPluginVersions,
+  getLocalEnabledPlugins,
+  getLocalInstalledPluginVersions,
 } from './claude-settings.js';
 import { defaultMarketplaces } from '../data/marketplaces.js';
 import { scanLocalMarketplaces, refreshLocalMarketplaces, type LocalMarketplace, type RefreshResult, type ProgressCallback } from './local-marketplace.js';
@@ -14,22 +16,45 @@ import { formatMarketplaceName, isValidGitHubRepo, parsePluginId } from '../util
 // Cache for local marketplaces (session-level) - Promise-based to prevent race conditions
 let localMarketplacesPromise: Promise<Map<string, LocalMarketplace>> | null = null;
 
+export interface ScopeStatus {
+  enabled: boolean;
+  version?: string;
+}
+
 export interface PluginInfo {
   id: string;
   name: string;
-  version: string;
+  version: string | null;
   description: string;
   marketplace: string;
   marketplaceDisplay: string;
   enabled: boolean;
   installedVersion?: string;
   hasUpdate?: boolean;
+  // Per-scope installation status
+  userScope?: ScopeStatus;
+  projectScope?: ScopeStatus;
+  localScope?: ScopeStatus;
+  // Extended info
+  category?: string;
+  author?: { name: string; email?: string };
+  homepage?: string;
+  tags?: string[];
+  agents?: string[];
+  commands?: string[];
+  skills?: string[];
+  mcpServers?: string[];
+  lspServers?: Record<string, unknown>;
 }
 
 export interface MarketplacePlugin {
   name: string;
-  version: string;
+  version: string | null;
   description: string;
+  category?: string;
+  author?: { name: string; email?: string };
+  homepage?: string;
+  tags?: string[];
 }
 
 // Session-level cache for fetched marketplace data (no TTL - persists until explicit refresh)
@@ -70,15 +95,28 @@ export async function fetchMarketplacePlugins(
       return [];
     }
 
-    const data = (await response.json()) as { plugins?: Array<{ name: string; version?: string; description?: string }> };
+    interface RawPlugin {
+      name: string;
+      version?: string | null;
+      description?: string;
+      category?: string;
+      author?: { name: string; email?: string };
+      homepage?: string;
+      tags?: string[];
+    }
+    const data = (await response.json()) as { plugins?: RawPlugin[] };
     const plugins: MarketplacePlugin[] = [];
 
     if (data.plugins && Array.isArray(data.plugins)) {
       for (const plugin of data.plugins) {
         plugins.push({
           name: plugin.name,
-          version: plugin.version || '0.0.0',
+          version: plugin.version || null,
           description: plugin.description || '',
+          category: plugin.category,
+          author: plugin.author,
+          homepage: plugin.homepage,
+          tags: plugin.tags,
         });
       }
     }
@@ -98,13 +136,35 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
   const enabledPlugins = await getEnabledPlugins(projectPath);
   const installedVersions = await getInstalledPluginVersions(projectPath);
 
+  // Fetch all scopes for per-scope status
+  const userEnabledPlugins = await getGlobalEnabledPlugins();
+  const userInstalledVersions = await getGlobalInstalledPluginVersions();
+  const projectEnabledPlugins = await getEnabledPlugins(projectPath);
+  const projectInstalledVersions = await getInstalledPluginVersions(projectPath);
+  const localEnabledPlugins = await getLocalEnabledPlugins(projectPath);
+  const localInstalledVersions = await getLocalInstalledPluginVersions(projectPath);
+
   const plugins: PluginInfo[] = [];
   const seenPluginIds = new Set<string>();
 
-  // Get all marketplace names (configured + defaults)
+  // Helper to build scope status
+  const buildScopeStatus = (pluginId: string) => ({
+    userScope: userEnabledPlugins[pluginId] !== undefined
+      ? { enabled: userEnabledPlugins[pluginId], version: userInstalledVersions[pluginId] }
+      : undefined,
+    projectScope: projectEnabledPlugins[pluginId] !== undefined
+      ? { enabled: projectEnabledPlugins[pluginId], version: projectInstalledVersions[pluginId] }
+      : undefined,
+    localScope: localEnabledPlugins[pluginId] !== undefined
+      ? { enabled: localEnabledPlugins[pluginId], version: localInstalledVersions[pluginId] }
+      : undefined,
+  });
+
+  // Get all marketplace names (configured + official defaults)
+  // Always include official marketplaces so users can browse them
   const marketplaceNames = new Set<string>();
   for (const mp of defaultMarketplaces) {
-    if (configuredMarketplaces[mp.name]) {
+    if (configuredMarketplaces[mp.name] || mp.official) {
       marketplaceNames.add(mp.name);
     }
   }
@@ -120,6 +180,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
       const pluginId = `${plugin.name}@${mpName}`;
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
+      const scopeStatus = buildScopeStatus(pluginId);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -131,7 +192,12 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
         marketplaceDisplay: marketplace.displayName,
         enabled: isEnabled,
         installedVersion: installedVersion,
-        hasUpdate: installedVersion ? compareVersions(plugin.version, installedVersion) > 0 : false,
+        hasUpdate: installedVersion && plugin.version ? compareVersions(plugin.version, installedVersion) > 0 : false,
+        ...scopeStatus,
+        category: plugin.category,
+        author: plugin.author,
+        homepage: plugin.homepage,
+        tags: plugin.tags,
       });
     }
   }
@@ -150,6 +216,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
 
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
+      const scopeStatus = buildScopeStatus(pluginId);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -162,6 +229,14 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
         enabled: isEnabled,
         installedVersion: installedVersion,
         hasUpdate: installedVersion ? compareVersions(localPlugin.version, installedVersion) > 0 : false,
+        ...scopeStatus,
+        category: localPlugin.category,
+        author: localPlugin.author,
+        agents: localPlugin.agents,
+        commands: localPlugin.commands,
+        skills: localPlugin.skills,
+        mcpServers: localPlugin.mcpServers,
+        lspServers: localPlugin.lspServers,
       });
     }
   }
@@ -181,6 +256,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
     const { pluginName, marketplace: mpName } = parsed;
     const installedVersion = installedVersions[pluginId];
     const isEnabled = enabledPlugins[pluginId] === true;
+    const scopeStatus = buildScopeStatus(pluginId);
 
     // Try to get plugin info from local marketplace cache (fallback)
     const localMp = localMarketplaces.get(mpName);
@@ -203,6 +279,7 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
       enabled: isEnabled,
       installedVersion: installedVersion,
       hasUpdate,
+      ...scopeStatus,
     });
   }
 
@@ -214,13 +291,36 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
   const enabledPlugins = await getGlobalEnabledPlugins();
   const installedVersions = await getGlobalInstalledPluginVersions();
 
+  // Fetch all scopes for per-scope status display
+  const userEnabledPlugins = await getGlobalEnabledPlugins();
+  const userInstalledVersions = await getGlobalInstalledPluginVersions();
+  // Also fetch project and local scope for complete status display
+  const projectEnabledPlugins = await getEnabledPlugins();
+  const projectInstalledVersions = await getInstalledPluginVersions();
+  const localEnabledPlugins = await getLocalEnabledPlugins();
+  const localInstalledVersions = await getLocalInstalledPluginVersions();
+
   const plugins: PluginInfo[] = [];
   const seenPluginIds = new Set<string>();
 
-  // Get all marketplace names (configured + defaults)
+  // Helper to build scope status (show all scopes)
+  const buildScopeStatus = (pluginId: string) => ({
+    userScope: userEnabledPlugins[pluginId] !== undefined
+      ? { enabled: userEnabledPlugins[pluginId], version: userInstalledVersions[pluginId] }
+      : undefined,
+    projectScope: projectEnabledPlugins[pluginId] !== undefined
+      ? { enabled: projectEnabledPlugins[pluginId], version: projectInstalledVersions[pluginId] }
+      : undefined,
+    localScope: localEnabledPlugins[pluginId] !== undefined
+      ? { enabled: localEnabledPlugins[pluginId], version: localInstalledVersions[pluginId] }
+      : undefined,
+  });
+
+  // Get all marketplace names (configured + official defaults)
+  // Always include official marketplaces so users can browse them
   const marketplaceNames = new Set<string>();
   for (const mp of defaultMarketplaces) {
-    if (configuredMarketplaces[mp.name]) {
+    if (configuredMarketplaces[mp.name] || mp.official) {
       marketplaceNames.add(mp.name);
     }
   }
@@ -236,6 +336,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
       const pluginId = `${plugin.name}@${mpName}`;
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
+      const scopeStatus = buildScopeStatus(pluginId);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -247,7 +348,12 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
         marketplaceDisplay: marketplace.displayName,
         enabled: isEnabled,
         installedVersion: installedVersion,
-        hasUpdate: installedVersion ? compareVersions(plugin.version, installedVersion) > 0 : false,
+        hasUpdate: installedVersion && plugin.version ? compareVersions(plugin.version, installedVersion) > 0 : false,
+        ...scopeStatus,
+        category: plugin.category,
+        author: plugin.author,
+        homepage: plugin.homepage,
+        tags: plugin.tags,
       });
     }
   }
@@ -266,6 +372,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
 
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
+      const scopeStatus = buildScopeStatus(pluginId);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -278,6 +385,14 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
         enabled: isEnabled,
         installedVersion: installedVersion,
         hasUpdate: installedVersion ? compareVersions(localPlugin.version, installedVersion) > 0 : false,
+        ...scopeStatus,
+        category: localPlugin.category,
+        author: localPlugin.author,
+        agents: localPlugin.agents,
+        commands: localPlugin.commands,
+        skills: localPlugin.skills,
+        mcpServers: localPlugin.mcpServers,
+        lspServers: localPlugin.lspServers,
       });
     }
   }
@@ -297,6 +412,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
     const { pluginName, marketplace: mpName } = parsed;
     const installedVersion = installedVersions[pluginId];
     const isEnabled = enabledPlugins[pluginId] === true;
+    const scopeStatus = buildScopeStatus(pluginId);
 
     // Try to get plugin info from local marketplace cache (fallback)
     const localMp = localMarketplaces.get(mpName);
@@ -317,6 +433,7 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
       marketplace: mpName,
       marketplaceDisplay: localMp?.name || formatMarketplaceName(mpName),
       enabled: isEnabled,
+      ...scopeStatus,
       installedVersion: installedVersion,
       hasUpdate,
     });
@@ -326,7 +443,8 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
 }
 
 // Simple version comparison (returns 1 if a > b, -1 if a < b, 0 if equal)
-function compareVersions(a: string, b: string): number {
+function compareVersions(a: string | null | undefined, b: string | null | undefined): number {
+  if (!a || !b) return 0;
   const partsA = a.replace(/^v/, '').split('.').map(Number);
   const partsB = b.replace(/^v/, '').split('.').map(Number);
 
