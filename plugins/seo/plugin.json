@@ -1,6 +1,6 @@
 {
   "name": "seo",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Comprehensive SEO toolkit with keyword research, content optimization, technical audits, multi-agent workflows, and analytics integrations (GA4, GSC, SE Ranking). Features multi-model parallel review, A/B alternative generation, E-E-A-T compliance validation, and data-driven performance analysis.",
   "author": {
     "name": "Jack Rudenko",
