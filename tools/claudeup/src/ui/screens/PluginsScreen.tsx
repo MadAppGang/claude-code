@@ -28,7 +28,13 @@ import {
   removeGlobalInstalledPluginVersion,
   saveLocalInstalledPluginVersion,
   removeLocalInstalledPluginVersion,
+  setMcpEnvVar,
+  getMcpEnvVars,
 } from '../../services/claude-settings.js';
+import {
+  getPluginEnvRequirements,
+  getPluginSourcePath,
+} from '../../services/plugin-mcp-config.js';
 import {
   cloneMarketplace,
   deleteMarketplace,
@@ -329,6 +335,92 @@ export function PluginsScreen(): React.ReactElement {
     }
   };
 
+  /**
+   * Collect environment variables required by a plugin's MCP servers
+   * Prompts user for missing values and saves to local settings
+   */
+  const collectPluginEnvVars = async (
+    pluginName: string,
+    marketplace: string
+  ): Promise<boolean> => {
+    try {
+      // Get plugin source path from marketplace manifest
+      const pluginSource = await getPluginSourcePath(marketplace, pluginName);
+      if (!pluginSource) return true; // No source path, nothing to configure
+
+      // Get env var requirements from plugin's MCP config
+      const requirements = await getPluginEnvRequirements(marketplace, pluginSource);
+      if (requirements.length === 0) return true; // No env vars needed
+
+      // Get existing env vars
+      const existingEnvVars = await getMcpEnvVars(state.projectPath);
+      const missingVars = requirements.filter(
+        req => !existingEnvVars[req.name] && !process.env[req.name]
+      );
+
+      if (missingVars.length === 0) return true; // All vars already configured
+
+      // Ask user if they want to configure MCP server env vars now
+      const serverNames = [...new Set(missingVars.map(v => v.serverName))];
+      const wantToConfigure = await modal.confirm(
+        'Configure MCP Servers?',
+        `This plugin includes MCP servers (${serverNames.join(', ')}) that need ${missingVars.length} environment variable(s).\n\nConfigure now?`
+      );
+
+      if (!wantToConfigure) {
+        await modal.message(
+          'Skipped Configuration',
+          'You can configure these variables later in the Environment Variables screen (press 4).',
+          'info'
+        );
+        return true; // Still installed, just not configured
+      }
+
+      // Collect each missing env var
+      for (const req of missingVars) {
+        // Check if value exists in process.env
+        const existingProcessEnv = process.env[req.name];
+        if (existingProcessEnv) {
+          const useExisting = await modal.confirm(
+            `Use ${req.name}?`,
+            `${req.name} is already set in your environment.\n\nUse the existing value?`
+          );
+          if (useExisting) {
+            // Store reference to env var instead of literal value
+            await setMcpEnvVar(req.name, `\${${req.name}}`, state.projectPath);
+            continue;
+          }
+        }
+
+        // Prompt for value
+        const value = await modal.input(
+          `Configure ${req.serverName}`,
+          `${req.label} (required):`,
+          ''
+        );
+
+        if (value === null) {
+          // User cancelled
+          await modal.message(
+            'Configuration Incomplete',
+            `Skipped remaining configuration.\nYou can configure these later in Environment Variables (press 4).`,
+            'info'
+          );
+          return true; // Still installed
+        }
+
+        if (value) {
+          await setMcpEnvVar(req.name, value, state.projectPath);
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error collecting plugin env vars:', error);
+      return true; // Don't block installation on config errors
+    }
+  };
+
   const handleSelect = async () => {
     const item = selectableItems[pluginsState.selectedIndex];
     if (!item) return;
@@ -476,8 +568,16 @@ export function PluginsScreen(): React.ReactElement {
             await enableLocalPlugin(plugin.id, true, state.projectPath);
             await saveLocalInstalledPluginVersion(plugin.id, latestVersion, state.projectPath);
           }
+
+          // On fresh install, prompt for MCP server env vars if needed
+          if (action === 'install') {
+            modal.hideModal();
+            await collectPluginEnvVars(plugin.name, plugin.marketplace);
+          }
         }
-        modal.hideModal();
+        if (action !== 'install') {
+          modal.hideModal();
+        }
         fetchData();
       } catch (error) {
         modal.hideModal();
@@ -596,8 +696,16 @@ export function PluginsScreen(): React.ReactElement {
           await enableLocalPlugin(plugin.id, true, state.projectPath);
           await saveLocalInstalledPluginVersion(plugin.id, latestVersion, state.projectPath);
         }
+
+        // On fresh install, prompt for MCP server env vars if needed
+        if (action === 'install') {
+          modal.hideModal();
+          await collectPluginEnvVars(plugin.name, plugin.marketplace);
+        }
       }
-      modal.hideModal();
+      if (action !== 'install') {
+        modal.hideModal();
+      }
       fetchData();
     } catch (error) {
       modal.hideModal();
