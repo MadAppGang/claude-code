@@ -15,8 +15,9 @@ import {
 } from './screens/index.js';
 import type { Screen } from './state/types.js'; // Import Screen type
 import { refreshLocalMarketplaces } from '../services/local-marketplace.js';
+import { checkForUpdates, getCurrentVersion, type VersionCheckResult } from '../services/version-check.js';
 
-export const VERSION = '1.0.0';
+export const VERSION = getCurrentVersion();
 
 function Router(): React.ReactElement {
   const { state } = useApp();
@@ -168,7 +169,31 @@ function ProgressIndicator({ message, current, total }: ProgressIndicatorProps):
   );
 }
 
-function AppContentInner({ showDebug, onDebugToggle }: { showDebug: boolean; onDebugToggle: () => void }): React.ReactElement {
+function UpdateBanner({ result }: { result: VersionCheckResult }): React.ReactElement | null {
+  if (!result.updateAvailable) return null;
+
+  return (
+    <Box paddingX={1} marginBottom={0}>
+      <Text backgroundColor="yellow" color="black" bold>
+        {' '}UPDATE{' '}
+      </Text>
+      <Text color="yellow">
+        {' '}v{result.currentVersion} → v{result.latestVersion}
+      </Text>
+      <Text color="gray">
+        {' '}Run: </Text>
+      <Text color="cyan">npm i -g claudeup</Text>
+    </Box>
+  );
+}
+
+interface AppContentInnerProps {
+  showDebug: boolean;
+  onDebugToggle: () => void;
+  updateInfo: VersionCheckResult | null;
+}
+
+function AppContentInner({ showDebug, onDebugToggle, updateInfo }: AppContentInnerProps): React.ReactElement {
   const { state, dispatch } = useApp();
   const { progress } = state;
   const dimensions = useDimensions();
@@ -197,6 +222,7 @@ function AppContentInner({ showDebug, onDebugToggle }: { showDebug: boolean; onD
 
   return (
     <Box flexDirection="column" height={dimensions.terminalHeight}>
+      {updateInfo?.updateAvailable && <UpdateBanner result={updateInfo} />}
       {showDebug && (
         <Box paddingX={1}>
           <Text color="yellow" dimColor>
@@ -218,10 +244,24 @@ function AppContent(): React.ReactElement {
   const { state } = useApp();
   const { progress } = state;
   const [showDebug, setShowDebug] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<VersionCheckResult | null>(null);
+
+  // Check for updates on startup (non-blocking)
+  useEffect(() => {
+    checkForUpdates().then(setUpdateInfo).catch(() => {});
+  }, []);
 
   return (
-    <DimensionsProvider showProgress={!!progress} showDebug={showDebug}>
-      <AppContentInner showDebug={showDebug} onDebugToggle={() => setShowDebug(s => !s)} />
+    <DimensionsProvider
+      showProgress={!!progress}
+      showDebug={showDebug}
+      showUpdateBanner={!!updateInfo?.updateAvailable}
+    >
+      <AppContentInner
+        showDebug={showDebug}
+        onDebugToggle={() => setShowDebug(s => !s)}
+        updateInfo={updateInfo}
+      />
     </DimensionsProvider>
   );
 }

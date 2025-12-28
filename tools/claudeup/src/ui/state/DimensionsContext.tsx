@@ -28,13 +28,16 @@ interface DimensionsProviderProps {
   showProgress?: boolean;
   /** Whether debug bar is visible */
   showDebug?: boolean;
+  /** Whether update banner is visible */
+  showUpdateBanner?: boolean;
 }
 
 function calculateDimensions(
   columns: number,
   rows: number,
   showProgress: boolean,
-  showDebug: boolean
+  showDebug: boolean,
+  showUpdateBanner: boolean
 ): Dimensions {
   const terminalWidth = columns;
   const terminalHeight = rows;
@@ -43,6 +46,7 @@ function calculateDimensions(
   let contentHeight = terminalHeight - APP_MARGINS;
   if (showProgress) contentHeight -= PROGRESS_HEIGHT;
   if (showDebug) contentHeight -= 1;
+  if (showUpdateBanner) contentHeight -= 1;
   contentHeight = Math.max(10, contentHeight); // Minimum 10 lines for full layout
 
   // Calculate available content width (accounting for padding)
@@ -66,6 +70,7 @@ export function DimensionsProvider({
   children,
   showProgress = false,
   showDebug = false,
+  showUpdateBanner = false,
 }: DimensionsProviderProps): React.ReactElement {
   const { stdout } = useStdout();
 
@@ -74,7 +79,8 @@ export function DimensionsProvider({
       stdout?.columns ?? 80,
       stdout?.rows ?? 24,
       showProgress,
-      showDebug
+      showDebug,
+      showUpdateBanner
     )
   );
 
@@ -86,7 +92,8 @@ export function DimensionsProvider({
           stdout?.columns ?? 80,
           stdout?.rows ?? 24,
           showProgress,
-          showDebug
+          showDebug,
+          showUpdateBanner
         )
       );
     };
@@ -95,19 +102,20 @@ export function DimensionsProvider({
     return () => {
       stdout?.off('resize', handleResize);
     };
-  }, [stdout, showProgress, showDebug]);
+  }, [stdout, showProgress, showDebug, showUpdateBanner]);
 
-  // Update when showProgress/showDebug changes
+  // Update when showProgress/showDebug/showUpdateBanner changes
   useEffect(() => {
     setDimensions(
       calculateDimensions(
         stdout?.columns ?? 80,
         stdout?.rows ?? 24,
         showProgress,
-        showDebug
+        showDebug,
+        showUpdateBanner
       )
     );
-  }, [stdout?.columns, stdout?.rows, showProgress, showDebug]);
+  }, [stdout?.columns, stdout?.rows, showProgress, showDebug, showUpdateBanner]);
 
   return (
     <DimensionsContext.Provider value={dimensions}>
