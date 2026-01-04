@@ -1,6 +1,6 @@
 {
   "name": "nanobanana",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "AI image generation and editing using Google Gemini 3 Pro Image API",
   "type": "module",
   "main": "main.js",
