@@ -22,7 +22,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "development",
-			"keywords": [
+			"tags": [
 				"frontend",
 				"typescript",
 				"react",
@@ -46,7 +46,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "development",
-			"keywords": [
+			"tags": [
 				"code-analysis",
 				"codebase",
 				"investigation",
@@ -71,7 +71,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "development",
-			"keywords": [
+			"tags": [
 				"bun",
 				"typescript",
 				"backend",
@@ -96,7 +96,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "development",
-			"keywords": [
+			"tags": [
 				"orchestration",
 				"multi-agent",
 				"workflow",
@@ -124,7 +124,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "development",
-			"keywords": [
+			"tags": [
 				"agents",
 				"commands",
 				"development",
@@ -147,7 +147,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "content",
-			"keywords": [
+			"tags": [
 				"seo",
 				"content-optimization",
 				"keyword-research",
@@ -172,7 +172,7 @@
 				"company": "MadAppGang"
 			},
 			"category": "media",
-			"keywords": [
+			"tags": [
 				"video",
 				"ffmpeg",
 				"transcription",

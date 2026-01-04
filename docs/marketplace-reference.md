@@ -75,7 +75,7 @@ The `marketplace.json` file in `.claude-plugin/` directory defines the marketpla
         "email": "author@example.com"
       },
       "category": "development",
-      "keywords": ["keyword1", "keyword2"],
+      "tags": ["tag1", "tag2"],
       "strict": true
     }
   ]
@@ -112,7 +112,7 @@ The `marketplace.json` file in `.claude-plugin/` directory defines the marketpla
 | `author.email` | string | ✅ | Author's email |
 | `author.company` | string | ❌ | Company name |
 | `category` | string | ✅ | Plugin category |
-| `keywords` | array | ✅ | Search keywords |
+| `tags` | array | ❌ | Search tags (optional) |
 | `strict` | boolean | ❌ | Enable strict validation (recommended: `true`) |
 
 ---
