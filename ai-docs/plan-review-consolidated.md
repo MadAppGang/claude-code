@@ -1,185 +1,119 @@
-# SEO Plugin v1.2.0 - Multi-Model Implementation Review
+# Consolidated Plan Review: Video Editing Plugin
 
-**Review Date**: 2025-12-27
-**Models Used**: 8 external reviewers via Claudish
-**Plugin Version**: 1.2.0 (Implementation Review)
-**Review Type**: Code/Implementation Review (not design)
-
----
-
-## Models & Overall Scores
-
-| Model | Score | Verdict |
-|-------|-------|---------|
-| MiniMax M2.1 | PASS (5 issues) | PASS with improvements |
-| GLM-4.7 | 7.5/10 | GOOD |
-| Gemini 3 Flash | CONDITIONAL PASS | Address HIGH issues |
-| Mistral Small | PASS with improvements | PASS with minor fixes |
-| GPT-5.2 | 85/100 | Good |
-| GPT-5.1-Codex-Max | Strong foundations | Fix integration issues |
-| DeepSeek v3.2 | 7.5/10 | Good |
-| Qwen3-Coder | 78/100 | Production Ready |
-
-**Consensus Score: 7.8/10 (GOOD)**
+**Review Date:** 2025-12-29
+**Models Reviewed:** 9 (MiniMax M2.1, GLM-4.7, Gemini 3 Pro, GPT-5.2, Mistral Large, Kimi K2, DeepSeek, Qwen3, Claude Internal)
+**Models Completed:** 7+ (some still running)
 
 ---
 
-## Consensus Issues by Agreement Level
+## Issue Summary Across All Models
 
-### UNANIMOUS (8/8 Models Agree) - CRITICAL
-
-#### 1. README.md Version & Documentation Mismatch
-**Agreement**: 8/8 models flagged this
-**Severity**: HIGH-CRITICAL
-
-- README.md shows v1.0.0, plugin.json shows v1.2.0
-- Architecture diagram shows 4 agents/4 commands, actual is 5 agents/8 commands
-- Missing documentation for /performance, /review, /alternatives, /setup-analytics
-
-**Files**: `README.md:3-4`, `README.md:26-41`
-
----
-
-### STRONG CONSENSUS (6-7/8 Models Agree) - HIGH
-
-#### 2. SE Ranking Environment Variable Naming Inconsistency
-**Agreement**: 7/8 models flagged this
-**Severity**: CRITICAL (will break integration)
-
-The plugin uses inconsistent variable names:
-- `SERANKING_API_TOKEN` in: mcp-config.json, session-start.sh
-- `SE_RANKING_API_KEY` in: performance.md, setup-analytics.md
-
-**Impact**: SE Ranking MCP server will fail to authenticate
-
-**Recommendation**: Standardize on `SERANKING_API_TOKEN` (matches official SE Ranking MCP)
+| Model | CRITICAL | HIGH | MEDIUM | LOW | Total | Status |
+|-------|----------|------|--------|-----|-------|--------|
+| MiniMax M2.1 | 2 | 3 | 4 | 3 | 12 | CONDITIONAL |
+| GLM-4.7 | 3 | 4 | 4 | 3 | 14 | NOT READY |
+| Gemini 3 Pro | 0 | 0 | 2 | 2 | 4 | APPROVED |
+| GPT-5.2 | 3 | 3 | 3 | 2 | 11 | CONDITIONAL |
+| Mistral Large | 3 | 3 | 3 | 3 | 12 | CONDITIONAL |
+| Kimi K2 (Claude) | 0 | 5 | 5 | 4 | 14 | CONDITIONAL |
+| Claude Internal | 1 | 4 | 4 | 4 | 13 | CONDITIONAL |
+| **Consensus** | **2-3** | **3-5** | **3-4** | **2-4** | - | **CONDITIONAL** |
 
 ---
 
-#### 3. Private Key Security Concerns
-**Agreement**: 6/8 models flagged this
-**Severity**: HIGH
+## Consensus CRITICAL Issues (Must Fix)
 
-- setup-analytics.md suggests storing GOOGLE_PRIVATE_KEY directly in settings.local.json
-- Private keys with newlines may not work correctly as environment variables
-- Better pattern: Use file paths (GOOGLE_APPLICATION_CREDENTIALS)
+### 1. Skill Path Format in plugin.json
+**Raised by:** MiniMax, GPT-5.2
+**Description:** Skills array uses directory paths without SKILL.md
+**Note:** Check actual Claude Code plugin loader expectations - may actually be correct as-is (directory format).
 
-**Recommendation**: Use file references instead of inline private keys
+### 2. Skill Namespace References
+**Raised by:** MiniMax, GPT-5.2, Kimi K2
+**Description:** Agents reference `video-editing:ffmpeg-core` but skills only define `name: ffmpeg-core`. Need to verify if namespaced format is supported.
+**Fix:** Either change agent refs to just `ffmpeg-core` or add namespace in skill frontmatter.
 
----
-
-#### 4. Docker Image Issues for SE Ranking MCP
-**Agreement**: 6/8 models flagged this
-**Severity**: MEDIUM-HIGH
-
-Issues identified:
-- No version tag (`:latest` implied) - reproducibility risk
-- Docker requirement not documented in README/setup wizard
-- Some models noted environment variable passing may not work correctly
-
-**Files**: `mcp-config.json:21-28`
+### 3. Hardcoded Absolute Paths (Violates Repo Rules)
+**Raised by:** GPT-5.2, Claude Internal
+**Description:** Design doc uses absolute paths instead of relative paths.
+**Fix:** Use relative paths throughout: `plugins/video-editing/`
 
 ---
 
-### MAJORITY CONSENSUS (4-5/8 Models Agree) - MEDIUM
+## Consensus HIGH Issues (Should Fix)
 
-#### 5. Cross-Platform Compatibility Issues
-**Agreement**: 5/8 models flagged this
-**Severity**: MEDIUM
+### 1. Missing Write/Edit Tools for Implementer Agents
+**Raised by:** MiniMax, Kimi K2, Claude Internal
+**Description:** `video-processor` agent missing `Write` tool; all implementer agents should have `Edit`.
+**Fix:** Update tools list to: `TodoWrite, Read, Write, Edit, Bash, Glob, Grep`
 
-- `stat -f%m` is macOS-only (data-extraction-patterns/SKILL.md:243)
-- `date` command flags differ between macOS and Linux
-- `xxd -p` may not be available on all systems
+### 2. timeline-builder Wrong Color
+**Raised by:** Kimi K2, Claude Internal
+**Description:** `timeline-builder` uses `color: purple` (Planning) but is an Implementer.
+**Fix:** Change to `color: green`
 
-**Recommendation**: Add cross-platform fallbacks
+### 3. Missing Cross-Platform Support
+**Raised by:** GLM-4.7, Mistral Large
+**Description:** Only macOS installation instructions provided (brew). Missing Linux/Windows paths.
+**Fix:** Add multi-platform installation guidance in skills.
 
----
+### 4. Missing Proxy Mode Support
+**Raised by:** Kimi K2
+**Description:** Agents don't include proxy mode pattern for multi-model workflows.
+**Fix:** Add `<proxy_mode_support>` to agent critical constraints.
 
-#### 6. Undefined/Inconsistent Function References
-**Agreement**: 4/8 models flagged this
-**Severity**: MEDIUM
+### 5. Commands Missing Quality Gates
+**Raised by:** Kimi K2
+**Description:** `/transcribe` and `/create-fcp-project` lack explicit `<quality_gate>` elements.
+**Fix:** Add quality gates to all command workflow phases.
 
-- `track_model_performance()` and `record_session_stats()` referenced but not defined
-- Proxy mode patterns in agents diverge from orchestration plugin recommendations
-- Model ID references outdated (x-ai/grok-3-fast should be x-ai/grok-code-fast-1)
-
----
-
-#### 7. Long/Complex Command Files
-**Agreement**: 4/8 models flagged this
-**Severity**: LOW-MEDIUM
-
-- review.md is 920+ lines - consider splitting
-- Duplicate benchmark tables in data-analyst.md and analytics-interpretation skill
-- Score calculation weights not configurable
-
----
-
-### DIVERGENT (2-3/8 Models Noted) - LOW
-
-#### 8. Session Hook Output Concerns
-**Agreement**: 3/8 models flagged this
-**Severity**: LOW
-
-- Hook outputs GA_PROPERTY_ID and GSC_SITE_URL in status
-- Not secrets but tenant identifiers that some consider should be masked
-- JSON escaping of newlines may not work correctly in all shells
+### 6. Incomplete Multi-Phase Error Recovery
+**Raised by:** GLM-4.7, Mistral Large
+**Description:** No handling for partial batch failures or mid-workflow failures.
+**Fix:** Add workflow-level error recovery strategies.
 
 ---
 
-#### 9. Missing CHANGELOG.md
-**Agreement**: 2/8 models flagged this
-**Severity**: LOW
+## Consensus MEDIUM Issues (Consider)
 
-- No version history documentation
-- Users cannot track changes between versions
-
----
-
-## Consensus Strengths (All Models Agreed)
-
-1. **Excellent Architecture** - Clean separation of agents/commands/skills
-2. **Strong Multi-Agent Orchestration** - Proper use of 4-Message Pattern
-3. **Comprehensive Graceful Degradation** - Works with 1, 2, or 3 data sources
-4. **Good Security Model** - Proper credential separation (settings.json vs settings.local.json)
-5. **Well-Designed E-E-A-T Framework** - Quantified scoring rubric (0-100)
-6. **Session-Based Artifact Management** - Unique paths prevent cross-contamination
-7. **Thoughtful Error Recovery** - Retry strategies with exponential backoff
+1. MCP Server Configuration Unclear
+2. Output Directory/Naming Conventions Unspecified
+3. Performance Estimates Missing
+4. Batch Processing Not Fully Specified
 
 ---
 
-## Priority Fix List (Ranked by Consensus)
+## Recommendations for Revision
 
-| Priority | Issue | Agreement | Action |
-|----------|-------|-----------|--------|
-| 1 | README.md version/docs | 8/8 | Update to v1.2.0, add missing commands |
-| 2 | SE Ranking env var name | 7/8 | Standardize to SERANKING_API_TOKEN |
-| 3 | Private key handling | 6/8 | Use file references |
-| 4 | Docker image versioning | 6/8 | Pin version, document Docker requirement |
-| 5 | Cross-platform compat | 5/8 | Add Linux fallbacks |
-| 6 | Outdated model IDs | 4/8 | Update grok-3-fast to grok-code-fast-1 |
+### Priority 1: Fix Before Implementation
+1. Use relative paths (`plugins/video-editing/`)
+2. Verify skill reference format with existing plugins
+3. Add `Write, Edit` tools to implementer agents
+4. Change `timeline-builder` color to green
+5. Add quality gates to all command phases
 
----
-
-## Individual Review Files
-
-| Model | File |
-|-------|------|
-| MiniMax M2.1 | /tmp/seo-review-session/review-minimax.md |
-| GLM-4.7 | /tmp/seo-review-session/review-glm.md |
-| Gemini 3 Flash | /tmp/seo-review-session/review-gemini.md |
-| Mistral Small | /tmp/seo-review-session/review-mistral.md |
-| GPT-5.2 | /tmp/seo-review-session/review-gpt52.md |
-| GPT-5.1-Codex-Max | /tmp/seo-review-session/review-codex.md |
-| DeepSeek v3.2 | /tmp/seo-review-session/review-deepseek.md |
-| Qwen3-Coder | /tmp/seo-review-session/review-qwen.md |
+### Priority 2: Fix During Implementation
+1. Add cross-platform installation instructions
+2. Add proxy mode support pattern
+3. Define output directory conventions
+4. Add multi-phase error recovery
 
 ---
 
-## Conclusion
+## Final Consensus
 
-The SEO Plugin v1.2.0 received a **consensus score of 7.8/10 (GOOD)** from 8 external model reviewers. All models agreed on the strong architectural foundations, excellent graceful degradation, and comprehensive E-E-A-T framework.
+**Status: CONDITIONAL**
 
-**Before Release**: Address the 2 CRITICAL issues (README update, SE Ranking env var standardization) and the 2 HIGH issues (private key handling, Docker documentation).
+The design is architecturally sound with excellent domain coverage (FFmpeg, Whisper, FCPXML). The orchestrator pattern is correctly applied and TodoWrite integration is comprehensive.
 
-**Recommendation**: CONDITIONAL APPROVE - Fix critical/high issues, then ready for production.
+**Blocking Issues (must fix):**
+1. Skill namespace reference format
+2. Missing Write/Edit tools
+3. Hardcoded paths
+4. timeline-builder color
+
+**Recommendation:** Address blocking issues in design revision, then proceed to implementation.
+
+---
+
+*Consolidated from multi-model reviews*

@@ -56,6 +56,9 @@ yarn-error.log*
 *.temp
 .cache/
 
+# Claudemem index (user-specific)
+.claudemem/
+
 # OS generated files
 Thumbs.db
 ehthumbs.db

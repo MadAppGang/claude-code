@@ -1,0 +1,38 @@
+{
+  "name": "video-editing",
+  "version": "1.0.0",
+  "description": "Professional video editing toolkit with FFmpeg operations, Whisper transcription, and Apple Final Cut Pro project generation. Features intelligent video analysis, automated transcription with timing sync, and FCPXML timeline creation.",
+  "author": {
+    "name": "Jack Rudenko",
+    "email": "i@madappgang.com",
+    "company": "MadAppGang"
+  },
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "ffmpeg",
+    "transcription",
+    "whisper",
+    "final-cut-pro",
+    "fcpxml",
+    "timeline",
+    "audio",
+    "editing"
+  ],
+  "category": "media",
+  "agents": [
+    "./agents/video-processor.md",
+    "./agents/transcriber.md",
+    "./agents/timeline-builder.md"
+  ],
+  "commands": [
+    "./commands/video-edit.md",
+    "./commands/transcribe.md",
+    "./commands/create-fcp-project.md"
+  ],
+  "skills": [
+    "./skills/ffmpeg-core",
+    "./skills/transcription",
+    "./skills/final-cut-pro"
+  ]
+}
