@@ -14,12 +14,5 @@
       "GOOGLE_APPLICATION_CREDENTIALS": "${GOOGLE_APPLICATION_CREDENTIALS}",
       "GSC_SITE_URL": "${GSC_SITE_URL}"
     }
-  },
-  "seo-data-api-mcp": {
-    "command": "docker",
-    "args": ["run", "-i", "--rm", "-e", "SERANKING_API_TOKEN=${SERANKING_API_TOKEN}", "seranking/seo-data-api-mcp-server:latest"],
-    "env": {
-      "SERANKING_API_TOKEN": "${SERANKING_API_TOKEN}"
-    }
   }
 }

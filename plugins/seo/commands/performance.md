@@ -1,6 +1,6 @@
 ---
 description: |
-  Content performance analysis combining GA4, GSC, and SE Ranking data.
+  Content performance analysis combining GA4 and GSC data.
   Workflow: SESSION INIT -> PARALLEL DATA FETCH -> CORRELATE -> ANALYZE -> RECOMMEND
   Provides data-driven content optimization recommendations with multi-source insights.
 allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite, WebFetch
@@ -17,7 +17,7 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
   </expertise>
   <mission>
     Orchestrate comprehensive content performance analysis by gathering data
-    from GA4, GSC, and SE Ranking in parallel, then delegating analysis to
+    from GA4 and GSC in parallel, then delegating analysis to
     the seo-data-analyst agent for insights and recommendations.
   </mission>
 </role>
@@ -65,8 +65,7 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
       **PARTIAL DATA HANDLING:**
 
       This command works with ANY combination of configured services:
-      - All 3 configured: Full analysis with cross-source correlation
-      - 2 configured: Partial analysis with available data
+      - Both configured: Full analysis with cross-source correlation
       - 1 configured: Limited analysis with single source
       - None configured: Offer to run /setup-analytics
 
@@ -89,13 +88,11 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
         # Check which services are configured
         GA4_READY=false
         GSC_READY=false
-        SER_READY=false
 
         [ -n "${GA_PROPERTY_ID:-}" ] && [ -n "${GOOGLE_CLIENT_EMAIL:-}" ] && GA4_READY=true
         [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ] || [ -n "${GOOGLE_CLIENT_EMAIL:-}" ] && GSC_READY=true
-        [ -n "${SERANKING_API_TOKEN:-}" ] && SER_READY=true
 
-        echo "GA4: $GA4_READY | GSC: $GSC_READY | SE Ranking: $SER_READY"
+        echo "GA4: $GA4_READY | GSC: $GSC_READY"
         ```
       </configuration_check>
 
@@ -169,9 +166,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
         │      rowLimit: 100                                              │
         │    })                                                           │
         │                                                                  │
-        │  IF SER_READY:                                                   │
-        │    WebFetch: SE Ranking API -> GET /research/competitor/...     │
-        │                                                                  │
         │  All execute in PARALLEL, merge results                         │
         └─────────────────────────────────────────────────────────────────┘
         ```
@@ -180,29 +174,13 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
       <steps>
         <step>If GA4 ready: Fetch page metrics (views, engagement, bounce)</step>
         <step>If GSC ready: Fetch search performance (impressions, clicks, CTR, position)</step>
-        <step>If SE Ranking ready: Fetch keyword rankings for URL</step>
         <step>Write raw data to session files</step>
         <step>Note any fetch errors for graceful degradation</step>
       </steps>
 
-      <se_ranking_api_pattern>
-        **SE Ranking API via WebFetch:**
-
-        Since SE Ranking uses a custom MCP server or direct API calls:
-
-        ```bash
-        # Keyword rankings
-        curl -s -H "Authorization: Token ${SERANKING_API_TOKEN}" \
-          "https://api4.seranking.com/research/competitor/overview?domain=${DOMAIN}"
-
-        # Or use WebFetch tool with API endpoint
-        ```
-      </se_ranking_api_pattern>
-
       <output_artifacts>
         - ${SESSION_PATH}/ga4-data.json
         - ${SESSION_PATH}/gsc-data.json
-        - ${SESSION_PATH}/ser-data.json
         - ${SESSION_PATH}/fetch-status.json
       </output_artifacts>
 
@@ -230,7 +208,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
         Available data sources:
         - GA4: ${GA4_STATUS} (${SESSION_PATH}/ga4-data.json)
         - GSC: ${GSC_STATUS} (${SESSION_PATH}/gsc-data.json)
-        - SE Ranking: ${SER_STATUS} (${SESSION_PATH}/ser-data.json)
 
         Required analysis:
         1. Interpret metrics from each available source
@@ -304,7 +281,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
   data_sources:
     ga4: true
     gsc: true
-    se_ranking: false
   scores:
     content_health: 72
     seo_performance: 68
@@ -319,10 +295,9 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
     <execution>
       PHASE 0: SESSION_PATH=/tmp/seo-performance-20251227-143022-examplecomblog
       PHASE 1: URL confirmed, date range: last 30 days
-      PHASE 2: Parallel fetch from GA4, GSC, SE Ranking
+      PHASE 2: Parallel fetch from GA4, GSC
               - GA4: 2,450 page views, 3:42 avg time, 38% bounce
               - GSC: 15,200 impressions, 428 clicks, 2.8% CTR, pos 4.2
-              - SE Ranking: #4 for "seo guide", #7 for "seo best practices"
       PHASE 3: seo-data-analyst calculates Health Score: 72/100
               Identifies: CTR opportunity, competitive pressure
       PHASE 4: Present report with recommendations
@@ -331,7 +306,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
       Deliverables:
       - ${SESSION_PATH}/ga4-data.json
       - ${SESSION_PATH}/gsc-data.json
-      - ${SESSION_PATH}/ser-data.json
       - ${SESSION_PATH}/performance-report.md
     </execution>
   </example>
@@ -342,7 +316,7 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
       PHASE 0: Check config - only GSC configured
       PHASE 1: URL confirmed
       PHASE 2: Fetch GSC data only
-              Note: "GA4 and SE Ranking not configured - limited analysis"
+              Note: "GA4 not configured - limited analysis"
       PHASE 3: seo-data-analyst provides search-focused analysis
       PHASE 4: Present report with note about missing data
               Suggest: "Run /setup-analytics to enable full analysis"
@@ -363,7 +337,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
       This will configure:
       - Google Analytics 4 (page metrics)
       - Google Search Console (search performance)
-      - SE Ranking (keyword rankings)
       ```
     </response>
   </scenario>

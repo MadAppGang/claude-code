@@ -1,7 +1,7 @@
 ---
 name: data-extraction-patterns
 description: |
-  Common patterns for extracting and combining analytics data from GA4, GSC, and SE Ranking.
+  Common patterns for extracting and combining analytics data from GA4 and GSC.
   Includes API patterns, rate limiting, caching, and error handling.
 ---
 
@@ -86,46 +86,6 @@ get_url_inspection({
 | device | Desktop/mobile/tablet |
 | date | Date (for trending) |
 
-### SE Ranking (Official MCP Server)
-
-**MCP Server**: `seo-data-api-mcp` (official SE Ranking MCP)
-
-**Repository**: https://github.com/seranking/seo-data-api-mcp-server
-
-**Installation** (via claudeup TUI - recommended):
-```bash
-npx claudeup
-# Navigate to: MCP Server Setup → SEO & Analytics → se-ranking
-```
-
-**Manual Installation**:
-```bash
-git clone https://github.com/seranking/seo-data-api-mcp-server.git
-cd seo-data-api-mcp-server
-docker compose build
-```
-
-**Environment Variable**: `SERANKING_API_TOKEN`
-
-**Available MCP Tools**:
-
-| Tool | Description | Use Case |
-|------|-------------|----------|
-| `domainOverview` | Domain performance metrics | Overall domain health |
-| `domainKeywords` | Keyword rankings for domain | Track ranking positions |
-| `domainCompetitors` | Identify competitors | Competitive analysis |
-| `domainKeywordsComparison` | Compare keywords across domains | Gap analysis |
-| `backlinksAll` | Retrieve backlink data | Link profile audit |
-| `relatedKeywords` | Related keyword discovery | Content expansion |
-| `similarKeywords` | Similar keyword suggestions | Keyword clustering |
-
-**Example MCP Calls**:
-```
-MCP: seo-data-api-mcp.domainOverview({ domain: "example.com" })
-MCP: seo-data-api-mcp.domainKeywords({ domain: "example.com", limit: 100 })
-MCP: seo-data-api-mcp.backlinksAll({ domain: "example.com" })
-```
-
 ## Parallel Execution Pattern
 
 ### Optimal Data Fetch (All Sources)
@@ -142,11 +102,10 @@ for parallel execution:
 │                                                                  │
 │  [MCP Call 1]: google-analytics.get_report(...)                 │
 │  [MCP Call 2]: google-search-console.search_analytics(...)      │
-│  [WebFetch 3]: SE Ranking API endpoint                          │
 │                                                                  │
 │  → All execute simultaneously                                    │
 │  → Results return when all complete                              │
-│  → ~3x faster than sequential                                    │
+│  → ~2x faster than sequential                                    │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -178,7 +137,6 @@ When one request depends on another's result:
 |-----|-------|----------|
 | GA4 | 10 QPS per property | Batch dimensions |
 | GSC | 1,200 requests/min | Paginate large exports |
-| SE Ranking | 100 requests/min | Queue long operations |
 
 ### Retry Pattern
 
@@ -299,7 +257,6 @@ END_DATE="$TODAY"
 |-----|--------|---------|
 | GA4 | Relative or ISO | "30daysAgo", "2025-12-01" |
 | GSC | ISO 8601 | "2025-12-01" |
-| SE Ranking | ISO 8601 or Unix | "2025-12-01", 1735689600 |
 
 ## Graceful Degradation
 
@@ -314,8 +271,7 @@ When a data source is unavailable:
 │  PRIMARY SOURCE      │  FALLBACK           │  LAST RESORT       │
 ├──────────────────────┼─────────────────────┼────────────────────┤
 │  GA4 traffic data    │  GSC clicks         │  Estimate from GSC │
-│  GSC search perf     │  SE Ranking queries │  WebSearch SERP    │
-│  SE Ranking ranks    │  GSC avg position   │  Manual SERP check │
+│  GSC search perf     │  Manual SERP check  │  WebSearch SERP    │
 │  CWV (CrUX)          │  PageSpeed API      │  Lighthouse CLI    │
 └──────────────────────┴─────────────────────┴────────────────────┘
 ```
@@ -331,14 +287,12 @@ When a data source is unavailable:
 |--------|--------|--------|
 | GA4 | NOT CONFIGURED | Missing engagement metrics |
 | GSC | AVAILABLE | Full search data |
-| SE Ranking | ERROR (rate limit) | Using cached rankings |
 
 ### Analysis Notes
 
 This analysis is based on limited data sources:
 - Search performance metrics are complete (GSC)
 - Engagement metrics unavailable (no GA4)
-- Ranking data may be 24h stale (cached)
 
 **Recommendation**: Configure GA4 for complete analysis.
 Run `/setup-analytics` to add Google Analytics.
@@ -379,13 +333,6 @@ Run `/setup-analytics` to add Google Analytics.
       "topQueries": [
         {"query": "seo guide", "clicks": 156, "position": 4}
       ]
-    },
-    "seRanking": {
-      "available": true,
-      "rankings": [
-        {"keyword": "seo guide", "position": 4, "volume": 12100}
-      ],
-      "visibility": 42
     }
   },
   "computed": {
@@ -425,6 +372,6 @@ Run `/setup-analytics` to add Google Analytics.
 
 ### Workaround
 
-Proceeding with available data sources (GSC, SE Ranking).
+Proceeding with available data sources (GSC).
 GA4 engagement metrics will not be included in this analysis.
 ```

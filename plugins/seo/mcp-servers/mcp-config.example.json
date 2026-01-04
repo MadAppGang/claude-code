@@ -31,29 +31,5 @@
       "3. Grant 'Full' permission level",
       "4. Point to JSON credentials file"
     ]
-  },
-
-  "seo-data-api-mcp": {
-    "command": "docker",
-    "args": ["run", "-i", "--rm", "-e", "SERANKING_API_TOKEN=${SERANKING_API_TOKEN}", "seranking/seo-data-api-mcp-server:latest"],
-    "env": {
-      "SERANKING_API_TOKEN": "your-api-token-here"
-    },
-    "_requires": "Docker must be installed and running",
-    "_setup": [
-      "1. Install Docker: https://docs.docker.com/get-docker/",
-      "2. Get API token from SE Ranking dashboard (Settings > API)",
-      "3. Set SERANKING_API_TOKEN environment variable",
-      "4. Docker image will be pulled automatically on first run"
-    ],
-    "_tools": [
-      "domainOverview - Domain performance metrics",
-      "domainKeywords - Keyword rankings for domain",
-      "domainCompetitors - Competitor identification",
-      "domainKeywordsComparison - Compare keywords across domains",
-      "backlinksAll - Retrieve backlink data",
-      "relatedKeywords - Related keyword discovery",
-      "similarKeywords - Similar keyword suggestions"
-    ]
   }
 }

@@ -4,7 +4,7 @@
 **Category:** Content
 **License:** MIT
 
-Comprehensive SEO toolkit with keyword research, content optimization, technical audits, multi-agent content workflows, and analytics integrations (GA4, GSC, SE Ranking).
+Comprehensive SEO toolkit with keyword research, content optimization, technical audits, multi-agent content workflows, and analytics integrations (GA4, GSC).
 
 ## Features
 
@@ -15,7 +15,7 @@ Comprehensive SEO toolkit with keyword research, content optimization, technical
 - **Technical SEO Audits** - Schema markup, internal linking, and technical health checks
 - **E-E-A-T Validation** - Experience, Expertise, Authoritativeness, Trustworthiness scoring
 - **Multi-Agent Workflows** - Coordinated execution across 5 specialized agents
-- **Analytics Integration** - GA4, Google Search Console, SE Ranking data correlation
+- **Analytics Integration** - GA4, Google Search Console data correlation
 - **Multi-Model Review** - Parallel AI validation with E-E-A-T consensus scoring
 - **A/B Alternative Generation** - Multi-model content alternatives with voting
 
@@ -36,7 +36,7 @@ Comprehensive SEO toolkit with keyword research, content optimization, technical
 |  +-- /performance               ANALYTICS INTEGRATIONS      |
 |  +-- /setup-analytics           +-- Google Analytics 4      |
 |                                 +-- Google Search Console   |
-|  SKILLS (10)                    +-- SE Ranking (via MCP)    |
+|  SKILLS (10)                                                |
 |  +-- keyword-cluster-builder                                |
 |  +-- content-optimizer          TOOL INTEGRATIONS           |
 |  +-- content-brief              +-- WebFetch, WebSearch     |
@@ -95,7 +95,7 @@ Quality review, SEO compliance, and E-E-A-T validation.
 Analytics data specialist for cross-source performance correlation.
 
 **Use cases:**
-- Interpret GA4, GSC, and SE Ranking data
+- Interpret GA4 and GSC data
 - Correlate metrics across sources (high impressions + low CTR = snippet issue)
 - Calculate Content Health Score (0-100)
 - Generate data-driven optimization recommendations
@@ -176,7 +176,7 @@ Generate A/B content alternatives using multiple AI models.
 - Best alternative selection with rationale
 
 ### `/performance <url>`
-Content performance analysis combining GA4, GSC, and SE Ranking data.
+Content performance analysis combining GA4 and GSC data.
 
 **Workflow:** SESSION INIT → PARALLEL DATA FETCH → CORRELATE → ANALYZE → RECOMMEND
 
@@ -184,7 +184,7 @@ Content performance analysis combining GA4, GSC, and SE Ranking data.
 - Parallel fetching from all configured analytics sources
 - Content Health Score (0-100) calculation
 - Cross-source correlation patterns
-- Graceful degradation (works with 1, 2, or 3 sources)
+- Graceful degradation (works with 1 or 2 sources)
 - Quick wins, strategic, and long-term recommendations
 
 ### `/setup-analytics`
@@ -195,7 +195,6 @@ Interactive setup wizard for SEO analytics integrations.
 **Supports:**
 - Google Analytics 4 (page metrics, engagement)
 - Google Search Console (search performance, CTR)
-- SE Ranking via official MCP (keyword rankings, backlinks)
 
 **Quick Setup:** Run `npx claudeup` and navigate to SEO & Analytics.
 
@@ -223,7 +222,7 @@ Schema.org implementation and validation patterns.
 Internal linking strategy and anchor text optimization.
 
 ### analytics-interpretation
-Metric benchmarks and status indicators for GA4, GSC, SE Ranking data.
+Metric benchmarks and status indicators for GA4 and GSC data.
 
 ### performance-correlation
 Cross-source correlation patterns and Content Health Score calculation.
@@ -233,7 +232,7 @@ API patterns, rate limiting, caching, and error handling for analytics data.
 
 ## Analytics Integration
 
-The SEO plugin integrates with three analytics platforms via MCP servers:
+The SEO plugin integrates with two analytics platforms via MCP servers:
 
 ### Google Analytics 4
 - **MCP Server:** `mcp-server-google-analytics`
@@ -244,12 +243,6 @@ The SEO plugin integrates with three analytics platforms via MCP servers:
 - **MCP Server:** `mcp-server-gsc`
 - **Metrics:** Impressions, clicks, CTR, average position
 - **Setup:** Service Account with Search Console API access
-
-### SE Ranking
-- **MCP Server:** `seo-data-api-mcp` (official, Docker-based)
-- **Metrics:** Keyword rankings, backlinks, competitor analysis
-- **Setup:** API token from SE Ranking dashboard
-- **Requires:** Docker installed and running
 
 ### Quick Setup
 

@@ -1,7 +1,7 @@
 ---
 name: performance-correlation
 description: |
-  Correlate content attributes with performance metrics across GA4, GSC, and SE Ranking.
+  Correlate content attributes with performance metrics across GA4 and GSC.
   Identify what drives performance and build optimization hypotheses.
 ---
 
@@ -70,7 +70,6 @@ GA4: Bounce ↑ | Time on Page ↓ | Scroll Depth ↓
 ```
 GA4: Time on Page ↑ | Bounce ↓ | Scroll Depth ↑
 GSC: Position ↓ | Impressions ↓
-SE Ranking: Visibility ↓
 ```
 
 **Diagnosis**: Good content but weak SEO signals
@@ -92,8 +91,7 @@ SE Ranking: Visibility ↓
 #### Pattern 4: Declining Rankings + Stable Traffic
 
 ```
-SE Ranking: Position ↓ | Visibility ↓
-GSC: Impressions → | Clicks → (or slight ↓)
+GSC: Position ↓ | Impressions → | Clicks → (or slight ↓)
 GA4: Traffic → (from brand/direct)
 ```
 
@@ -116,8 +114,7 @@ GA4: Traffic → (from brand/direct)
 #### Pattern 5: Good Rankings + Low Impressions
 
 ```
-SE Ranking: Position 1-5
-GSC: Impressions ↓ | CTR normal
+GSC: Position 1-5 | Impressions ↓ | CTR normal
 GA4: Traffic ↓
 ```
 
@@ -141,7 +138,6 @@ GA4: Traffic ↓
 
 ```
 GSC: Position fluctuates ±10 daily
-SE Ranking: Inconsistent ranking reports
 ```
 
 **Diagnosis**: Google testing your content, or thin content threshold
@@ -218,7 +214,6 @@ Rate confidence in cause-effect relationships:
 | GSC | Impressions | 15,200 | ↑ +12% | Search visibility growing |
 | GSC | Clicks | 428 | ↑ +8% | Traffic following visibility |
 | GA4 | Sessions | 512 | ↑ +10% | Confirms GSC data |
-| SE Ranking | Visibility | 42 | ↑ +5 | Ranking improvements |
 
 ### Engagement Quality
 | Source | Metric | Value | Trend | Correlation |
@@ -231,8 +226,8 @@ Rate confidence in cause-effect relationships:
 ### Ranking Performance
 | Source | Keyword | Position | Change | Opportunity |
 |--------|---------|----------|--------|-------------|
-| SE Ranking | seo guide | 4 | +2 | Target position 1-3 |
-| SE Ranking | seo best practices | 7 | +1 | Content gap vs leader |
+| GSC | seo guide | 4 | +2 | Target position 1-3 |
+| GSC | seo best practices | 7 | +1 | Content gap vs leader |
 | GSC | seo tips 2025 | 12 | -3 | Needs freshness update |
 ```
 

@@ -25,34 +25,24 @@ if [ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ] || [ -n "${GOOGLE_CLIENT_EMAIL:-
   fi
 fi
 
-# Check for SE Ranking configuration (official MCP server)
-SER_STATUS="NOT CONFIGURED"
-SER_DETAILS=""
-if [ -n "${SERANKING_API_TOKEN:-}" ]; then
-  SER_STATUS="CONFIGURED"
-  SER_DETAILS=" (seo-data-api-mcp)"
-fi
-
 # Build status message
 STATUS_MSG="### SEO Analytics Integrations\\n\\n"
 STATUS_MSG+="| Service | Status | Details |\\n"
 STATUS_MSG+="|---------|--------|---------|\\n"
 STATUS_MSG+="| Google Analytics 4 | ${GA4_STATUS} | ${GA4_DETAILS:-N/A} |\\n"
 STATUS_MSG+="| Google Search Console | ${GSC_STATUS} | ${GSC_DETAILS:-N/A} |\\n"
-STATUS_MSG+="| SE Ranking | ${SER_STATUS} | ${SER_DETAILS:-N/A} |\\n"
 
 # Count configured services
 CONFIGURED_COUNT=0
 [ "$GA4_STATUS" = "CONFIGURED" ] && CONFIGURED_COUNT=$((CONFIGURED_COUNT + 1))
 [ "$GSC_STATUS" = "CONFIGURED" ] && CONFIGURED_COUNT=$((CONFIGURED_COUNT + 1))
-[ "$SER_STATUS" = "CONFIGURED" ] && CONFIGURED_COUNT=$((CONFIGURED_COUNT + 1))
 
 # Add guidance based on status
 if [ "$CONFIGURED_COUNT" -eq 0 ]; then
   STATUS_MSG+="\\n**No analytics integrations configured.**\\n"
-  STATUS_MSG+="Run \`/setup-analytics\` to configure GA4, GSC, or SE Ranking.\\n"
-elif [ "$CONFIGURED_COUNT" -lt 3 ]; then
-  STATUS_MSG+="\\n**${CONFIGURED_COUNT}/3 integrations configured.**\\n"
+  STATUS_MSG+="Run \`/setup-analytics\` to configure GA4 or GSC.\\n"
+elif [ "$CONFIGURED_COUNT" -lt 2 ]; then
+  STATUS_MSG+="\\n**${CONFIGURED_COUNT}/2 integrations configured.**\\n"
   STATUS_MSG+="Run \`/setup-analytics\` to add more data sources.\\n"
 else
   STATUS_MSG+="\\n**All analytics integrations configured!**\\n"

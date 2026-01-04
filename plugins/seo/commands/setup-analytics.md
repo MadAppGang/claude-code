@@ -1,7 +1,7 @@
 ---
 description: |
   Interactive setup wizard for SEO analytics integrations.
-  Configures Google Analytics 4, Google Search Console, and SE Ranking.
+  Configures Google Analytics 4 and Google Search Console.
   Supports claudeup for easy MCP server installation.
   Validates credentials and tests API connections before saving.
 allowed-tools: Bash, AskUserQuestion, Read, Write
@@ -43,7 +43,6 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
       After configuring each service, test the connection:
       - GA4: Attempt to fetch property metadata
       - GSC: Attempt to list sites
-      - SE Ranking: Attempt to fetch project info
 
       Only save credentials if test succeeds.
     </validation>
@@ -68,7 +67,6 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
     Available SEO MCP servers in claudeup:
     - **google-analytics** - GA4 page views, engagement, conversions
     - **google-search-console** - Search performance, CTR, Core Web Vitals
-    - **se-ranking** - Keyword rankings, backlinks, competitor analysis
 
     **Benefits of claudeup:**
     - Interactive credential configuration
@@ -97,10 +95,8 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
             description: "Page views, engagement, conversions"
           - label: "Google Search Console"
             description: "Search performance, CTR, Core Web Vitals"
-          - label: "SE Ranking"
-            description: "Keyword rankings, competitor analysis"
-          - label: "All services"
-            description: "Configure GA4, GSC, and SE Ranking"
+          - label: "Both services"
+            description: "Configure GA4 and GSC"
         multiSelect: true
       </ask_user>
     </phase>
@@ -205,57 +201,7 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
       </credential_storage>
     </phase>
 
-    <phase number="4" name="SE Ranking Setup" condition="SE Ranking selected">
-      <objective>Configure SE Ranking API access</objective>
-
-      <prerequisites>
-        Display setup instructions:
-        ```
-        ## SE Ranking Setup Prerequisites
-
-        1. Log into SE Ranking: https://seranking.com
-        2. Go to Settings > API
-        3. Generate a new API key
-        4. Note your Project ID from the project URL
-        ```
-      </prerequisites>
-
-      <steps>
-        <step>Ask for API key</step>
-        <step>Ask for Project ID</step>
-        <step>Test connection by fetching project info</step>
-        <step>If success: Save credentials</step>
-        <step>If failure: Display error, offer to retry</step>
-      </steps>
-
-      <test_connection>
-        ```bash
-        # Test SE Ranking API
-        curl -s -H "Authorization: Token ${SERANKING_API_TOKEN}" \
-          "https://api4.seranking.com/research/competitor/overview?domain=example.com"
-        ```
-      </test_connection>
-
-      <credential_storage>
-        ```bash
-        # .claude/settings.json (committed)
-        {
-          "env": {
-            "SE_RANKING_PROJECT_ID": "123456"
-          }
-        }
-
-        # .claude/settings.local.json (gitignored)
-        {
-          "env": {
-            "SERANKING_API_TOKEN": "your-api-token-here"
-          }
-        }
-        ```
-      </credential_storage>
-    </phase>
-
-    <phase number="5" name="Verification">
+    <phase number="4" name="Verification">
       <objective>Confirm all configured services are working</objective>
       <steps>
         <step>Run connectivity test for each configured service</step>
@@ -271,7 +217,6 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
         |---------|--------|------------|
         | GA4 | CONNECTED | Page metrics, engagement |
         | GSC | CONNECTED | Search performance, CWV |
-        | SE Ranking | CONNECTED | Rankings, backlinks |
 
         ### Available Commands
 
@@ -307,12 +252,4 @@ allowed-tools: Bash, AskUserQuestion, Read, Write
     </recovery>
   </scenario>
 
-  <scenario name="SE Ranking Invalid API Key">
-    <symptom>API returns 401 Unauthorized</symptom>
-    <recovery>
-      - Verify API key is copied correctly (no extra spaces)
-      - Check if API key has expired in SE Ranking dashboard
-      - Generate a new API key if needed
-    </recovery>
-  </scenario>
 </error_recovery>

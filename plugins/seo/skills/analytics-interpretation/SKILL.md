@@ -1,7 +1,7 @@
 ---
 name: analytics-interpretation
 description: |
-  Interpret GA4, GSC, and SE Ranking data for content optimization.
+  Interpret GA4 and GSC data for content optimization.
   Provides benchmarks, status indicators, and actionable insights.
 ---
 
@@ -36,15 +36,6 @@ description: |
 | Impressions Trend | Growing | Stable | Declining | Refresh content, target new keywords |
 | Mobile Usability | PASS | - | FAIL | Fix mobile issues immediately |
 | Core Web Vitals | GOOD | NEEDS_IMPROVEMENT | POOR | Optimize performance |
-
-### SE Ranking
-
-| Metric | Good | Warning | Poor | Action When Poor |
-|--------|------|---------|------|------------------|
-| Visibility Score | >50 | 20-50 | <20 | Expand keyword coverage |
-| Position Changes | Improving | Stable | Declining | Investigate, refresh content |
-| Competitor Gap | Ahead | Even | Behind | Competitive analysis needed |
-| Backlink Growth | Positive | Neutral | Negative | Link building campaign |
 
 ## Interpreting Combined Signals
 
