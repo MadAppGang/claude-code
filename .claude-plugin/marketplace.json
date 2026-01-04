@@ -185,6 +185,29 @@
 				"subtitles"
 			],
 			"strict": true
+		},
+		{
+			"name": "nanobanana",
+			"source": "./plugins/nanobanana",
+			"description": "AI image generation and editing using Google Gemini 3 Pro Image API (Nano Banana Pro). Simple CLI pattern with markdown styles, batch generation, reference image support, and comprehensive error handling with retry logic.",
+			"version": "2.1.0",
+			"author": {
+				"name": "Jack Rudenko",
+				"email": "i@madappgang.com",
+				"company": "MadAppGang"
+			},
+			"category": "media",
+			"keywords": [
+				"image-generation",
+				"ai-art",
+				"gemini",
+				"text-to-image",
+				"image-editing",
+				"style-transfer",
+				"nano-banana",
+				"google-ai"
+			],
+			"strict": true
 		}
 	]
 }
