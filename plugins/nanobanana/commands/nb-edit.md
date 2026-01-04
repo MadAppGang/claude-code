@@ -67,7 +67,7 @@ skills: nanobanana:gemini-api
       <objective>Execute image edit</objective>
       <steps>
         <step>Task image-generator with edit command:
-          uv run python main.py output.png "instruction" --edit source.jpg
+          node main.js output.png "instruction" --edit source.jpg
         </step>
       </steps>
       <quality_gate>
@@ -108,7 +108,7 @@ skills: nanobanana:gemini-api
       2. Validate: instruction non-empty, sanitize
       3. Verify photo.jpg exists
       4. Output: photo_edited.png
-      5. Command: main.py photo_edited.png "Add sunset..." --edit photo.jpg
+      5. Command: node main.js photo_edited.png "Add sunset..." --edit photo.jpg
     </flow>
   </example>
 
@@ -117,7 +117,7 @@ skills: nanobanana:gemini-api
     <flow>
       1. Parse: source=logo.png, instruction, ref=style.png
       2. Verify both files exist
-      3. Command: main.py logo_edited.png "..." --edit logo.png --ref style.png
+      3. Command: node main.js logo_edited.png "..." --edit logo.png --ref style.png
     </flow>
   </example>
 </examples>

@@ -1,0 +1,31 @@
+{
+  "name": "nanobanana",
+  "version": "2.2.0",
+  "description": "AI image generation and editing using Google Gemini 3 Pro Image API",
+  "type": "module",
+  "main": "main.js",
+  "bin": {
+    "nanobanana": "./main.js"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "image-generation",
+    "ai-art",
+    "gemini",
+    "text-to-image",
+    "image-editing"
+  ],
+  "author": {
+    "name": "Jack Rudenko",
+    "email": "i@madappgang.com"
+  },
+  "license": "MIT"
+}

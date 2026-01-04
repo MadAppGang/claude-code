@@ -2,7 +2,7 @@
 
 AI image generation and editing using Google Gemini 3 Pro Image API.
 
-**Version:** 2.1.0
+**Version:** 2.2.0
 **Category:** media
 **License:** MIT
 
@@ -14,6 +14,7 @@ AI image generation and editing using Google Gemini 3 Pro Image API.
 - **Image Editing**: Modify existing images with natural language
 - **Reference Images**: Use reference images for style consistency
 - **Aspect Ratios**: Support for 1:1, 3:4, 4:3, 9:16, 16:9, 21:9, and more
+- **Node.js Native**: No Python required, uses Node.js (already installed for Claude Code)
 
 ## Installation
 
@@ -38,10 +39,10 @@ AI image generation and editing using Google Gemini 3 Pro Image API.
 
    Get your API key from: https://makersuite.google.com/app/apikey
 
-4. **Install dependencies** (if needed):
+4. **Install dependencies**:
    ```bash
    cd plugins/nanobanana
-   uv sync
+   npm install
    ```
 
 ## Quick Start
@@ -282,13 +283,6 @@ Set your API key:
 export GEMINI_API_KEY="your-key"
 ```
 
-### "uv not found"
-
-Install uv:
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
 ### "Style file not found"
 
 List available styles:
@@ -300,39 +294,42 @@ List available styles:
 
 The plugin automatically retries with exponential backoff. You can increase retry attempts:
 ```bash
-# In main.py command, add: --max-retries 5
+# Via CLI: --max-retries 5
+node main.js out.png "prompt" --max-retries 5
 ```
 
 ## Direct CLI Usage
 
-You can also use the Python script directly:
+You can use the Node.js script directly:
 
 ```bash
 # Simple generation
-uv run python plugins/nanobanana/main.py output.png "A minimal 3D cube"
+node plugins/nanobanana/main.js output.png "A minimal 3D cube"
 
 # With style
-uv run python plugins/nanobanana/main.py out.png "gear" --style styles/glass.md
+node plugins/nanobanana/main.js out.png "gear" --style styles/glass.md
 
 # Batch generation
-uv run python plugins/nanobanana/main.py out.png "cube" "sphere" "pyramid"
+node plugins/nanobanana/main.js out.png "cube" "sphere" "pyramid"
 
 # Edit image
-uv run python plugins/nanobanana/main.py edited.png "Make sky blue" --edit photo.jpg
+node plugins/nanobanana/main.js edited.png "Make sky blue" --edit photo.jpg
 
 # With reference
-uv run python plugins/nanobanana/main.py out.png "prompt" --ref style.png
+node plugins/nanobanana/main.js out.png "prompt" --ref style.png
 
 # Aspect ratio
-uv run python plugins/nanobanana/main.py out.png "prompt" --aspect 16:9
+node plugins/nanobanana/main.js out.png "prompt" --aspect 16:9
+
+# Show help
+node plugins/nanobanana/main.js --help
 ```
 
 ## Development
 
 ### Requirements
 
-- Python 3.10+
-- uv (Python package manager)
+- Node.js 18+
 - Google Gemini API key
 
 ### Running Tests
@@ -340,11 +337,14 @@ uv run python plugins/nanobanana/main.py out.png "prompt" --aspect 16:9
 ```bash
 cd plugins/nanobanana
 
+# Install dependencies
+npm install
+
 # Test API key setup
 echo $GEMINI_API_KEY
 
 # Test simple generation
-uv run python main.py test.png "A simple red circle"
+node main.js test.png "A simple red circle"
 ```
 
 ## License
@@ -364,31 +364,23 @@ For issues and questions:
 
 ## Changelog
 
-### v2.1.0 (2025-01-04)
+### v2.2.0 (2026-01-05)
 
-**Security & Validation:**
-- Added input validation with sanitization functions
-- Added injection pattern detection for style files
-- Added path validation rules
+**Initial Release**
+- Node.js implementation using @google/generative-ai
+- Uses Node.js (already available for Claude Code users)
+- Simple CLI: `node main.js output.png "prompt" [options]`
 
-**Error Handling:**
-- Added exponential backoff retry logic
-- Added structured error response format with error codes
-- Added batch failure reporting protocol
+**Features:**
+- Text-to-image generation with Gemini 3 Pro Image
+- Markdown-based style system
+- Batch generation with multiple prompts
+- Image editing with natural language
+- Reference image support
+- Configurable aspect ratios
 
-**Safety:**
-- Added confirmation for destructive operations
-- Added file content display before delete/overwrite
-- Added AskUserQuestion for destructive operations
-
-**XML Compliance:**
-- Refactored commands to use orchestration tags
-- Added implementation standards to agents
-- Added quality checks and error recovery procedures
-
-### v2.0.0 (2025-01-04)
-
-- Initial release with simplified style format
-- Changed from folder-based to single .md file styles
-- Added batch generation support
-- Added reference image separation
+**Security & Reliability:**
+- Input sanitization with injection detection
+- Exponential backoff retry logic
+- Structured error codes
+- Destructive operation confirmation

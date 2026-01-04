@@ -18,7 +18,7 @@
 | **Agent Development** | v1.1.0 | Create Claude Code agents |
 | **SEO** | v1.2.2 | SEO analysis and optimization |
 | **Video Editing** | v1.0.0 | FFmpeg, Whisper, Final Cut Pro integration |
-| **Nanobanana** | v2.1.0 | AI image generation with Gemini 3 Pro Image |
+| **Nanobanana** | v2.2.0 | AI image generation with Gemini 3 Pro Image |
 
 **Claudish CLI**: `npm install -g claudish` - Run Claude with OpenRouter models (separate repo)
 
@@ -200,7 +200,7 @@ CODEX_API_KEY=your-codex-key
 - Agent Development Plugin: **v1.1.0** (2025-12-09)
 - SEO Plugin: **v1.2.2** (2025-12-20)
 - Video Editing Plugin: **v1.0.0** (2025-12-29)
-- Nanobanana Plugin: **v2.1.0** (2026-01-04)
+- Nanobanana Plugin: **v2.2.0** (2026-01-05)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
 **Latest Changes (Code Analysis v2.10.0 - Unified --agent Flag):**
@@ -218,7 +218,7 @@ CODEX_API_KEY=your-codex-key
 - Agent Development: `plugins/agentdev/v1.1.0`
 - SEO: `plugins/seo/v1.2.2`
 - Video Editing: `plugins/video-editing/v1.0.0`
-- Nanobanana: `plugins/nanobanana/v2.1.0`
+- Nanobanana: `plugins/nanobanana/v2.2.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 **⚠️ RELEASE CHECKLIST (ALL 3 REQUIRED):**
@@ -233,5 +233,5 @@ Missing any of these will cause claudeup to not see the update!
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** January 4, 2026
-**Version:** 8 plugins (Orchestration v0.6.0, Frontend v3.13.0, Code Analysis v2.10.0, Bun Backend v1.5.2, Agent Development v1.1.0, SEO v1.2.2, Video Editing v1.0.0, Nanobanana v2.1.0)
+**Version:** 8 plugins (Orchestration v0.6.0, Frontend v3.13.0, Code Analysis v2.10.0, Bun Backend v1.5.2, Agent Development v1.1.0, SEO v1.2.2, Video Editing v1.0.0, Nanobanana v2.2.0)
 - do not use hardcoded path in code, docs, comments or any other files

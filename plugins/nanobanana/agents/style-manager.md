@@ -254,7 +254,7 @@ skills: nanobanana:style-format
 **Path:** styles/{style_name}.md
 
 **Next Steps:**
-- Generate: `uv run python main.py out.png "prompt" --style styles/{style_name}.md`
+- Generate: `node main.js out.png "prompt" --style styles/{style_name}.md`
 - View: Read the style file to see contents
 - Edit: Update the style with more details
   </completion_template>

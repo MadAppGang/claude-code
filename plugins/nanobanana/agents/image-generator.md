@@ -41,7 +41,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
       1. Parse generation request
       2. Validate inputs
       3. Check API key and dependencies
-      4. Build main.py command
+      4. Build main.js command
       5. Execute generation
       6. Handle errors (if any)
       7. Report results
@@ -56,11 +56,11 @@ skills: nanobanana:gemini-api, nanobanana:style-format
     </api_key_requirement>
 
     <script_execution>
-      All image operations go through main.py:
+      All image operations go through main.js:
       ```bash
-      uv run python "${CLAUDE_PLUGIN_ROOT}/main.py" [options]
+      node "${CLAUDE_PLUGIN_ROOT}/main.js" [options]
       ```
-      Use absolute path to plugin's main.py.
+      Use absolute path to plugin's main.js.
     </script_execution>
 
     <input_sanitization>
@@ -118,9 +118,9 @@ skills: nanobanana:gemini-api, nanobanana:style-format
         [ -n "$GEMINI_API_KEY" ] && echo "OK" || echo "MISSING"
         ```
       </step>
-      <step>Verify uv is installed:
+      <step>Verify node is installed:
         ```bash
-        which uv || echo "uv not found"
+        which node || echo "node not found"
         ```
       </step>
       <step>If style specified, verify .md file exists and validate content</step>
@@ -131,7 +131,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
     <phase number="4" name="Command Construction">
       <step>Build base command with properly quoted arguments:
         ```bash
-        uv run python "${CLAUDE_PLUGIN_ROOT}/main.py" output.png 'prompt'
+        node "${CLAUDE_PLUGIN_ROOT}/main.js" output.png 'prompt'
         ```
       </step>
       <step>Add options as needed:
@@ -182,9 +182,9 @@ skills: nanobanana:gemini-api, nanobanana:style-format
 
     <check name="dependency_check" order="3">
       <tool>Bash</tool>
-      <command>which uv</command>
-      <requirement>uv must be installed</requirement>
-      <on_failure>Show uv installation instructions</on_failure>
+      <command>which node</command>
+      <requirement>Node.js must be installed</requirement>
+      <on_failure>Node.js is required for Claude Code</on_failure>
     </check>
 
     <check name="file_existence" order="4">
@@ -221,33 +221,33 @@ skills: nanobanana:gemini-api, nanobanana:style-format
   <command_patterns>
     **Simple generation:**
     ```bash
-    uv run python main.py output.png 'A serene mountain lake'
+    node main.js output.png 'A serene mountain lake'
     ```
 
     **With style:**
     ```bash
-    uv run python main.py output.png 'gear icon' --style styles/glass.md
+    node main.js output.png 'gear icon' --style styles/glass.md
     ```
 
     **Batch generation:**
     ```bash
-    uv run python main.py output.png 'cube' 'sphere' 'pyramid' --style styles/glass.md
+    node main.js output.png 'cube' 'sphere' 'pyramid' --style styles/glass.md
     # Creates: output_001.png, output_002.png, output_003.png
     ```
 
     **Edit existing:**
     ```bash
-    uv run python main.py edited.png 'Add dramatic clouds' --edit photo.jpg
+    node main.js edited.png 'Add dramatic clouds' --edit photo.jpg
     ```
 
     **With reference:**
     ```bash
-    uv run python main.py output.png 'Same style, new subject' --ref reference.png
+    node main.js output.png 'Same style, new subject' --ref reference.png
     ```
 
     **Combined:**
     ```bash
-    uv run python main.py out.png 'icon' --style styles/glass.md --ref prev.png --aspect 1:1
+    node main.js out.png 'icon' --style styles/glass.md --ref prev.png --aspect 1:1
     ```
   </command_patterns>
 
@@ -281,7 +281,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
       3. Check: API key present
       4. Build command:
          ```bash
-         uv run python "${CLAUDE_PLUGIN_ROOT}/main.py" \
+         node "${CLAUDE_PLUGIN_ROOT}/main.js" \
            generated/cube.png \
            'A minimal 3D cube on solid black background'
          ```
@@ -298,7 +298,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
       3. Verify styles/glass.md exists
       4. Build command:
          ```bash
-         uv run python "${CLAUDE_PLUGIN_ROOT}/main.py" \
+         node "${CLAUDE_PLUGIN_ROOT}/main.js" \
            generated/icons.png \
            'cube' 'sphere' 'pyramid' \
            --style styles/glass.md
@@ -338,7 +338,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
 
 **Next Steps:**
 - View: Open the generated image
-- Edit: `uv run python main.py new.png "change X" --edit {output_path}`
+- Edit: `node main.js new.png "change X" --edit {output_path}`
 - Batch: Add more prompts for variations
   </completion_template>
 </formatting>
