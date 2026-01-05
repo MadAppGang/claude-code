@@ -14,7 +14,7 @@ import {
   CliToolsScreen,
 } from './screens/index.js';
 import type { Screen } from './state/types.js'; // Import Screen type
-import { refreshLocalMarketplaces } from '../services/local-marketplace.js';
+import { refreshLocalMarketplaces, repairAllMarketplaces } from '../services/local-marketplace.js';
 import { checkForUpdates, getCurrentVersion, type VersionCheckResult } from '../services/version-check.js';
 
 export const VERSION = getCurrentVersion();
@@ -211,7 +211,9 @@ function AppContentInner({ showDebug, onDebugToggle, updateInfo }: AppContentInn
         state: { message: `Syncing ${prog.name}...`, current: prog.current, total: prog.total },
       });
     })
-      .then(() => {
+      .then(async () => {
+        // Auto-repair plugin.json files with missing agents/commands/skills
+        await repairAllMarketplaces();
         dispatch({ type: 'HIDE_PROGRESS' });
         dispatch({ type: 'DATA_REFRESH_COMPLETE' });
       })

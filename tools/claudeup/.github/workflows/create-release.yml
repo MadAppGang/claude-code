@@ -1,0 +1,51 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Get previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ -n "${{ steps.prev_tag.outputs.tag }}" ]; then
+            echo "## Changes since ${{ steps.prev_tag.outputs.tag }}" > changelog.md
+            echo "" >> changelog.md
+            git log ${{ steps.prev_tag.outputs.tag }}..HEAD --pretty=format:"- %s" >> changelog.md
+          else
+            echo "## Initial Release" > changelog.md
+          fi
+          cat changelog.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: claudeup v${{ steps.version.outputs.version }}
+          body_path: changelog.md
+          draft: false
+          prerelease: ${{ contains(github.ref, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

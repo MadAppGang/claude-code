@@ -86,6 +86,43 @@ claudeup modifies these Claude Code configuration files:
 - `.claude/settings.json` - Shared settings (plugins, marketplaces)
 - `.claude/settings.local.json` - Local settings (MCP servers, allowMcp)
 
+## Release Process
+
+Releases are automated via GitHub Actions using [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) with OIDC - no tokens required.
+
+### One-Time Setup
+
+1. **Publish first version manually** (required for new packages):
+   ```bash
+   npm run build
+   npm publish --access public
+   ```
+
+2. **Configure Trusted Publisher on npmjs.com** (already done):
+   - Repository: `MadAppGang/claude-code`
+   - Workflow: `claudeup-release.yml`
+
+### Releasing New Versions
+
+```bash
+# 1. Update version in package.json
+npm version patch  # or minor, major
+
+# 2. Push the tag
+git push origin main --tags
+```
+
+This triggers:
+1. **claudeup-release.yml** - Builds and publishes to npm via OIDC (no tokens needed)
+2. **create-release.yml** - Creates a GitHub release with changelog
+
+### Manual Release
+
+```bash
+npm run build
+npm publish --access public
+```
+
 ## License
 
 MIT

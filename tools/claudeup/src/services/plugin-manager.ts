@@ -10,7 +10,7 @@ import {
   getLocalInstalledPluginVersions,
 } from './claude-settings.js';
 import { defaultMarketplaces } from '../data/marketplaces.js';
-import { scanLocalMarketplaces, refreshLocalMarketplaces, type LocalMarketplace, type RefreshResult, type ProgressCallback } from './local-marketplace.js';
+import { scanLocalMarketplaces, refreshLocalMarketplaces, repairAllMarketplaces, type LocalMarketplace, type RefreshResult, type ProgressCallback, type RepairMarketplaceResult } from './local-marketplace.js';
 import { formatMarketplaceName, isValidGitHubRepo, parsePluginId } from '../utils/string-utils.js';
 
 // Cache for local marketplaces (session-level) - Promise-based to prevent race conditions
@@ -508,23 +508,35 @@ export async function getLocalMarketplacesInfo(): Promise<Map<string, LocalMarke
   return getLocalMarketplaces();
 }
 
+export interface RefreshAndRepairResult {
+  refresh: RefreshResult[];
+  repair: RepairMarketplaceResult[];
+}
+
 /**
  * Refresh all marketplace data:
  * 1. Git pull on all local marketplaces
- * 2. Clear all caches (forces re-fetch from GitHub and re-scan of local)
- * Returns results from git pull operations
+ * 2. Auto-repair plugin.json files (add missing agents/commands/skills arrays)
+ * 3. Clear all caches (forces re-fetch from GitHub and re-scan of local)
+ * Returns results from git pull and repair operations
  * @param onProgress - Optional callback for progress updates
  */
 export async function refreshAllMarketplaces(
   onProgress?: ProgressCallback
-): Promise<RefreshResult[]> {
+): Promise<RefreshAndRepairResult> {
   // First, git pull all local marketplaces
-  const results = await refreshLocalMarketplaces(onProgress);
+  const refreshResults = await refreshLocalMarketplaces(onProgress);
+
+  // Auto-repair plugin.json files with missing agents/commands/skills
+  const repairResults = await repairAllMarketplaces();
 
   // Then clear all caches to force fresh data
   clearMarketplaceCache();
 
-  return results;
+  return {
+    refresh: refreshResults,
+    repair: repairResults,
+  };
 }
 
 // Re-export types for consumers

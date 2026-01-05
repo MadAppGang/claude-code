@@ -284,12 +284,29 @@ export function PluginsScreen(): React.ReactElement {
   const handleRefresh = async () => {
     progress.show('Refreshing marketplaces...');
     try {
-      await refreshAllMarketplaces((p) => {
+      const result = await refreshAllMarketplaces((p) => {
         progress.show(`Refreshing ${p.name}...`, p.current, p.total);
       });
       clearMarketplaceCache();
       progress.hide();
-      await modal.message('Refreshed', 'Marketplaces refreshed successfully.', 'success');
+
+      // Build success message with repair info
+      let message = 'Marketplaces refreshed successfully.';
+      if (result.repair.length > 0) {
+        const totalRepaired = result.repair.reduce((sum, r) => sum + r.repaired.length, 0);
+        message += `\n\nAuto-repaired ${totalRepaired} plugin(s) with missing agents/commands.`;
+        for (const mp of result.repair) {
+          for (const plugin of mp.repaired) {
+            const parts = [];
+            if (plugin.added.agents.length > 0) parts.push(`${plugin.added.agents.length} agents`);
+            if (plugin.added.commands.length > 0) parts.push(`${plugin.added.commands.length} commands`);
+            if (plugin.added.skills.length > 0) parts.push(`${plugin.added.skills.length} skills`);
+            message += `\n  • ${plugin.pluginName}: added ${parts.join(', ')}`;
+          }
+        }
+      }
+
+      await modal.message('Refreshed', message, 'success');
       fetchData();
     } catch (error) {
       progress.hide();

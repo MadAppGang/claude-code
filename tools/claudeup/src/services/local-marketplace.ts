@@ -429,3 +429,165 @@ export async function deleteMarketplace(name: string): Promise<void> {
     await fs.remove(marketplacePath);
   }
 }
+
+export interface RepairResult {
+  repaired: boolean;
+  pluginName: string;
+  added: {
+    agents: string[];
+    commands: string[];
+    skills: string[];
+  };
+}
+
+/**
+ * Repair a plugin's plugin.json by adding missing agents/commands/skills arrays
+ * based on what files exist on disk.
+ *
+ * This fixes plugins where the author forgot to add the arrays to plugin.json,
+ * causing Claude Code to not load the agents/commands even though files exist.
+ */
+export async function repairPluginJson(pluginPath: string): Promise<RepairResult> {
+  const pluginJsonPath = path.join(pluginPath, '.claude-plugin', 'plugin.json');
+  const pluginName = path.basename(pluginPath);
+
+  const result: RepairResult = {
+    repaired: false,
+    pluginName,
+    added: { agents: [], commands: [], skills: [] },
+  };
+
+  if (!(await fs.pathExists(pluginJsonPath))) {
+    return result;
+  }
+
+  try {
+    const pluginJson = await fs.readJson(pluginJsonPath);
+    let modified = false;
+
+    // Scan and add agents if array is missing
+    const agentsDir = path.join(pluginPath, 'agents');
+    if (await fs.pathExists(agentsDir)) {
+      const files = (await fs.readdir(agentsDir))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => `./agents/${f}`);
+
+      if (files.length > 0 && !pluginJson.agents) {
+        pluginJson.agents = files;
+        result.added.agents = files;
+        modified = true;
+      }
+    }
+
+    // Scan and add commands if array is missing
+    const commandsDir = path.join(pluginPath, 'commands');
+    if (await fs.pathExists(commandsDir)) {
+      const files = (await fs.readdir(commandsDir))
+        .filter((f) => f.endsWith('.md'))
+        .map((f) => `./commands/${f}`);
+
+      if (files.length > 0 && !pluginJson.commands) {
+        pluginJson.commands = files;
+        result.added.commands = files;
+        modified = true;
+      }
+    }
+
+    // Scan and add skills if array is missing
+    const skillsDir = path.join(pluginPath, 'skills');
+    if (await fs.pathExists(skillsDir)) {
+      const entries = await fs.readdir(skillsDir, { withFileTypes: true });
+      const skills = entries
+        .filter((e) => e.isDirectory() || e.name.endsWith('.md'))
+        .map((e) => `./skills/${e.name}`);
+
+      if (skills.length > 0 && !pluginJson.skills) {
+        pluginJson.skills = skills;
+        result.added.skills = skills;
+        modified = true;
+      }
+    }
+
+    if (modified) {
+      await fs.writeJson(pluginJsonPath, pluginJson, { spaces: 2 });
+      result.repaired = true;
+    }
+  } catch {
+    // Ignore repair errors for individual plugins
+  }
+
+  return result;
+}
+
+export interface RepairMarketplaceResult {
+  marketplace: string;
+  repaired: RepairResult[];
+}
+
+/**
+ * Repair all plugins in a marketplace
+ */
+export async function repairMarketplacePlugins(
+  marketplaceName: string
+): Promise<RepairMarketplaceResult> {
+  const result: RepairMarketplaceResult = {
+    marketplace: marketplaceName,
+    repaired: [],
+  };
+
+  const marketplacePath = path.join(CLAUDE_PLUGINS_DIR, marketplaceName);
+  const manifestPath = path.join(marketplacePath, '.claude-plugin', 'marketplace.json');
+
+  if (!(await fs.pathExists(manifestPath))) {
+    return result;
+  }
+
+  try {
+    const manifest = await fs.readJson(manifestPath);
+
+    if (manifest.plugins && Array.isArray(manifest.plugins)) {
+      for (const plugin of manifest.plugins) {
+        if (plugin.source) {
+          const pluginPath = path.join(marketplacePath, plugin.source.replace('./', ''));
+          const repairResult = await repairPluginJson(pluginPath);
+
+          if (repairResult.repaired) {
+            result.repaired.push(repairResult);
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore errors
+  }
+
+  return result;
+}
+
+/**
+ * Repair all plugins in all marketplaces
+ */
+export async function repairAllMarketplaces(): Promise<RepairMarketplaceResult[]> {
+  const results: RepairMarketplaceResult[] = [];
+
+  if (!(await fs.pathExists(CLAUDE_PLUGINS_DIR))) {
+    return results;
+  }
+
+  try {
+    const entries = await fs.readdir(CLAUDE_PLUGINS_DIR, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+
+      const repairResult = await repairMarketplacePlugins(entry.name);
+      if (repairResult.repaired.length > 0) {
+        results.push(repairResult);
+      }
+    }
+  } catch {
+    // Return empty on error
+  }
+
+  return results;
+}
