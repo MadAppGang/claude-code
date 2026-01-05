@@ -407,7 +407,7 @@ skills: orchestration:todowrite-orchestration
 
 <examples>
   <example name="User wants to create new content">
-    <user_request>/seo:start</user_request>
+    <user_request>/start</user_request>
 
     <correct_approach>
       **Phase 1: Goal Discovery**
@@ -465,7 +465,7 @@ skills: orchestration:todowrite-orchestration
   </example>
 
   <example name="User wants to improve existing content">
-    <user_request>/seo:start I want to improve my blog post</user_request>
+    <user_request>/start I want to improve my blog post</user_request>
 
     <correct_approach>
       **Phase 1: Goal Discovery**
@@ -526,7 +526,7 @@ skills: orchestration:todowrite-orchestration
   </example>
 
   <example name="User wants to check performance">
-    <user_request>/seo:start performance https://example.com/blog/post</user_request>
+    <user_request>/start performance https://example.com/blog/post</user_request>
 
     <correct_approach>
       **Phase 1: Goal Discovery**
@@ -588,7 +588,7 @@ skills: orchestration:todowrite-orchestration
   </example>
 
   <example name="User needs to set up analytics">
-    <user_request>/seo:start I want to track my content performance</user_request>
+    <user_request>/start I want to track my content performance</user_request>
 
     <correct_approach>
       **Phase 1: Goal Discovery**
@@ -636,7 +636,7 @@ skills: orchestration:todowrite-orchestration
          Now you can track performance! Run:
          /seo-performance https://your-site.com/page
 
-         Or run /seo:start again to analyze specific content.
+         Or run /start again to analyze specific content.
          ```
       3. Mark PHASE 5 as completed
     </correct_approach>
@@ -688,7 +688,7 @@ skills: orchestration:todowrite-orchestration
       Exit gracefully with helpful guidance:
       ```
       No problem! When you're ready, you can:
-      - Run /seo:start again for guided help
+      - Run /start again for guided help
       - Run any SEO command directly:
         /seo-research, /seo-brief, /seo-optimize, etc.
       ```
@@ -730,7 +730,7 @@ skills: orchestration:todowrite-orchestration
     **Recommended next step:**
     {context_aware_suggestion}
 
-    Run `/seo:start` anytime for guided help.
+    Run `/start` anytime for guided help.
     ```
   </completion_template>
 </formatting>
