@@ -18,6 +18,35 @@ PROXY_MODE is a directive that tells an agent to delegate its task to an externa
 4. **Agent** runs `claudish --model {model}` with the task
 5. **Agent** returns external model's response
 
+## Multi-Backend Routing
+
+Claudish routes to different backends based on model ID prefix:
+
+| Prefix | Backend | Required Key | Example |
+|--------|---------|--------------|---------|
+| (none) | OpenRouter | `OPENROUTER_API_KEY` | `x-ai/grok-code-fast-1` |
+| `or/` | OpenRouter (explicit) | `OPENROUTER_API_KEY` | `or/google/gemini-3-pro` |
+| `g/` `google/` | Gemini Direct | `GEMINI_API_KEY` | `g/gemini-2.0-flash` |
+| `oai/` `openai/` | OpenAI Direct | `OPENAI_API_KEY` | `oai/gpt-4o` |
+| `ollama/` | Ollama | None | `ollama/llama3.2` |
+
+### ⚠️ Prefix Collision Warning
+
+OpenRouter model IDs like `google/gemini-3-pro` collide with the `google/` routing prefix!
+
+**Always use `or/` prefix for:**
+- `or/google/gemini-*` (OpenRouter's Google models)
+- `or/openai/gpt-*` (OpenRouter's OpenAI models)
+
+**Safe without prefix:**
+- `x-ai/grok-*`
+- `anthropic/claude-*`
+- `deepseek/*`
+- `minimax/*`
+- `qwen/*`
+- `mistralai/*`
+- `moonshotai/*`
+
 ## The PROXY_MODE Directive
 
 Format:

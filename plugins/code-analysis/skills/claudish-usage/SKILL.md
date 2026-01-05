@@ -159,6 +159,7 @@ Decision:
 
 Claudish (Claude-ish) is a proxy tool that:
 - ✅ Runs Claude Code with **any OpenRouter model** (not just Anthropic models)
+- ✅ Supports **multiple backends** (OpenRouter, Gemini Direct, OpenAI Direct, Ollama, etc.)
 - ✅ Uses local API-compatible proxy server
 - ✅ Supports 100% of Claude Code features
 - ✅ Provides cost tracking and model selection
@@ -170,6 +171,66 @@ Claudish (Claude-ish) is a proxy tool that:
 - Reduce costs with cheaper models for simple tasks
 - Access models with specialized capabilities
 
+## Claudish Multi-Backend Routing
+
+**CRITICAL:** Claudish supports MULTIPLE backends, not just OpenRouter. The model ID prefix determines which backend processes your request.
+
+### Backend Routing Table
+
+| Prefix | Backend | Required API Key | Example Model ID |
+|--------|---------|------------------|------------------|
+| (none) | OpenRouter | `OPENROUTER_API_KEY` | `anthropic/claude-3.5-sonnet` |
+| `or/` | OpenRouter (explicit) | `OPENROUTER_API_KEY` | `or/google/gemini-3-pro-preview` |
+| `g/` `gemini/` `google/` | Google Gemini Direct | `GEMINI_API_KEY` | `g/gemini-2.0-flash` |
+| `oai/` `openai/` | OpenAI Direct | `OPENAI_API_KEY` | `oai/gpt-4o` |
+| `ollama/` `ollama:` | Ollama (local) | None | `ollama/llama3.2` |
+| `lmstudio/` | LM Studio (local) | None | `lmstudio/qwen2.5-coder` |
+| `vllm/` | vLLM (local) | None | `vllm/mistral-7b` |
+| `mlx/` | MLX (local) | None | `mlx/llama-3.2-3b` |
+| `http://...` | Custom endpoint | None | `http://192.168.1.50:8000/model` |
+
+### ⚠️ Prefix Collision Warning
+
+**CRITICAL:** Some OpenRouter model IDs START with prefixes that claudish interprets as direct API routing!
+
+| Model ID | Claudish Routes To | Problem | Fix |
+|----------|-------------------|---------|-----|
+| `google/gemini-3-pro-preview` | Google Gemini Direct | Needs `GEMINI_API_KEY`, different API | Use `or/google/gemini-3-pro-preview` |
+| `google/gemini-2.5-flash` | Google Gemini Direct | Needs `GEMINI_API_KEY`, different API | Use `or/google/gemini-2.5-flash` |
+| `openai/gpt-5.1-codex` | OpenAI Direct | Needs `OPENAI_API_KEY`, different API | Use `or/openai/gpt-5.1-codex` |
+| `openai/gpt-5` | OpenAI Direct | Needs `OPENAI_API_KEY`, different API | Use `or/openai/gpt-5` |
+
+### Safe Model IDs (No Collision)
+
+These OpenRouter model IDs are SAFE to use without the `or/` prefix:
+
+- `x-ai/grok-code-fast-1` - No `x-ai/` prefix in claudish
+- `anthropic/claude-3.5-sonnet` - No `anthropic/` prefix in claudish
+- `deepseek/deepseek-chat` - No `deepseek/` prefix in claudish
+- `minimax/minimax-m2` - No `minimax/` prefix in claudish
+- `qwen/qwen3-coder:free` - No `qwen/` prefix in claudish
+- `mistralai/devstral-2512:free` - No `mistralai/` prefix in claudish
+- `moonshotai/kimi-k2-thinking` - No `moonshotai/` prefix in claudish
+
+### When to Use `or/` Prefix
+
+**ALWAYS use `or/` prefix when:**
+1. The OpenRouter model ID starts with `google/`, `openai/`, `g/`, `oai/`
+2. You want to GUARANTEE OpenRouter routing regardless of model ID
+3. You're unsure if the model ID might collide
+
+**Examples:**
+```bash
+# WRONG - Routes to Google Gemini Direct (needs GEMINI_API_KEY)
+claudish --model google/gemini-3-pro-preview
+
+# CORRECT - Routes to OpenRouter (needs OPENROUTER_API_KEY)
+claudish --model or/google/gemini-3-pro-preview
+
+# SAFE - No collision (x-ai/ is not a routing prefix)
+claudish --model x-ai/grok-code-fast-1
+```
+
 ## Requirements
 
 ### System Requirements
@@ -180,8 +241,16 @@ Claudish (Claude-ish) is a proxy tool that:
 ### Environment Variables
 
 ```bash
-# Required
-export OPENROUTER_API_KEY='sk-or-v1-...'  # Your OpenRouter API key
+# OpenRouter (required for most models)
+export OPENROUTER_API_KEY='sk-or-v1-...'
+
+# Google Gemini Direct (optional - for g/gemini/google/ prefixed models)
+export GEMINI_API_KEY='AIza...'
+
+# OpenAI Direct (optional - for oai/openai/ prefixed models)
+export OPENAI_API_KEY='sk-...'
+
+# Note: Ollama, LM Studio, vLLM, MLX backends don't need API keys
 
 # Optional (but recommended)
 export ANTHROPIC_API_KEY='sk-ant-api03-placeholder'  # Prevents Claude Code dialog

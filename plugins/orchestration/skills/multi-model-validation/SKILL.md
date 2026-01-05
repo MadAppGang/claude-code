@@ -170,6 +170,40 @@ claudish --free
    → Recommended: 1 internal + 2-3 external
 ```
 
+### ⚠️ Prefix Collision Awareness
+
+**CRITICAL:** When using claudish, be aware of model ID prefix collisions.
+
+Claudish routes to different backends based on model ID prefix:
+
+| Prefix | Backend | Required Key |
+|--------|---------|--------------|
+| (none) | OpenRouter | `OPENROUTER_API_KEY` |
+| `or/` | OpenRouter (explicit) | `OPENROUTER_API_KEY` |
+| `google/` `g/` | Gemini Direct | `GEMINI_API_KEY` |
+| `openai/` `oai/` | OpenAI Direct | `OPENAI_API_KEY` |
+| `ollama/` | Ollama | None |
+
+**OpenRouter Model ID Collisions:**
+
+| OpenRouter Model | Collides With | Safe Alternative |
+|-----------------|---------------|------------------|
+| `google/gemini-3-pro-preview` | Gemini Direct API | `or/google/gemini-3-pro-preview` |
+| `google/gemini-2.5-flash` | Gemini Direct API | `or/google/gemini-2.5-flash` |
+| `openai/gpt-5.1-codex` | OpenAI Direct API | `or/openai/gpt-5.1-codex` |
+| `openai/gpt-5` | OpenAI Direct API | `or/openai/gpt-5` |
+
+**Safe Model IDs (no `or/` prefix needed):**
+- `x-ai/grok-code-fast-1`
+- `anthropic/claude-3.5-sonnet`
+- `deepseek/deepseek-chat`
+- `minimax/minimax-m2`
+- `qwen/qwen3-coder:free`
+- `mistralai/devstral-2512:free`
+- `moonshotai/kimi-k2-thinking`
+
+**Rule:** If the OpenRouter model ID starts with `google/`, `openai/`, `g/`, or `oai/`, ALWAYS use the `or/` prefix to force OpenRouter routing.
+
 **Interactive Model Selection (AskUserQuestion with multiSelect):**
 
 **CRITICAL:** Use AskUserQuestion tool with `multiSelect: true` to let users choose models interactively. This provides a better UX than just showing recommendations.
@@ -349,7 +383,7 @@ Message 2: Parallel Execution (ONLY Task calls - single message)
              Write detailed review to $SESSION_DIR/qwen-coder-review.md
              Return only brief summary."
   ---
-  Task: codex-code-reviewer PROXY_MODE: openai/gpt-5.1-codex
+  Task: codex-code-reviewer PROXY_MODE: or/openai/gpt-5.1-codex
     Prompt: "Review $SESSION_DIR/code-context.md for security issues.
              Write detailed review to $SESSION_DIR/gpt5-review.md
              Return only brief summary."
@@ -386,7 +420,7 @@ Message 4: Present Results + Update Statistics
   track_model_performance "claude-embedded" "success" 32 8 95
   track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 87
   track_model_performance "qwen/qwen3-coder:free" "success" 52 5 82
-  track_model_performance "openai/gpt-5.1-codex" "success" 68 7 89
+  track_model_performance "or/openai/gpt-5.1-codex" "success" 68 7 89
   track_model_performance "mistralai/devstral-2512:free" "success" 48 5 84
 
   # Record session summary
@@ -408,7 +442,7 @@ Message 4: Present Results + Update Statistics
    | claude-embedded                | 32s  | 8      | 95%     | FREE   |
    | x-ai/grok-code-fast-1          | 45s  | 6      | 87%     | $0.002 |
    | qwen/qwen3-coder:free          | 52s  | 5      | 82%     | FREE   |
-   | openai/gpt-5.1-codex           | 68s  | 7      | 89%     | $0.015 |
+   | or/openai/gpt-5.1-codex        | 68s  | 7      | 89%     | $0.015 |
    | mistralai/devstral-2512:free   | 48s  | 5      | 84%     | FREE   |
 
    Parallel Speedup: 3.6x (245s sequential → 68s parallel)
@@ -1176,7 +1210,7 @@ Speedup: 235 / 120 = 1.96x
 | claude-embedded           | 32s    | 8      | 95%     | ✓         |
 | x-ai/grok-code-fast-1     | 45s    | 6      | 85%     | ✓         |
 | google/gemini-2.5-flash   | 38s    | 5      | 90%     | ✓         |
-| openai/gpt-5.1-codex      | 120s   | 9      | 88%     | ✓ (slow)  |
+| or/openai/gpt-5.1-codex   | 120s   | 9      | 88%     | ✓ (slow)  |
 | deepseek/deepseek-chat    | TIMEOUT| 0      | -       | ✗         |
 
 **Session Summary:**
@@ -1300,7 +1334,7 @@ track_model_performance() {
 # Usage examples:
 # Paid models
 track_model_performance "x-ai/grok-code-fast-1" "success" 45 6 87 0.002 false
-track_model_performance "openai/gpt-5.1-codex" "success" 68 7 89 0.015 false
+track_model_performance "or/openai/gpt-5.1-codex" "success" 68 7 89 0.015 false
 
 # Free models (cost=0, is_free=true)
 track_model_performance "qwen/qwen3-coder:free" "success" 52 5 82 0 true
@@ -1512,7 +1546,7 @@ If there are models to avoid, show a brief warning before the selection:
 
 ```
 ⚠️ Models excluded from selection (poor historical performance):
-- openai/gpt-5.1-codex: Slow (2.1x avg)
+- or/openai/gpt-5.1-codex: Slow (2.1x avg)
 - some-model: 60% success rate
 ```
 
