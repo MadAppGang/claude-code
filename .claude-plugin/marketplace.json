@@ -236,8 +236,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with AI-powered specification interviews. v1.8.0: Enhanced /interview with LLMREI research techniques (Korn et al. 2025) - question type tracking, adaptability scoring, interview modes (--focused/--exploratory), Bano et al. mistake avoidance. Features 5 Whys technique, 6-phase workflow, proactive asset collection, session resume. 27+ skills covering frontend (React, TanStack, shadcn/ui, Tailwind v4, CSS Modules), backend (Go, Bun, Python, Rust), and design review.",
-			"version": "1.8.1",
+			"description": "Universal development assistant with DevOps infrastructure guidance. v1.9.0: NEW DevOps agent with extended thinking (ultrathink) for complex infrastructure decisions, web search for current best practices, multi-cloud support (AWS, GCP, Azure, Firebase, Kubernetes), copy-paste ready CLI commands, IaC alternatives (Terraform, Pulumi, CDK), and cost estimation. Enhanced /interview with LLMREI research techniques. 27+ skills covering frontend, backend, infrastructure, and design review.",
+			"version": "1.9.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -247,25 +247,22 @@
 			"keywords": [
 				"development",
 				"universal",
-				"language-agnostic",
-				"auto-detection",
-				"multi-stack",
+				"devops",
+				"infrastructure",
+				"kubernetes",
+				"aws",
+				"gcp",
+				"azure",
+				"firebase",
+				"terraform",
 				"interview",
-				"LLMREI",
-				"requirements",
-				"elicitation",
 				"react",
 				"typescript",
-				"tailwindcss",
-				"css-modules",
 				"golang",
 				"bun",
 				"python",
 				"rust",
-				"ui-design",
-				"design-review",
-				"gemini",
-				"multimodal"
+				"ui-design"
 			],
 			"strict": true
 		}
