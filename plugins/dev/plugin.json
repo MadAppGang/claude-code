@@ -1,0 +1,72 @@
+{
+  "name": "dev",
+  "version": "1.2.0",
+  "description": "Universal development assistant with context-aware skill auto-loading. Adapts to any technology stack (React, Go, Bun, Python, Rust) by detecting project type and loading appropriate framework-specific skills. Features 7 orchestrator commands, UI design review with Gemini multimodal analysis, 5 predefined design systems (Material Design 3, Apple HIG, Tailwind UI, Ant Design, Shadcn/ui), /create-style wizard for project design styles, and multi-model validation support.",
+  "author": {
+    "name": "Jack Rudenko",
+    "email": "i@madappgang.com",
+    "company": "MadAppGang"
+  },
+  "license": "MIT",
+  "keywords": [
+    "development",
+    "universal",
+    "language-agnostic",
+    "auto-detection",
+    "multi-stack",
+    "react",
+    "typescript",
+    "golang",
+    "bun",
+    "python",
+    "rust",
+    "orchestration",
+    "ui-design",
+    "design-review",
+    "gemini",
+    "multimodal"
+  ],
+  "category": "development",
+  "agents": [
+    "./agents/stack-detector.md",
+    "./agents/developer.md",
+    "./agents/debugger.md",
+    "./agents/architect.md",
+    "./agents/ui-designer.md"
+  ],
+  "commands": [
+    "./commands/help.md",
+    "./commands/implement.md",
+    "./commands/debug.md",
+    "./commands/feature.md",
+    "./commands/architect.md",
+    "./commands/ui-design.md",
+    "./commands/create-style.md"
+  ],
+  "skills": [
+    "./skills/context-detection",
+    "./skills/core/universal-patterns",
+    "./skills/core/testing-strategies",
+    "./skills/core/debugging-strategies",
+    "./skills/frontend/react-typescript",
+    "./skills/frontend/vue-typescript",
+    "./skills/frontend/state-management",
+    "./skills/frontend/testing-frontend",
+    "./skills/backend/api-design",
+    "./skills/backend/database-patterns",
+    "./skills/backend/auth-patterns",
+    "./skills/backend/error-handling",
+    "./skills/backend/golang",
+    "./skills/backend/bunjs",
+    "./skills/backend/python",
+    "./skills/backend/rust",
+    "./skills/design/ui-design-review",
+    "./skills/design/design-references"
+  ],
+  "dependencies": {
+    "orchestration@mag-claude-plugins": "^0.8.0"
+  },
+  "compatibility": {
+    "claudeCode": ">=0.1.0"
+  }
+}
