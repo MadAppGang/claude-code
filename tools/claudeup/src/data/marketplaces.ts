@@ -73,5 +73,14 @@ export function getAllMarketplaces(
     }
   }
 
-  return Array.from(all.values());
+  // Sort: MadAppGang first, then alphabetically
+  return Array.from(all.values()).sort((a, b) => {
+    // MadAppGang always first
+    const aIsMag = a.source.repo?.toLowerCase().includes('madappgang/');
+    const bIsMag = b.source.repo?.toLowerCase().includes('madappgang/');
+    if (aIsMag && !bIsMag) return -1;
+    if (!aIsMag && bIsMag) return 1;
+    // Then alphabetically by display name
+    return (a.displayName || a.name).localeCompare(b.displayName || b.name);
+  });
 }
