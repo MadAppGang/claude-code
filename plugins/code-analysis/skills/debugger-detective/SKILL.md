@@ -413,6 +413,33 @@ AskUserQuestion({
 | Read random files | No direction | Trace callers/callees systematically |
 | Fix symptom only | Bug returns | Trace to root cause with `callers` |
 | Skip impact check | Miss related bugs | ALWAYS check all `callers` |
+| `cmd \| head/tail` | Hides call chain context | Use full output or `--max-depth` |
+
+### Output Truncation Warning
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║  ❌ Anti-Pattern 7: Truncating Claudemem Output                              ║
+║                                                                              ║
+║     FORBIDDEN (any form of output truncation):                               ║
+║     → BAD: claudemem --agent map "query" | head -80                         ║
+║     → BAD: claudemem --agent callers X | tail -50                           ║
+║     → BAD: claudemem --agent search "x" | grep -m 10 "y"                    ║
+║     → BAD: claudemem --agent map "q" | awk 'NR <= 50'                       ║
+║     → BAD: claudemem --agent callers X | sed '50q'                          ║
+║     → BAD: claudemem --agent search "x" | sort | head -20                   ║
+║     → BAD: claudemem --agent map "q" | grep "pattern" | head -20            ║
+║                                                                              ║
+║     CORRECT (use full output or built-in limits):                            ║
+║     → GOOD: claudemem --agent map "query"                                   ║
+║     → GOOD: claudemem --agent search "x" -n 10                              ║
+║     → GOOD: claudemem --agent map "q" --tokens 2000                         ║
+║     → GOOD: claudemem --agent search "x" --page-size 20 --page 1            ║
+║     → GOOD: claudemem --agent context Func --max-depth 3                    ║
+║                                                                              ║
+║     WHY: Output is pre-optimized; truncation hides critical results         ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
 ---
 

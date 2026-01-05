@@ -38,8 +38,8 @@
 		{
 			"name": "code-analysis",
 			"source": "./plugins/code-analysis",
-			"description": "Deep code investigation with claudemem v0.9.0. NEW: claudish-usage skill with multi-backend routing docs (OpenRouter, Gemini Direct, OpenAI Direct, Ollama), prefix collision warnings, safe model IDs list. AST analysis with PageRank, callers/callees tracing.",
-			"version": "2.11.0",
+			"description": "Deep code investigation with claudemem v0.9.0. NEW: Anti-pattern warnings prevent output truncation (head/tail/awk/sed). Built-in alternatives (--tokens, --page-size, --max-depth). AST analysis with PageRank, callers/callees tracing.",
+			"version": "2.12.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

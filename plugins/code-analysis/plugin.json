@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "2.11.0",
-	"description": "Deep code investigation with claudemem v0.9.0. NEW: Unified --agent flag (replaces --nologo --raw --plain). AST structural analysis with PageRank, callers/callees dependency tracing. TypeScript hook handler. Auto-reindex on file changes.",
+	"version": "2.12.0",
+	"description": "Deep code investigation with claudemem v0.9.0. NEW: Anti-pattern warnings prevent output truncation (head/tail/awk/sed). Built-in alternatives (--tokens, --page-size, --max-depth). AST structural analysis with PageRank, callers/callees dependency tracing.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

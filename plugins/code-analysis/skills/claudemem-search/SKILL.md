@@ -1017,6 +1017,73 @@ PageRank measures how "central" a symbol is in the codebase:
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
+### Additional Anti-Pattern: Output Truncation
+
+## CRITICAL: NEVER TRUNCATE CLAUDEMEM OUTPUT
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   ⛔ OUTPUT TRUNCATION IS FORBIDDEN                                          ║
+║                                                                              ║
+║   claudemem output is ALREADY OPTIMIZED for LLM context windows.             ║
+║   Truncating it may hide the most critical results.                          ║
+║                                                                              ║
+║   ❌ NEVER DO THIS (any form of output truncation):                          ║
+║      claudemem --agent map "query" | head -80                                ║
+║      claudemem --agent callers UserService | head -100                       ║
+║      claudemem --agent callees Func | tail -50                               ║
+║      claudemem --agent impact Svc | head -N                                  ║
+║      claudemem --agent search "auth" | grep -m 10 "pattern"                  ║
+║      claudemem --agent map "q" | awk 'NR <= 50'                              ║
+║      claudemem --agent callers X | sed '50q'                                 ║
+║      claudemem --agent search "x" | sort | head -20                          ║
+║      claudemem --agent map "q" | grep "pattern" | head -20                   ║
+║                                                                              ║
+║   WHY `tail` IS EQUALLY PROBLEMATIC:                                         ║
+║      `tail` skips the BEGINNING of output, which often contains:             ║
+║      • Summary headers showing total counts                                  ║
+║      • Highest-ranked results (PageRank, relevance score)                    ║
+║      • Context that explains what follows                                    ║
+║                                                                              ║
+║   ✅ ALWAYS DO THIS:                                                         ║
+║      claudemem --agent map "query"                                           ║
+║      claudemem --agent callers UserService                                   ║
+║      claudemem --agent callees Func                                          ║
+║      claudemem --agent impact Svc                                            ║
+║      claudemem --agent search "auth" -n 10        # Use built-in limit       ║
+║                                                                              ║
+║   WHY THIS MATTERS:                                                          ║
+║   • search results are sorted by relevance - truncating loses best matches   ║
+║   • map results are sorted by PageRank - truncating loses core architecture  ║
+║   • callers/callees show ALL dependencies - truncating causes missed changes ║
+║   • impact shows full blast radius - truncating underestimates risk          ║
+║                                                                              ║
+║   ═══════════════════════════════════════════════════════════════════════    ║
+║   IF OUTPUT IS TOO LARGE, USE BUILT-IN FLAGS:                                ║
+║   ═══════════════════════════════════════════════════════════════════════    ║
+║                                                                              ║
+║   --tokens N     Token-limited output (respects LLM context)                 ║
+║                  Example: claudemem --agent map "query" --tokens 2000        ║
+║                                                                              ║
+║   --page-size N  Pagination with N results per page                          ║
+║   --page N       Fetch specific page number                                  ║
+║                  Example: claudemem --agent search "x" --page-size 20 --page 1║
+║                                                                              ║
+║   -n N           Limit result count at query level (not post-hoc)            ║
+║                  Example: claudemem --agent search "auth" -n 10              ║
+║                                                                              ║
+║   --max-depth N  Limit traversal depth (for context, callers, impact)        ║
+║                  Example: claudemem --agent context Func --max-depth 3       ║
+║                                                                              ║
+║   ACCEPTABLE: Piping to file for later analysis                              ║
+║      claudemem --agent map "query" > /tmp/full-map.txt                       ║
+║      (Full output preserved, can be processed separately)                    ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+NOTE: The freshness check pattern `head -5` for sampling stale files remains valid.
+      This prohibition applies only to truncating claudemem COMMAND OUTPUT.
+
 ### Anti-Pattern vs Correct Pattern Summary
 
 | Anti-Pattern | Why It's Wrong | Correct Pattern |
@@ -1026,6 +1093,7 @@ PageRank measures how "central" a symbol is in the codebase:
 | Modify without callers | Breaking changes | `callers` before any modification |
 | Search immediately | No structural context | `map` → `symbol` → `callers` → search |
 | Treat all symbols equal | Miss core abstractions | Focus on high-PageRank first |
+| `cmd \| head/tail/awk/sed` | Output is pre-optimized; truncation hides critical results | Use full output or `-n`, `--tokens` flags |
 
 ---
 
