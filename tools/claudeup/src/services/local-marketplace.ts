@@ -152,8 +152,11 @@ export async function scanLocalMarketplaces(): Promise<Map<string, LocalMarketpl
             let skills: string[] = [];
             let mcpServers: string[] = [];
 
-            if (plugin.source) {
-              const pluginPath = path.join(marketplacePath, plugin.source.replace('./', ''));
+            // Handle both string sources (local paths) and object sources (remote URLs)
+            const sourceStr = typeof plugin.source === 'string' ? plugin.source : null;
+
+            if (sourceStr) {
+              const pluginPath = path.join(marketplacePath, sourceStr.replace('./', ''));
 
               // Remove plugins whose source directory doesn't exist
               if (!(await fs.pathExists(pluginPath))) {
