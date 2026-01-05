@@ -1,8 +1,9 @@
-# React + TypeScript Patterns
+---
+name: react-typescript
+description: Modern React 19+ patterns with TypeScript including function components, hooks, state management, TanStack Query integration, form handling with Zod, error boundaries, and performance optimization. Use when building React applications, implementing components, or setting up state management.
+---
 
-**Skill**: react-typescript
-**Plugin**: dev
-**Version**: 1.0.0
+# React + TypeScript Patterns
 
 ## Overview
 
@@ -409,3 +410,292 @@ type SubmitHandler = React.FormEventHandler<HTMLFormElement>;
 ---
 
 *React + TypeScript patterns for modern frontend development*
+
+---
+
+## React 19 Features
+
+### Compiler-Friendly Code
+
+The React Compiler automatically optimizes components for performance. Write code that works well with it:
+
+**Best Practices:**
+- Keep components pure and props serializable
+- Derive values during render (don't stash in refs unnecessarily)
+- Keep event handlers inline unless they close over large mutable objects
+- Verify compiler is working (DevTools ✨ badge)
+- Opt-out problematic components with `"use no memo"` while refactoring
+
+**Example - Pure Component:**
+```typescript
+// ✅ Compiler-friendly - pure function
+function UserCard({ user }: { user: User }) {
+  const displayName = `${user.firstName} ${user.lastName}`
+  const isVIP = user.points > 1000
+
+  return (
+    <div>
+      <h2>{displayName}</h2>
+      {isVIP && <Badge>VIP</Badge>}
+    </div>
+  )
+}
+
+// ❌ Avoid - unnecessary effects
+function UserCard({ user }: { user: User }) {
+  const [displayName, setDisplayName] = useState('')
+
+  useEffect(() => {
+    setDisplayName(`${user.firstName} ${user.lastName}`)
+  }, [user])
+
+  return <div><h2>{displayName}</h2></div>
+}
+```
+
+**Verification:**
+- Open React DevTools
+- Look for "Memo ✨" badge on components
+- If missing, component wasn't optimized (check for violations)
+
+**Opt-Out When Needed:**
+```typescript
+'use no memo'
+
+// Component code that can't be optimized yet
+function ProblematicComponent() {
+  // ... code with compiler issues
+}
+```
+
+### Actions & Forms
+
+For SPA mutations, choose **one approach per feature**:
+- **React 19 Actions:** `<form action={fn}>`, `useActionState`, `useOptimistic`
+- **TanStack Query:** `useMutation`
+
+Don't duplicate logic between both approaches.
+
+#### React 19 Actions (Form-Centric)
+
+**Best for:**
+- Form submissions
+- Simple CRUD operations
+- When you want form validation built-in
+
+**Basic Action:**
+```typescript
+async function createTodoAction(formData: FormData) {
+  const text = formData.get('text') as string
+
+  // Validation
+  if (!text || text.length < 3) {
+    return { error: 'Text must be at least 3 characters' }
+  }
+
+  // API call
+  await api.post('/todos', { text })
+
+  return { success: true }
+}
+
+// Component
+function TodoForm() {
+  return (
+    <form action={createTodoAction}>
+      <input name="text" required />
+      <button type="submit">Add Todo</button>
+    </form>
+  )
+}
+```
+
+**With State (useActionState):**
+```typescript
+import { useActionState } from 'react'
+
+function TodoForm() {
+  const [state, formAction, isPending] = useActionState(
+    createTodoAction,
+    { error: null, success: false }
+  )
+
+  return (
+    <form action={formAction}>
+      {state.error && <ErrorMessage>{state.error}</ErrorMessage>}
+      <input name="text" required />
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Adding...' : 'Add Todo'}
+      </button>
+    </form>
+  )
+}
+```
+
+**With Optimistic Updates (useOptimistic):**
+```typescript
+import { useOptimistic } from 'react'
+
+function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
+  const [optimisticTodos, addOptimisticTodo] = useOptimistic(
+    initialTodos,
+    (state, newTodo: string) => [
+      ...state,
+      { id: `temp-${Date.now()}`, text: newTodo, completed: false }
+    ]
+  )
+
+  async function handleSubmit(formData: FormData) {
+    const text = formData.get('text') as string
+    addOptimisticTodo(text)
+
+    await createTodoAction(formData)
+  }
+
+  return (
+    <>
+      <ul>
+        {optimisticTodos.map(todo => (
+          <li key={todo.id} style={{ opacity: todo.id.startsWith('temp-') ? 0.5 : 1 }}>
+            {todo.text}
+          </li>
+        ))}
+      </ul>
+      <form action={handleSubmit}>
+        <input name="text" required />
+        <button type="submit">Add</button>
+      </form>
+    </>
+  )
+}
+```
+
+### The use() Hook
+
+The `use` hook unwraps Promises and Context, enabling new patterns.
+
+**With Promises:**
+```typescript
+import { use, Suspense } from 'react'
+
+function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
+  const user = use(userPromise)
+
+  return <div>{user.name}</div>
+}
+
+// Usage
+function App() {
+  const userPromise = fetchUser(1)
+
+  return (
+    <Suspense fallback={<Spinner />}>
+      <UserProfile userPromise={userPromise} />
+    </Suspense>
+  )
+}
+```
+
+**With Context:**
+```typescript
+import { use, createContext } from 'react'
+
+const ThemeContext = createContext<string>('light')
+
+function Button() {
+  const theme = use(ThemeContext)
+  return <button className={theme}>Click me</button>
+}
+```
+
+**When to Use:**
+- Primarily useful with Suspense/data primitives and RSC (React Server Components)
+- **For SPA-only apps**, prefer **TanStack Query + Router loaders** for data fetching
+- `use` shines when you already have a Promise from a parent component
+
+### Component Composition Patterns
+
+**Compound Components:**
+```typescript
+// ✅ Good - composable, flexible
+<Card>
+  <Card.Header>
+    <Card.Title>Dashboard</Card.Title>
+  </Card.Header>
+  <Card.Content>
+    {/* content */}
+  </Card.Content>
+</Card>
+
+// Implementation
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="card">{children}</div>
+}
+
+Card.Header = function CardHeader({ children }: { children: React.ReactNode }) {
+  return <header className="card-header">{children}</header>
+}
+
+Card.Title = function CardTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="card-title">{children}</h2>
+}
+
+Card.Content = function CardContent({ children }: { children: React.ReactNode }) {
+  return <div className="card-content">{children}</div>
+}
+```
+
+### Decision Guide: Actions vs Query Mutations
+
+| Scenario | Recommendation |
+|----------|---------------|
+| Form submission with validation | React Actions |
+| Button click mutation | TanStack Query |
+| Needs optimistic updates + rollback | TanStack Query |
+| Integrates with existing cache | TanStack Query |
+| SSR/RSC application | React Actions |
+| SPA with complex data flow | TanStack Query |
+| Simple CRUD with forms | React Actions |
+
+**Rule of Thumb:** For SPAs with TanStack Query already in use, prefer Query mutations for consistency. Only use Actions for form-heavy features where the form-centric API is beneficial.
+
+---
+
+## Performance Best Practices
+
+### Security
+
+**XSS Prevention:**
+```typescript
+// ❌ Dangerous
+<div dangerouslySetInnerHTML={{ __html: userInput }} />
+
+// ✅ Sanitize first
+import DOMPurify from 'dompurify'
+
+<div dangerouslySetInnerHTML={{ 
+  __html: DOMPurify.sanitize(userInput) 
+}} />
+
+// ✅ Best - avoid dangerouslySetInnerHTML
+<div>{userInput}</div>
+```
+
+**Environment Variables:**
+```typescript
+// ❌ Exposes secrets
+const API_KEY = process.env.VITE_SECRET_API_KEY
+
+// ✅ Separate public/private
+// Public (can be in client): VITE_PUBLIC_API_URL
+// Private (server only): SECRET_API_KEY
+```
+
+## Related Skills
+
+- **tanstack-query** - Server state management and data fetching
+- **tanstack-router** - Type-safe file-based routing
+- **shadcn-ui** - Component library patterns
+- **browser-debugging** - Browser testing and debugging
+- **state-management** - Zustand and other state management patterns
+- **testing-frontend** - Testing React components with Vitest and RTL

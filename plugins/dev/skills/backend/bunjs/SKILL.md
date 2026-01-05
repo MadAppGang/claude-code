@@ -2,201 +2,334 @@
 
 **Skill**: bunjs
 **Plugin**: dev
-**Version**: 1.0.0
+**Version**: 2.0.0
 
 ## Overview
 
-Bun runtime patterns for building fast TypeScript backend services.
+Bun runtime patterns for building fast TypeScript backend services. This skill covers core Bun features, HTTP servers with Hono, database access with Prisma, validation with Zod, error handling, testing, and configuration patterns.
+
+**When to use this skill:**
+- Implementing basic HTTP endpoints and route handlers
+- Setting up middleware patterns (CORS, logging, auth)
+- Working with SQLite or PostgreSQL databases
+- Implementing request validation with Zod
+- Writing tests with Bun's native test runner
+- Basic file operations and WebSocket handling
+
+**For advanced topics, see:**
+- **dev:bunjs-architecture** - Layered architecture, clean code patterns, camelCase conventions
+- **dev:bunjs-production** - Docker, AWS, Redis caching, security, CI/CD
+- **dev:bunjs-apidog** - OpenAPI specs and Apidog integration
+
+## Why Bun
+
+Bun fundamentally transforms TypeScript backend development by:
+- **Native TypeScript execution** - No build steps in development
+- **Lightning-fast performance** - 3-4x faster than Node.js for many operations
+- **Unified toolkit** - Built-in test runner, bundler, and transpiler
+- **Drop-in compatibility** - Most Node.js APIs and npm packages work
+- **Developer experience** - Hot reload with `--hot`, instant feedback
+
+## Stack Overview
+
+- **Bun 1.x** (runtime, package manager, test runner, bundler)
+- **TypeScript 5.7** (strict mode)
+- **Hono 4.6** (ultra-fast web framework, TypeScript-first)
+- **Prisma 6.2** (type-safe ORM)
+- **Biome 2.3** (formatting + linting, replaces ESLint + Prettier)
+- **Zod** (runtime validation)
+- **PostgreSQL 17 / SQLite** (database)
 
 ## Project Structure
 
 ```
-project/
+project-root/
 ├── src/
-│   ├── index.ts              # Entry point
-│   ├── routes/               # Route handlers
-│   │   ├── index.ts
-│   │   └── users.ts
-│   ├── services/             # Business logic
-│   ├── repositories/         # Data access
-│   ├── middleware/           # HTTP middleware
-│   ├── lib/                  # Utilities
-│   └── types/                # TypeScript types
-├── tests/                    # Test files
-├── package.json
-├── tsconfig.json
-└── bunfig.toml
+│   ├── server.ts              # Entry point (starts server)
+│   ├── app.ts                 # Hono app initialization & middleware
+│   ├── config.ts              # Environment configuration
+│   ├── core/                  # Core utilities (errors, logger, responses)
+│   ├── database/
+│   │   ├── client.ts          # Prisma client setup
+│   │   └── repositories/      # Data access layer (Prisma queries)
+│   ├── services/              # Business logic layer
+│   ├── controllers/           # HTTP handlers (calls services)
+│   ├── middleware/            # Hono middleware (auth, validation, etc.)
+│   ├── routes/                # API route definitions
+│   ├── schemas/               # Zod validation schemas
+│   ├── types/                 # TypeScript type definitions
+│   └── utils/                 # Utility functions
+├── tests/
+│   ├── unit/                  # Unit tests
+│   └── integration/           # Integration tests (API + DB)
+├── prisma/                    # Prisma schema & migrations
+├── tsconfig.json              # TypeScript config
+├── biome.json                 # Biome config
+├── package.json               # Bun-managed dependencies
+└── bun.lockb                  # Bun lockfile
 ```
 
-## HTTP Server
+**Key Principles:**
+- Structure by **technical capability**, not by feature
+- Each layer has **single responsibility**
+- No HTTP handling in services, no business logic in controllers
+- Easy to test components in isolation
 
-### Basic Server
+## Quick Start
 
-```typescript
-const server = Bun.serve({
-  port: process.env.PORT || 3000,
-  fetch(req) {
-    const url = new URL(req.url);
+```bash
+# Initialize project
+bun init
 
-    if (url.pathname === '/health') {
-      return Response.json({ status: 'ok' });
-    }
+# Install dependencies
+bun add hono @hono/node-server zod @prisma/client bcrypt jsonwebtoken
+bun add -d @types/node @types/jsonwebtoken @types/bcrypt typescript prisma @biomejs/biome @types/bun
 
-    return new Response('Not Found', { status: 404 });
-  },
-});
-
-console.log(`Server running at http://localhost:${server.port}`);
+# Initialize tools
+bunx tsc --init
+bunx prisma init
+bunx @biomejs/biome init
 ```
 
-### Router Pattern
-
-```typescript
-// routes/index.ts
-type Handler = (req: Request, params: Record<string, string>) => Response | Promise<Response>;
-
-interface Route {
-  method: string;
-  pattern: RegExp;
-  paramNames: string[];
-  handler: Handler;
-}
-
-class Router {
-  private routes: Route[] = [];
-
-  private addRoute(method: string, path: string, handler: Handler) {
-    const paramNames: string[] = [];
-    const pattern = new RegExp(
-      '^' + path.replace(/:(\w+)/g, (_, name) => {
-        paramNames.push(name);
-        return '([^/]+)';
-      }) + '$'
-    );
-    this.routes.push({ method, pattern, paramNames, handler });
+**package.json scripts:**
+```json
+{
+  "scripts": {
+    "dev": "bun --hot src/server.ts",
+    "start": "NODE_ENV=production bun src/server.ts",
+    "build": "bun build src/server.ts --target bun --outdir dist",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "lint": "biome lint --write",
+    "format": "biome format --write",
+    "check": "biome check --write",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio"
   }
+}
+```
 
-  get(path: string, handler: Handler) { this.addRoute('GET', path, handler); }
-  post(path: string, handler: Handler) { this.addRoute('POST', path, handler); }
-  put(path: string, handler: Handler) { this.addRoute('PUT', path, handler); }
-  delete(path: string, handler: Handler) { this.addRoute('DELETE', path, handler); }
+## TypeScript Configuration
 
-  handle(req: Request): Response | Promise<Response> {
-    const url = new URL(req.url);
-
-    for (const route of this.routes) {
-      if (route.method !== req.method) continue;
-
-      const match = url.pathname.match(route.pattern);
-      if (!match) continue;
-
-      const params: Record<string, string> = {};
-      route.paramNames.forEach((name, i) => {
-        params[name] = match[i + 1];
-      });
-
-      return route.handler(req, params);
+**tsconfig.json (key settings):**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022"],
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "types": ["bun-types"],
+    "baseUrl": ".",
+    "paths": {
+      "@core/*": ["src/core/*"],
+      "@database/*": ["src/database/*"],
+      "@services/*": ["src/services/*"],
+      "@/*": ["src/*"]
     }
-
-    return new Response('Not Found', { status: 404 });
   }
 }
+```
 
-export const router = new Router();
+**Critical settings:**
+- `"strict": true` - Enable all strict checks
+- `"moduleResolution": "bundler"` - Aligns with Bun's resolver
+- Use `paths` for clean imports (`@core/*`, `@services/*`)
+
+## HTTP Server with Hono
+
+### Basic Server Setup
+
+**Entry point (src/server.ts):**
+```typescript
+import { serve } from '@hono/node-server';
+import { app } from './app';
+
+const PORT = Number(process.env.PORT) || 3000;
+serve({ fetch: app.fetch, port: PORT });
+console.log(`🚀 Server running on port ${PORT}`);
+```
+
+**App initialization (src/app.ts):**
+```typescript
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
+import userRouter from './routes/user.routes';
+
+export const app = new Hono();
+
+// Global middleware
+app.use('*', logger());
+app.use('*', cors({
+  origin: ['http://localhost:3000'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  credentials: true
+}));
+
+// Health check
+app.get('/health', (c) => c.json({ status: 'ok' }));
+
+// API routes
+app.route('/api/users', userRouter);
 ```
 
 ### Route Handlers
 
+**Routes (src/routes/user.routes.ts):**
 ```typescript
-// routes/users.ts
-import { router } from './index';
-import { userService } from '../services/user';
-import { validateBody, createUserSchema } from '../lib/validation';
+import { Hono } from 'hono';
+import * as userController from '../controllers/user.controller';
+import { validate } from '../middleware/validator';
+import { createUserSchema } from '../schemas/user.schema';
 
-router.get('/api/users', async (req) => {
-  const url = new URL(req.url);
-  const page = parseInt(url.searchParams.get('page') || '1');
-  const limit = parseInt(url.searchParams.get('limit') || '20');
+const userRouter = new Hono();
 
-  const users = await userService.findAll({ page, limit });
-  return Response.json({ data: users });
-});
+userRouter.get('/', userController.getUsers);
+userRouter.get('/:id', userController.getUserById);
+userRouter.post('/', validate(createUserSchema), userController.createUser);
+userRouter.put('/:id', userController.updateUser);
+userRouter.delete('/:id', userController.deleteUser);
 
-router.get('/api/users/:id', async (req, params) => {
-  const user = await userService.findById(params.id);
-  if (!user) {
-    return Response.json({ error: 'User not found' }, { status: 404 });
-  }
-  return Response.json({ data: user });
-});
-
-router.post('/api/users', async (req) => {
-  const body = await req.json();
-  const validated = validateBody(createUserSchema, body);
-
-  const user = await userService.create(validated);
-  return Response.json({ data: user }, { status: 201 });
-});
+export default userRouter;
 ```
 
-## Middleware Pattern
-
+**Controllers (src/controllers/user.controller.ts):**
 ```typescript
-// middleware/index.ts
-type Middleware = (
-  req: Request,
-  next: () => Response | Promise<Response>
-) => Response | Promise<Response>;
+import type { Context } from 'hono';
+import * as userService from '../services/user.service';
 
-function compose(middlewares: Middleware[], handler: () => Response | Promise<Response>) {
-  return middlewares.reduceRight(
-    (next, middleware) => () => middleware(req, next),
-    handler
-  );
-}
-
-// Logging middleware
-const logger: Middleware = async (req, next) => {
-  const start = performance.now();
-  const response = await next();
-  const duration = performance.now() - start;
-
-  console.log(`${req.method} ${req.url} ${response.status} ${duration.toFixed(2)}ms`);
-  return response;
+export const createUser = async (c: Context) => {
+  const data = c.get('validatedData');
+  const user = await userService.createUser(data);
+  return c.json(user, 201);
 };
 
-// CORS middleware
-const cors: Middleware = async (req, next) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
+export const getUserById = async (c: Context) => {
+  const id = c.req.param('id');
+  const user = await userService.getUserById(id);
+  return c.json(user);
+};
+
+export const getUsers = async (c: Context) => {
+  const page = Number(c.req.query('page')) || 1;
+  const limit = Number(c.req.query('limit')) || 20;
+  const result = await userService.getUsers({ page, limit });
+  return c.json(result);
+};
+
+export const updateUser = async (c: Context) => {
+  const id = c.req.param('id');
+  const data = await c.req.json();
+  const user = await userService.updateUser(id, data);
+  return c.json(user);
+};
+
+export const deleteUser = async (c: Context) => {
+  const id = c.req.param('id');
+  await userService.deleteUser(id);
+  return c.json({ message: 'User deleted' });
+};
+```
+
+## Middleware Patterns
+
+### Validation Middleware
+
+**src/middleware/validator.ts:**
+```typescript
+import { z, ZodSchema } from 'zod';
+import type { Context, Next } from 'hono';
+
+export const validate = (schema: ZodSchema) => async (c: Context, next: Next) => {
+  try {
+    const body = await c.req.json();
+    c.set('validatedData', schema.parse(body));
+    await next();
+  } catch (e) {
+    if (e instanceof z.ZodError) {
+      return c.json({ error: 'Validation failed', details: e.issues }, 422);
+    }
+    throw e;
   }
-
-  const response = await next();
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  return response;
 };
 
-// Auth middleware
-const auth: Middleware = async (req, next) => {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+export const validateQuery = (schema: ZodSchema) => async (c: Context, next: Next) => {
+  try {
+    c.set('validatedQuery', schema.parse(c.req.query()));
+    await next();
+  } catch (e) {
+    if (e instanceof z.ZodError) {
+      return c.json({ error: 'Invalid query parameters', details: e.issues }, 422);
+    }
+    throw e;
+  }
+};
+```
 
-  if (!token) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+### Authentication Middleware
+
+**src/middleware/auth.ts:**
+```typescript
+import type { Context, Next } from 'hono';
+import { verifyToken } from '../services/auth.service';
+
+export const authenticate = async (c: Context, next: Next) => {
+  const header = c.req.header('Authorization');
+  if (!header?.startsWith('Bearer ')) {
+    return c.json({ error: 'Missing or invalid token' }, 401);
   }
 
   try {
+    const token = header.slice(7);
     const payload = await verifyToken(token);
-    req.user = payload;
-    return next();
+    c.set('user', payload);
+    await next();
   } catch {
-    return Response.json({ error: 'Invalid token' }, { status: 401 });
+    return c.json({ error: 'Invalid or expired token' }, 401);
   }
+};
+
+export const authorize = (...roles: string[]) => async (c: Context, next: Next) => {
+  const user = c.get('user') as { role: string } | undefined;
+  if (!user) {
+    return c.json({ error: 'Authentication required' }, 401);
+  }
+  if (!roles.includes(user.role)) {
+    return c.json({ error: 'Insufficient permissions' }, 403);
+  }
+  await next();
+};
+```
+
+### Logging Middleware
+
+**src/middleware/requestLogger.ts:**
+```typescript
+import type { Context, Next } from 'hono';
+
+export const requestLogger = async (c: Context, next: Next) => {
+  const start = Date.now();
+  const requestId = crypto.randomUUID();
+  c.set('requestId', requestId);
+
+  console.log(`[${requestId}] ${c.req.method} ${c.req.path}`);
+
+  await next();
+
+  const duration = Date.now() - start;
+  console.log(`[${requestId}] ${c.res.status} ${duration}ms`);
 };
 ```
 
@@ -240,62 +373,128 @@ export const userRepository = {
 };
 ```
 
-### PostgreSQL with Bun
+### PostgreSQL with Prisma
 
+**Prisma client setup (src/database/client.ts):**
 ```typescript
-import { Pool } from 'pg';
+import { PrismaClient } from '@prisma/client';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  max: 20,
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ?? new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
 });
+```
 
-export const db = {
-  async query<T>(sql: string, params?: unknown[]): Promise<T[]> {
-    const result = await pool.query(sql, params);
-    return result.rows;
-  },
+**Repository pattern (src/database/repositories/user.repository.ts):**
+```typescript
+import { prisma } from '../client';
+import type { Prisma, User } from '@prisma/client';
 
-  async queryOne<T>(sql: string, params?: unknown[]): Promise<T | null> {
-    const result = await pool.query(sql, params);
-    return result.rows[0] || null;
-  },
+export class UserRepository {
+  findById(id: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { id } });
+  }
 
-  async execute(sql: string, params?: unknown[]): Promise<void> {
-    await pool.query(sql, params);
-  },
-};
+  findByEmail(email: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { email } });
+  }
+
+  create(data: Prisma.UserCreateInput) {
+    return prisma.user.create({ data });
+  }
+
+  update(id: string, data: Prisma.UserUpdateInput) {
+    return prisma.user.update({ where: { id }, data });
+  }
+
+  async delete(id: string) {
+    await prisma.user.delete({ where: { id } });
+  }
+
+  async exists(email: string) {
+    return (await prisma.user.count({ where: { email } })) > 0;
+  }
+
+  async findMany(options: {
+    skip?: number;
+    take?: number;
+    where?: Prisma.UserWhereInput;
+    orderBy?: Prisma.UserOrderByWithRelationInput;
+  }) {
+    const [users, total] = await prisma.$transaction([
+      prisma.user.findMany(options),
+      prisma.user.count({ where: options.where })
+    ]);
+    return { users, total };
+  }
+}
+
+export const userRepository = new UserRepository();
+```
+
+**Prisma commands:**
+```bash
+bunx prisma generate         # Generate client
+bunx prisma migrate dev      # Create migration
+bunx prisma migrate deploy   # Apply migrations (prod)
+bunx prisma studio          # GUI for DB
+bunx prisma db seed         # Seed database
+bunx prisma format          # Format schema
 ```
 
 ## Validation with Zod
 
+**Validation schemas (src/schemas/user.schema.ts):**
 ```typescript
 import { z } from 'zod';
 
 export const createUserSchema = z.object({
-  name: z.string().min(2).max(100),
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string()
+    .min(8)
+    .regex(/[A-Z]/, 'Password must contain uppercase letter')
+    .regex(/[a-z]/, 'Password must contain lowercase letter')
+    .regex(/[0-9]/, 'Password must contain number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain special character'),
+  name: z.string().min(2).max(100),
+  role: z.enum(['user', 'admin', 'moderator']).default('user')
 });
 
 export const updateUserSchema = createUserSchema.partial();
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export const getUsersQuerySchema = z.object({
+  page: z.coerce.number().positive().default(1),
+  limit: z.coerce.number().positive().max(100).default(20),
+  sortBy: z.enum(['createdAt', 'name', 'email']).optional(),
+  order: z.enum(['asc', 'desc']).default('desc'),
+  role: z.enum(['user', 'admin', 'moderator']).optional()
+});
 
-export function validateBody<T>(schema: z.Schema<T>, body: unknown): T {
-  const result = schema.safeParse(body);
-  if (!result.success) {
-    throw new ValidationError(result.error.errors);
-  }
-  return result.data;
-}
+export type CreateUserDto = z.infer<typeof createUserSchema>;
+export type UpdateUserDto = z.infer<typeof updateUserSchema>;
+export type GetUsersQuery = z.infer<typeof getUsersQuerySchema>;
 ```
+
+**Why Zod:**
+- Runtime type validation (catches invalid data at boundaries)
+- TypeScript type inference (`z.infer<typeof schema>`)
+- Clear error messages for users
+- Composable schemas (`.partial()`, `.extend()`, `.pick()`)
 
 ## Error Handling
 
+**Custom error classes (src/core/errors.ts):**
 ```typescript
-// lib/errors.ts
 export class AppError extends Error {
   constructor(
     message: string,
@@ -313,92 +512,174 @@ export class NotFoundError extends AppError {
 }
 
 export class ValidationError extends AppError {
-  constructor(public errors: z.ZodIssue[]) {
-    super('Validation failed', 'VALIDATION_ERROR', 400);
+  constructor(message: string, public errors: any) {
+    super(message, 'VALIDATION_ERROR', 422);
   }
 }
 
-// Error handler
-export function handleError(error: unknown): Response {
-  if (error instanceof AppError) {
-    return Response.json({
-      error: {
-        code: error.code,
-        message: error.message,
-        ...(error instanceof ValidationError && { details: error.errors }),
-      },
-    }, { status: error.statusCode });
+export class UnauthorizedError extends AppError {
+  constructor(message = 'Unauthorized') {
+    super(message, 'UNAUTHORIZED', 401);
   }
+}
 
-  console.error('Unexpected error:', error);
-  return Response.json({
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'Internal server error',
-    },
-  }, { status: 500 });
+export class ConflictError extends AppError {
+  constructor(message: string) {
+    super(message, 'CONFLICT', 409);
+  }
 }
 ```
 
-## Testing
-
+**Global error handler (src/middleware/errorHandler.ts):**
 ```typescript
-// tests/users.test.ts
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
-import { server } from '../src/index';
+import type { Context } from 'hono';
+import { AppError } from '../core/errors';
 
-describe('Users API', () => {
+export function errorHandler(err: Error, c: Context) {
+  if (err instanceof AppError) {
+    return c.json({
+      error: {
+        code: err.code,
+        message: err.message,
+        ...(err instanceof ValidationError && { details: err.errors })
+      }
+    }, err.statusCode);
+  }
+
+  console.error('Unexpected error:', err);
+  return c.json({
+    error: {
+      code: 'INTERNAL_ERROR',
+      message: 'Internal server error'
+    }
+  }, 500);
+}
+
+// In app.ts
+app.onError(errorHandler);
+```
+
+## Testing with Bun
+
+Bun includes a fast, built-in test runner with Jest-like APIs.
+
+**Unit test example (tests/unit/services/user.service.test.ts):**
+```typescript
+import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
+import { createUser, getUserById } from '../../../src/services/user.service';
+import { prisma } from '../../../src/database/client';
+
+describe('UserService', () => {
   beforeAll(async () => {
-    // Setup test database
+    await prisma.$connect();
   });
 
   afterAll(async () => {
-    // Cleanup
+    await prisma.user.deleteMany();
+    await prisma.$disconnect();
   });
 
-  test('GET /api/users returns users', async () => {
-    const response = await fetch(`http://localhost:${server.port}/api/users`);
-    expect(response.status).toBe(200);
-
-    const data = await response.json();
-    expect(data).toHaveProperty('data');
-    expect(Array.isArray(data.data)).toBe(true);
-  });
-
-  test('POST /api/users creates user', async () => {
-    const response = await fetch(`http://localhost:${server.port}/api/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'password123',
-      }),
+  test('createUser creates a user and strips password', async () => {
+    const user = await createUser({
+      email: 'test@example.com',
+      password: 'Abcdef1!',
+      name: 'Test User',
+      role: 'user'
     });
 
-    expect(response.status).toBe(201);
-    const data = await response.json();
-    expect(data.data.name).toBe('John Doe');
+    expect(user).toHaveProperty('email', 'test@example.com');
+    expect(user).toHaveProperty('name', 'Test User');
+    expect(user).not.toHaveProperty('password');
   });
 
-  test('POST /api/users validates input', async () => {
-    const response = await fetch(`http://localhost:${server.port}/api/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'J' }), // Invalid
-    });
-
-    expect(response.status).toBe(400);
+  test('getUserById throws NotFoundError for missing user', async () => {
+    await expect(getUserById('nonexistent')).rejects.toThrow('User not found');
   });
 });
 ```
 
+**Integration test example (tests/integration/api/user.test.ts):**
+```typescript
+import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
+import { app } from '../../../src/app';
+import { prisma } from '../../../src/database/client';
+
+describe('User API', () => {
+  beforeAll(async () => {
+    await prisma.$connect();
+    await prisma.user.deleteMany();
+  });
+
+  afterAll(async () => {
+    await prisma.user.deleteMany();
+    await prisma.$disconnect();
+  });
+
+  test('POST /api/users creates a user', async () => {
+    const res = await app.request('http://localhost/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'new@example.com',
+        password: 'Abcdef1!',
+        name: 'New User'
+      })
+    });
+
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.email).toBe('new@example.com');
+    expect(body).not.toHaveProperty('password');
+  });
+
+  test('POST /api/users validates input', async () => {
+    const res = await app.request('http://localhost/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'J' }) // Invalid
+    });
+
+    expect(res.status).toBe(422);
+    const body = await res.json();
+    expect(body.error).toBe('Validation failed');
+  });
+
+  test('GET /api/users/:id returns user', async () => {
+    const created = await app.request('http://localhost/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'get@example.com',
+        password: 'Abcdef1!',
+        name: 'Get User'
+      })
+    });
+    const createdBody = await created.json();
+
+    const res = await app.request(`http://localhost/api/users/${createdBody.id}`);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.id).toBe(createdBody.id);
+  });
+});
+```
+
+**Test commands:**
+```bash
+bun test              # Run all tests
+bun test --watch      # Watch mode
+bun test --coverage   # With coverage
+bun test user.test.ts # Specific file
+```
+
 ## Configuration
 
+**Environment configuration (src/config.ts):**
 ```typescript
-// lib/config.ts
 const config = {
   port: parseInt(process.env.PORT || '3000'),
+  nodeEnv: process.env.NODE_ENV || 'development',
   database: {
     url: process.env.DATABASE_URL || 'postgres://localhost/app',
     maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS || '20'),
@@ -415,31 +696,52 @@ const config = {
 export default config;
 ```
 
-## File Uploads
+**.env files:**
+```bash
+# Development
+DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
+JWT_SECRET="dev-secret"
+NODE_ENV="development"
 
+# Production (use secrets manager)
+DATABASE_URL="postgresql://user:password@prod-host:5432/mydb"
+JWT_SECRET="strong-random-secret"
+NODE_ENV="production"
+```
+
+## File Operations
+
+**File uploads:**
 ```typescript
-router.post('/api/upload', async (req) => {
-  const formData = await req.formData();
+router.post('/upload', async (c) => {
+  const formData = await c.req.formData();
   const file = formData.get('file') as File;
 
   if (!file) {
-    return Response.json({ error: 'No file provided' }, { status: 400 });
+    return c.json({ error: 'No file provided' }, 400);
   }
 
   // Validate file type
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (!allowedTypes.includes(file.type)) {
-    return Response.json({ error: 'Invalid file type' }, { status: 400 });
+    return c.json({ error: 'Invalid file type' }, 400);
   }
 
   // Save file
   const filename = `${crypto.randomUUID()}-${file.name}`;
   await Bun.write(`./uploads/${filename}`, file);
 
-  return Response.json({
-    data: { filename, size: file.size, type: file.type },
+  return c.json({
+    data: { filename, size: file.size, type: file.type }
   });
 });
+```
+
+**Reading files:**
+```typescript
+const data = await Bun.file('data.json').json();
+const text = await Bun.file('README.md').text();
+const buffer = await Bun.file('image.png').arrayBuffer();
 ```
 
 ## WebSocket
@@ -455,7 +757,7 @@ const server = Bun.serve({
       }
       return undefined;
     }
-    return router.handle(req);
+    return app.fetch(req);
   },
   websocket: {
     open(ws) {
@@ -472,6 +774,64 @@ const server = Bun.serve({
 });
 ```
 
+## Quality Checks
+
+Before presenting code, run these checks:
+
+```bash
+# 1. Format code
+bun run format
+
+# 2. Lint code
+bun run lint
+
+# 3. Type check
+bun run typecheck
+
+# 4. Run tests
+bun test
+
+# 5. Generate Prisma client (if schema changed)
+bunx prisma generate
+```
+
+## Code Quality with Biome
+
+**biome.json:**
+```json
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.3/schema.json",
+  "files": {
+    "ignore": ["node_modules", "dist", ".next"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "always"
+    }
+  }
+}
+```
+
+**Commands:**
+```bash
+bun run check        # format + lint with autofix
+bun run lint         # lint only
+bun run format       # format only
+```
+
 ---
 
-*Bun.js patterns for fast TypeScript backend development*
+*Bun.js patterns for fast TypeScript backend development. For advanced architecture patterns, see dev:bunjs-architecture. For production deployment, see dev:bunjs-production.*
