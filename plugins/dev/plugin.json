@@ -80,6 +80,7 @@
     "./skills/backend/auth-patterns",
     "./skills/backend/error-handling",
     "./skills/backend/golang",
+    "./skills/backend/dingo",
     "./skills/backend/bunjs",
     "./skills/backend/bunjs-architecture",
     "./skills/backend/bunjs-production",
