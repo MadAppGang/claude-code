@@ -236,8 +236,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.11.1: Fixed command and agent descriptions for autocomplete display. 27+ skills covering frontend, backend, infrastructure, and design review.",
-			"version": "1.11.1",
+			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.12.0: Dingo language skill, golang v2.0.0 overhaul (+1036 lines), NEW golang-performance skill (915 lines). 28+ skills covering frontend, backend, infrastructure, and design review.",
+			"version": "1.12.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -265,6 +265,7 @@
 				"tanstack-router",
 				"tanstack-query",
 				"golang",
+				"dingo",
 				"bun",
 				"python",
 				"rust",

@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.11.1",
-  "description": "Universal development assistant with deep research, specification interviews, and DevOps guidance. v1.11.0: Enhanced TanStack skills - Router (+340 lines: autoCodeSplitting, virtual routes, .lazy.tsx, getRouteApi, route groups, v2 migration, TanStack Start, production best practices), Query (+255 lines: SSR defaults, streaming SSR, Server Components integration, React 19 Actions). v1.10.0: /dev:deep-research command with convergence-based finalization. 27+ skills.",
+  "version": "1.12.0",
+  "description": "Universal development assistant with deep research, specification interviews, and DevOps guidance. v1.12.0: Go skills overhaul - golang v2.0.0 (+1036 lines: idiomatic patterns, error handling with %w, concurrency best practices, table-driven tests, 10 anti-patterns), NEW golang-performance skill (915 lines: pprof profiling, benchmarking, memory optimization, GC tuning). 28+ skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -80,6 +80,7 @@
     "./skills/backend/auth-patterns",
     "./skills/backend/error-handling",
     "./skills/backend/golang",
+    "./skills/backend/golang-performance",
     "./skills/backend/dingo",
     "./skills/backend/bunjs",
     "./skills/backend/bunjs-architecture",

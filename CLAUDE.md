@@ -203,15 +203,14 @@ CODEX_API_KEY=your-codex-key
 - Video Editing Plugin: **v1.0.1** (2026-01-06)
 - Nanobanana Plugin: **v2.2.2** (2026-01-06)
 - Conductor Plugin: **v2.0.1** (2026-01-06)
-- Dev Plugin: **v1.11.1** (2026-01-06)
+- Dev Plugin: **v1.12.0** (2026-01-07)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (Dev v1.2.0):**
-- ✅ **Universal Dev Assistant**: Context-aware skill auto-loading for any stack
-- ✅ **UI Design Review**: Gemini multimodal analysis with 5 predefined design systems
-- ✅ **18 Technology Skills**: Frontend, backend, and design skills
-- ✅ **/create-style Wizard**: Interactive project design style configuration
-- ✅ **Multi-Model Validated**: 14 external models reviewed implementation
+**Latest Changes (Dev v1.12.0):**
+- ✅ **Dingo Language Skill**: Meta-language for Go with ? operator, Option[T], Result[T,E], enums, pattern matching, lambdas
+- ✅ **golang v2.0.0 Overhaul**: +1036 lines - idiomatic patterns, error handling with %w, concurrency, 10 anti-patterns
+- ✅ **NEW golang-performance**: 915 lines - pprof profiling, benchmarking, memory optimization, GC tuning
+- ✅ **28+ Technology Skills**: Frontend, backend, and design skills
 
 **Git Tags:**
 - Orchestration: `plugins/orchestration/v0.8.0`
@@ -223,7 +222,7 @@ CODEX_API_KEY=your-codex-key
 - Video Editing: `plugins/video-editing/v1.0.1`
 - Nanobanana: `plugins/nanobanana/v2.2.2`
 - Conductor: `plugins/conductor/v2.0.1`
-- Dev: `plugins/dev/v1.11.1`
+- Dev: `plugins/dev/v1.12.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 **⚠️ RELEASE CHECKLIST (ALL 3 REQUIRED):**
@@ -252,6 +251,6 @@ The workflow `.github/workflows/claudeup-release.yml` triggers on `tools/claudeu
 ---
 
 **Maintained by:** Jack Rudenko @ MadAppGang
-**Last Updated:** January 6, 2026
-**Version:** 10 plugins (Orchestration v0.8.0, Frontend v3.13.0, Code Analysis v2.12.0, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.4.0, Video Editing v1.0.1, Nanobanana v2.2.2, Conductor v2.0.1, Dev v1.11.1)
+**Last Updated:** January 7, 2026
+**Version:** 10 plugins (Orchestration v0.8.0, Frontend v3.13.0, Code Analysis v2.12.0, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.4.0, Video Editing v1.0.1, Nanobanana v2.2.2, Conductor v2.0.1, Dev v1.12.0)
 - do not use hardcoded path in code, docs, comments or any other files
