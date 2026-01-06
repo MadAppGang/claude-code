@@ -107,6 +107,252 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 </QueryClientProvider>
 ```
 
+### Server-Side Rendering Configuration
+
+When using TanStack Query with SSR (Next.js, Remix, TanStack Start), configure server-specific defaults:
+
+```typescript
+// Server-side QueryClient configuration
+export function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Server: Don't retry on server (fail fast)
+        retry: typeof window === 'undefined' ? 0 : 3,
+        // Server: Data is always fresh when rendered
+        staleTime: 60_000, // 1 minute
+      },
+    },
+  })
+}
+```
+
+**Server vs Client Defaults:**
+
+| Option | Client Default | Server Recommended | Why |
+|--------|---------------|-------------------|-----|
+| `retry` | 3 | 0 | Server should fail fast, not retry loops |
+| `staleTime` | 0 | 60_000+ | Server-rendered data is fresh |
+| `gcTime` | 5 min | Infinity | No garbage collection needed on server |
+| `refetchOnWindowFocus` | true | false | No window on server |
+| `refetchOnReconnect` | true | false | No reconnect on server |
+
+**Important:** In SPA-only apps (TanStack Router + Vite), you don't need these server defaults. They're only relevant for SSR frameworks.
+
+### Streaming SSR (Experimental)
+
+For Next.js App Router, `@tanstack/react-query-next-experimental` enables streaming:
+
+```bash
+pnpm add @tanstack/react-query-next-experimental
+```
+
+**Setup:**
+```typescript
+// app/providers.tsx
+'use client'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryStreamedHydration } from '@tanstack/react-query-next-experimental'
+
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { staleTime: 60_000 },
+    },
+  })
+}
+
+let browserQueryClient: QueryClient | undefined
+
+function getQueryClient() {
+  if (typeof window === 'undefined') {
+    return makeQueryClient() // Server: always new
+  }
+  return (browserQueryClient ??= makeQueryClient()) // Browser: singleton
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  const queryClient = getQueryClient()
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
+    </QueryClientProvider>
+  )
+}
+```
+
+**Usage in Client Components:**
+```typescript
+'use client'
+
+import { useSuspenseQuery } from '@tanstack/react-query'
+
+export function UserProfile({ userId }: { userId: string }) {
+  // No prefetch needed! Data streams from server
+  const { data: user } = useSuspenseQuery({
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId),
+  })
+
+  return <div>{user.name}</div>
+}
+```
+
+**Benefits:**
+- Skip manual prefetching in Server Components
+- Data streams to client as it resolves
+- Suspense boundaries show loading states naturally
+
+**Limitations:**
+- Next.js App Router only (experimental)
+- Not for TanStack Router SPAs (use route loaders instead)
+
+### Server Components Integration
+
+**When you have React Server Components (RSC)**, how does TanStack Query fit?
+
+#### The Mental Model
+
+Think of Server Components as **another framework loader** (like route loaders):
+
+| Feature | Server Components | TanStack Query |
+|---------|-------------------|----------------|
+| Initial data fetch | Yes (server) | Yes (client prefetch) |
+| Client mutations | No | Yes |
+| Background refetch | No | Yes |
+| Optimistic updates | No | Yes |
+| Real-time updates | No | Yes |
+| Cache management | No | Yes |
+
+#### When TanStack Query is Still Valuable
+
+Even in RSC-heavy apps, Query remains essential for:
+
+1. **Client-Side Mutations**
+   ```typescript
+   // Server Component fetches, Client handles mutations
+   export default async function PostPage({ params }) {
+     const post = await fetchPost(params.id) // Server fetch
+     return <PostWithComments post={post} /> // Client mutations
+   }
+
+   'use client'
+   function PostWithComments({ post }) {
+     const addComment = useMutation({ ... }) // Still need Query!
+     // ...
+   }
+   ```
+
+2. **Background Refetching After Initial Load**
+   ```typescript
+   // Initial: Server Component renders with fresh data
+   // After: Query keeps data fresh on client
+   ```
+
+3. **Optimistic Updates**
+   ```typescript
+   // Can't do optimistic updates with Server Components alone
+   const likeMutation = useMutation({
+     mutationFn: likePost,
+     onMutate: async () => {
+       // Optimistic update - only possible with Query
+     },
+   })
+   ```
+
+4. **Real-Time Updates**
+   ```typescript
+   // WebSocket data, polling, etc. - client-only
+   useQuery({
+     queryKey: ['notifications'],
+     queryFn: fetchNotifications,
+     refetchInterval: 30_000, // Real-time polling
+   })
+   ```
+
+#### Recommended Pattern
+
+```typescript
+// Server Component: Initial fetch
+export default async function DashboardPage() {
+  const initialData = await fetchDashboard()
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DashboardClient initialData={initialData} />
+    </HydrationBoundary>
+  )
+}
+
+// Client Component: Mutations + real-time
+'use client'
+function DashboardClient({ initialData }) {
+  // Query hydrates from server data, then manages client state
+  const { data } = useQuery({
+    queryKey: ['dashboard'],
+    queryFn: fetchDashboard,
+    initialData,
+  })
+
+  const updateWidget = useMutation({ ... })
+  // ...
+}
+```
+
+#### SPA Recommendation
+
+**For SPA-only apps (TanStack Router + Vite)**: Server Components don't apply. Use TanStack Query as your primary data layer with route loaders for prefetching.
+
+### Query + React 19 Actions
+
+When using React 19 Actions alongside Query, keep responsibilities clear:
+
+#### Complementary Usage
+
+```typescript
+// Query: Fetching and caching
+const { data: posts } = useQuery({
+  queryKey: ['posts'],
+  queryFn: fetchPosts,
+})
+
+// Action: Form submission with built-in validation
+async function createPostAction(formData: FormData) {
+  'use server'
+  const result = await createPost(formData)
+  return result
+}
+
+// After action succeeds, invalidate Query cache
+const [state, formAction] = useActionState(async (prev, formData) => {
+  const result = await createPostAction(formData)
+  if (result.success) {
+    queryClient.invalidateQueries({ queryKey: ['posts'] })
+  }
+  return result
+}, { success: false })
+```
+
+#### Decision Matrix
+
+| Use Case | Recommendation |
+|----------|----------------|
+| Data fetching | Query (`useQuery`) |
+| List caching | Query |
+| Form submission | Action (`useActionState`) + Query invalidation |
+| Button click mutation | Query (`useMutation`) |
+| Optimistic update with rollback | Query (`useMutation`) |
+| Server-side validation | Action |
+| Complex multi-step mutations | Query (`useMutation`) |
+
+#### Rule of Thumb
+
+- **Actions** for form submissions with server-side validation
+- **Query** for everything else (fetching, caching, complex mutations)
+- **Both** when forms need to update Query cache after success
+
 ### Architecture: Feature-Based Colocation
 
 **Recommended pattern**: Group queries with related features, not by file type.
@@ -909,10 +1155,11 @@ function App() {
 
 ## Related Skills
 
-- **router-query-integration** - Integrating Query with TanStack Router loaders
-- **api-integration** - Apidog + OpenAPI integration
-- **react-patterns** - Choose between Query mutations vs React Actions
-- **testing-strategy** - Advanced MSW patterns
+- **tanstack-router** - File-based routing with loader prefetching
+- **react-typescript** - React 19 patterns, Actions vs Mutations decision guide
+- **state-management** - Zustand for client state, Query for server state
+- **testing-frontend** - Testing queries with MSW
+- **api-integration** - Backend API patterns with Apidog
 
 ---
 

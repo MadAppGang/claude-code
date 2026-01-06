@@ -236,8 +236,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.10.0: NEW /dev:research command - scientifically-grounded deep research with parallel agents, convergence-based finalization (k=3 stability), model fallback (Gemini→OpenRouter→Haiku), based on arXiv 2025 research. v1.9.0: DevOps agent with ultrathink, multi-cloud support. 27+ skills covering frontend, backend, infrastructure, and design review.",
-			"version": "1.10.0",
+			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.11.0: Enhanced TanStack skills - Router (+340 lines: autoCodeSplitting, virtual routes, .lazy.tsx, getRouteApi, route groups, v2 migration), Query (+255 lines: SSR defaults, streaming SSR, Server Components, React 19 Actions). 27+ skills covering frontend, backend, infrastructure, and design review.",
+			"version": "1.11.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -261,6 +261,9 @@
 				"interview",
 				"react",
 				"typescript",
+				"tanstack",
+				"tanstack-router",
+				"tanstack-query",
 				"golang",
 				"bun",
 				"python",
