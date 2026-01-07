@@ -88,8 +88,8 @@
 		{
 			"name": "orchestration",
 			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery, session-based artifact isolation, LLM performance tracking. NEW in v0.8.0: multi-backend routing docs, prefix collision awareness, safe model ID guidelines in multi-model-validation and proxy-mode-reference skills.",
-			"version": "0.8.0",
+			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery, session-based artifact isolation, LLM performance tracking. v0.8.1: Fixed claudish prefix documentation - removed non-existent 'or/' prefix, corrected routing table to match claudish 3.1.3 (g/, gemini/, oai/, openai/, ollama/, lmstudio/, vllm/, mlx/).",
+			"version": "0.8.1",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -139,8 +139,8 @@
 		{
 			"name": "seo",
 			"source": "./plugins/seo",
-			"description": "Comprehensive SEO toolkit with interactive /seo:start entry point for guided workflow discovery, keyword research, content optimization, technical audits, multi-agent workflows, and analytics integrations (GA4, GSC). Features multi-model parallel review, A/B alternative generation, E-E-A-T compliance validation, data-driven performance analysis, and five-role agent architecture (Analyst → Researcher → Writer → Editor → Data Analyst). v1.4.0: New /seo:start command - interactive entry point that understands user goals and routes to appropriate SEO commands.",
-			"version": "1.4.0",
+			"description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.5.0: quality-gate skill for automatic progression, self-correction in analyst/researcher/writer agents (3 retries), autonomous-keyword-research skill, AUTO GATEs in /research command. Features E-E-A-T self-assessment, interactive /seo:start entry point, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
+			"version": "1.5.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

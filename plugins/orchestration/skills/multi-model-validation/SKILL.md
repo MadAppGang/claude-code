@@ -172,37 +172,41 @@ claudish --free
 
 ### ⚠️ Prefix Collision Awareness
 
-**CRITICAL:** When using claudish, be aware of model ID prefix collisions.
+**CRITICAL:** When using claudish, be aware of model ID prefix routing.
 
 Claudish routes to different backends based on model ID prefix:
 
 | Prefix | Backend | Required Key |
 |--------|---------|--------------|
 | (none) | OpenRouter | `OPENROUTER_API_KEY` |
-| `or/` | OpenRouter (explicit) | `OPENROUTER_API_KEY` |
-| `google/` `g/` | Gemini Direct | `GEMINI_API_KEY` |
-| `openai/` `oai/` | OpenAI Direct | `OPENAI_API_KEY` |
-| `ollama/` | Ollama | None |
+| `g/` `gemini/` | Google Gemini API | `GEMINI_API_KEY` |
+| `oai/` `openai/` | OpenAI API | `OPENAI_API_KEY` |
+| `ollama/` | Ollama (local) | None |
+| `lmstudio/` | LM Studio (local) | None |
+| `vllm/` | vLLM (local) | None |
+| `mlx/` | MLX (local) | None |
 
-**OpenRouter Model ID Collisions:**
+**Collision-Free Models (safe for OpenRouter):**
+- `x-ai/grok-code-fast-1` ✅
+- `google/gemini-2.5-flash` ✅ (only `g/` and `gemini/` prefixes route to Gemini)
+- `google/gemini-3-pro-preview` ✅
+- `deepseek/deepseek-chat` ✅
+- `minimax/minimax-m2` ✅
+- `qwen/qwen3-coder:free` ✅
+- `mistralai/devstral-2512:free` ✅
+- `moonshotai/kimi-k2-thinking` ✅
+- `z-ai/glm-4.7` ✅
+- `anthropic/claude-*` ✅
 
-| OpenRouter Model | Collides With | Safe Alternative |
-|-----------------|---------------|------------------|
-| `google/gemini-3-pro-preview` | Gemini Direct API | `or/google/gemini-3-pro-preview` |
-| `google/gemini-2.5-flash` | Gemini Direct API | `or/google/gemini-2.5-flash` |
-| `openai/gpt-5.1-codex` | OpenAI Direct API | `or/openai/gpt-5.1-codex` |
-| `openai/gpt-5` | OpenAI Direct API | `or/openai/gpt-5` |
+**Models with Prefix Collisions:**
+- `openai/gpt-*` ❌ → Routes to OpenAI Direct API (requires `OPENAI_API_KEY`)
 
-**Safe Model IDs (no `or/` prefix needed):**
-- `x-ai/grok-code-fast-1`
-- `anthropic/claude-3.5-sonnet`
-- `deepseek/deepseek-chat`
-- `minimax/minimax-m2`
-- `qwen/qwen3-coder:free`
-- `mistralai/devstral-2512:free`
-- `moonshotai/kimi-k2-thinking`
+**Workarounds for `openai/*` collision:**
+1. Use alternative models (grok, deepseek, qwen - recommended)
+2. Set `OPENAI_API_KEY` and use `oai/gpt-4o` for OpenAI Direct
+3. Note: OpenRouter's `openai/gpt-5.2` collides with `openai/` prefix
 
-**Rule:** If the OpenRouter model ID starts with `google/`, `openai/`, `g/`, or `oai/`, ALWAYS use the `or/` prefix to force OpenRouter routing.
+**Rule:** Prefer collision-free model IDs. If using `openai/*` models, set up OpenAI Direct API.
 
 **Interactive Model Selection (AskUserQuestion with multiSelect):**
 

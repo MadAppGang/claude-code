@@ -25,27 +25,36 @@ Claudish routes to different backends based on model ID prefix:
 | Prefix | Backend | Required Key | Example |
 |--------|---------|--------------|---------|
 | (none) | OpenRouter | `OPENROUTER_API_KEY` | `x-ai/grok-code-fast-1` |
-| `or/` | OpenRouter (explicit) | `OPENROUTER_API_KEY` | `or/google/gemini-3-pro` |
-| `g/` `google/` | Gemini Direct | `GEMINI_API_KEY` | `g/gemini-2.0-flash` |
-| `oai/` `openai/` | OpenAI Direct | `OPENAI_API_KEY` | `oai/gpt-4o` |
-| `ollama/` | Ollama | None | `ollama/llama3.2` |
+| `g/` `gemini/` | Google Gemini API | `GEMINI_API_KEY` | `g/gemini-2.0-flash` |
+| `oai/` `openai/` | OpenAI API | `OPENAI_API_KEY` | `oai/gpt-4o` |
+| `ollama/` | Ollama (local) | None | `ollama/llama3.2` |
+| `lmstudio/` | LM Studio (local) | None | `lmstudio/qwen` |
+| `vllm/` | vLLM (local) | None | `vllm/model` |
+| `mlx/` | MLX (local) | None | `mlx/model` |
+| `http://...` | Custom endpoint | None | `http://localhost:8000/model` |
 
 ### ⚠️ Prefix Collision Warning
 
-OpenRouter model IDs like `google/gemini-3-pro` collide with the `google/` routing prefix!
+OpenRouter model IDs may collide with routing prefixes. Check the prefix table above.
 
-**Always use `or/` prefix for:**
-- `or/google/gemini-*` (OpenRouter's Google models)
-- `or/openai/gpt-*` (OpenRouter's OpenAI models)
+**Collision-free models (safe for OpenRouter):**
+- `x-ai/grok-*` ✅
+- `deepseek/*` ✅
+- `minimax/*` ✅
+- `qwen/*` ✅
+- `mistralai/*` ✅
+- `moonshotai/*` ✅
+- `anthropic/*` ✅
+- `z-ai/*` ✅
+- `google/*` ✅ (only `g/` and `gemini/` route to Gemini Direct)
 
-**Safe without prefix:**
-- `x-ai/grok-*`
-- `anthropic/claude-*`
-- `deepseek/*`
-- `minimax/*`
-- `qwen/*`
-- `mistralai/*`
-- `moonshotai/*`
+**Models with prefix collisions:**
+- `openai/gpt-*` ❌ → Routes to OpenAI Direct (use `oai/` or set `OPENAI_API_KEY`)
+
+**Workaround for collisions:**
+1. Use collision-free models (recommended)
+2. Set up direct API key (`GEMINI_API_KEY`, `OPENAI_API_KEY`)
+3. Use the short prefix form (`g/`, `oai/`) for direct API access
 
 ## The PROXY_MODE Directive
 

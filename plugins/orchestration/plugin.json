@@ -1,6 +1,6 @@
 {
   "name": "orchestration",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Provides proven patterns for parallel execution, multi-model validation with dynamic model discovery, session-based artifact isolation, free model support, quality gates, and phase-based orchestration.",
   "author": "MadAppGang",
   "license": "MIT",
