@@ -15,11 +15,11 @@ export async function runClaude(args: string[]): Promise<number> {
     return 1;
   }
 
-  // Spawn claude with full TTY inheritance
+  // Spawn claude with full TTY inheritance using the resolved path
   return new Promise((resolve) => {
-    const proc = spawn('claude', args, {
+    const proc = spawn(claudePath, args, {
       stdio: 'inherit', // Pass through stdin, stdout, stderr
-      shell: true, // Required to find 'claude' in PATH on all systems
+      shell: false, // Use full path, no shell needed (fixes DEP0190)
     });
 
     proc.on('exit', (code) => resolve(code || 0));
