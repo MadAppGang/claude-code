@@ -1,6 +1,6 @@
 {
   "name": "orchestration",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Provides proven patterns for parallel execution, multi-model validation with dynamic model discovery, session-based artifact isolation, free model support, quality gates, and phase-based orchestration.",
   "author": "MadAppGang",
   "license": "MIT",
@@ -35,43 +35,7 @@
     "session-isolation"
   ],
 
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-statistics.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "toolNames": ["Task"],
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-launch-check.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-proxy-mode.sh"
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": "./hooks/hooks.json",
 
   "commands": [
     "./commands/help.md",

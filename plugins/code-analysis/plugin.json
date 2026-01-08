@@ -1,6 +1,6 @@
 {
 	"name": "code-analysis",
-	"version": "2.13.0",
+	"version": "2.13.1",
 	"description": "Deep code investigation with claudemem v0.9.0. NEW: Explore agent hook - automatically redirects to detective for AST analysis. Anti-pattern warnings, built-in alternatives (--tokens, --page-size, --max-depth). PageRank structural analysis, callers/callees dependency tracing.",
 	"author": {
 		"name": "Jack Rudenko",
@@ -24,49 +24,7 @@
 		"enforcement"
 	],
 	"category": "development",
-	"hooks": {
-		"SessionStart": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\""
-					}
-				]
-			}
-		],
-		"PreToolUse": [
-			{
-				"matcher": "Grep|Bash|Glob|Read",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\""
-					}
-				]
-			},
-			{
-				"matcher": "Task",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\""
-					}
-				]
-			}
-		],
-		"PostToolUse": [
-			{
-				"matcher": "Write|Edit",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\""
-					}
-				]
-			}
-		]
-	},
+	"hooks": "./hooks/hooks.json",
 	"agents": [
 		"./agents/codebase-detective.md"
 	],

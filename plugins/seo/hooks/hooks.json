@@ -1,0 +1,16 @@
+{
+	"description": "SEO plugin - session initialization for analytics and audit capabilities",
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+						"timeout": 10
+					}
+				]
+			}
+		]
+	}
+}

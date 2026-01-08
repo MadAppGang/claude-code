@@ -1,0 +1,50 @@
+{
+	"description": "Code analysis hooks - intercept search tools, redirect to claudemem semantic search",
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\"",
+						"timeout": 10
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "Grep|Bash|Glob|Read",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\"",
+						"timeout": 15
+					}
+				]
+			},
+			{
+				"matcher": "Task",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\"",
+						"timeout": 15
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Write|Edit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/handler.ts\"",
+						"timeout": 10
+					}
+				]
+			}
+		]
+	}
+}

@@ -12,11 +12,11 @@
 | Plugin | Version | Purpose |
 |--------|---------|---------|
 | **Frontend** | v3.13.0 | React/TypeScript dev with 11 agents, multi-model review |
-| **Code Analysis** | v2.13.0 | Codebase investigation with claudemem, Explore agent hook |
+| **Code Analysis** | v2.13.1 | Codebase investigation with claudemem, Explore agent hook |
 | **Bun Backend** | v1.5.2 | TypeScript backend with Bun, Apidog integration |
-| **Orchestration** | v0.8.1 | Multi-agent coordination patterns (6 skills) |
+| **Orchestration** | v0.8.2 | Multi-agent coordination patterns (6 skills) |
 | **Agent Development** | v1.3.0 | Create Claude Code agents, PROXY_MODE error handling |
-| **SEO** | v1.5.0 | SEO analysis and optimization with AUTO GATEs |
+| **SEO** | v1.5.1 | SEO analysis and optimization with AUTO GATEs |
 | **Video Editing** | v1.0.1 | FFmpeg, Whisper, Final Cut Pro integration |
 | **Nanobanana** | v2.2.3 | AI image generation with Gemini 3 Pro Image |
 | **Dev** | v1.13.0 | Universal dev assistant with UI style system, 29 skills |
@@ -194,12 +194,12 @@ CODEX_API_KEY=your-codex-key
 **Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
 
 **Current Versions:**
-- Orchestration Plugin: **v0.8.1** (2026-01-07)
+- Orchestration Plugin: **v0.8.2** (2026-01-08)
 - Frontend Plugin: **v3.13.0** (2025-12-14)
-- Code Analysis Plugin: **v2.13.0** (2026-01-08)
+- Code Analysis Plugin: **v2.13.1** (2026-01-08)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.3.0** (2026-01-05)
-- SEO Plugin: **v1.5.0** (2026-01-07)
+- SEO Plugin: **v1.5.1** (2026-01-08)
 - Video Editing Plugin: **v1.0.1** (2026-01-06)
 - Nanobanana Plugin: **v2.2.3** (2026-01-08)
 - Conductor Plugin: **v2.0.1** (2026-01-06)
@@ -213,12 +213,12 @@ CODEX_API_KEY=your-codex-key
 - ✅ **29+ Technology Skills**: Frontend, backend, design, and infrastructure skills
 
 **Git Tags:**
-- Orchestration: `plugins/orchestration/v0.8.1`
+- Orchestration: `plugins/orchestration/v0.8.2`
 - Frontend: `plugins/frontend/v3.13.0`
 - Bun: `plugins/bun/v1.5.2`
-- Code Analysis: `plugins/code-analysis/v2.13.0`
+- Code Analysis: `plugins/code-analysis/v2.13.1`
 - Agent Development: `plugins/agentdev/v1.3.0`
-- SEO: `plugins/seo/v1.5.0`
+- SEO: `plugins/seo/v1.5.1`
 - Video Editing: `plugins/video-editing/v1.0.1`
 - Nanobanana: `plugins/nanobanana/v2.2.3`
 - Conductor: `plugins/conductor/v2.0.1`
@@ -252,5 +252,5 @@ The workflow `.github/workflows/claudeup-release.yml` triggers on `tools/claudeu
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** January 8, 2026
-**Version:** 10 plugins (Orchestration v0.8.1, Frontend v3.13.0, Code Analysis v2.13.0, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.5.0, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.13.0)
+**Version:** 10 plugins (Orchestration v0.8.2, Frontend v3.13.0, Code Analysis v2.13.1, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.13.0)
 - do not use hardcoded path in code, docs, comments or any other files

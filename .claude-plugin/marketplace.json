@@ -38,8 +38,8 @@
 		{
 			"name": "code-analysis",
 			"source": "./plugins/code-analysis",
-			"description": "Deep code investigation with claudemem v0.9.0. NEW: Explore agent hook - automatically redirects to detective for AST analysis. Anti-pattern warnings, built-in alternatives (--tokens, --page-size, --max-depth). PageRank structural analysis, callers/callees tracing.",
-			"version": "2.13.0",
+			"description": "Deep code investigation with claudemem v0.9.0. v2.13.1: Fixed hooks configuration - moved from inline plugin.json to hooks/hooks.json for proper Claude Code recognition. Explore agent hook, anti-pattern warnings, PageRank structural analysis.",
+			"version": "2.13.1",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -88,8 +88,8 @@
 		{
 			"name": "orchestration",
 			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. Skills-only plugin providing proven patterns for parallel execution (3-5x speedup), dynamic model discovery, session-based artifact isolation, LLM performance tracking. v0.8.1: Fixed claudish prefix documentation - removed non-existent 'or/' prefix, corrected routing table to match claudish 3.1.3 (g/, gemini/, oai/, openai/, ollama/, lmstudio/, vllm/, mlx/).",
-			"version": "0.8.1",
+			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. v0.8.2: Fixed hooks configuration - moved from inline plugin.json to hooks/hooks.json. Skills-only plugin with parallel execution (3-5x speedup), dynamic model discovery, session-based artifact isolation, LLM performance tracking.",
+			"version": "0.8.2",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -139,8 +139,8 @@
 		{
 			"name": "seo",
 			"source": "./plugins/seo",
-			"description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.5.0: quality-gate skill for automatic progression, self-correction in analyst/researcher/writer agents (3 retries), autonomous-keyword-research skill, AUTO GATEs in /research command. Features E-E-A-T self-assessment, interactive /seo:start entry point, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
-			"version": "1.5.0",
+			"description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.5.1: Fixed hooks configuration - moved from inline plugin.json to hooks/hooks.json. Features E-E-A-T self-assessment, interactive /seo:start entry point, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
+			"version": "1.5.1",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
