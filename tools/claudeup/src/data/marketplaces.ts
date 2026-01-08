@@ -12,6 +12,7 @@ export const defaultMarketplaces: Marketplace[] = [
     },
     description: 'Professional plugins for frontend, backend, and code analysis',
     official: false,
+    featured: true, // Always show plugins (expanded by default)
   },
   {
     name: 'claude-plugins-official',
@@ -54,12 +55,16 @@ export function getAllMarketplaces(
       const repo = local.gitRepo || '';
       if (repo) seenRepos.add(repo.toLowerCase());
 
+      // Check if this marketplace has defaults (for official/featured flags)
+      const defaultMp = defaultMarketplaces.find((m) => m.name === name);
+
       all.set(name, {
         name,
         displayName: local.name || formatMarketplaceName(name),
         source: { source: 'github' as const, repo },
         description: local.description || '',
-        official: repo.toLowerCase().includes('anthropics/'),
+        official: defaultMp?.official ?? repo.toLowerCase().includes('anthropics/'),
+        featured: defaultMp?.featured,
       });
     }
   }

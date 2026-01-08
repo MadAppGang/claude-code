@@ -160,11 +160,11 @@ export async function getAvailablePlugins(projectPath?: string): Promise<PluginI
       : undefined,
   });
 
-  // Get all marketplace names (configured + official defaults)
-  // Always include official marketplaces so users can browse them
+  // Get all marketplace names (configured + official/featured defaults)
+  // Always include official and featured marketplaces so users can browse them
   const marketplaceNames = new Set<string>();
   for (const mp of defaultMarketplaces) {
-    if (configuredMarketplaces[mp.name] || mp.official) {
+    if (configuredMarketplaces[mp.name] || mp.official || mp.featured) {
       marketplaceNames.add(mp.name);
     }
   }
@@ -316,11 +316,11 @@ export async function getGlobalAvailablePlugins(): Promise<PluginInfo[]> {
       : undefined,
   });
 
-  // Get all marketplace names (configured + official defaults)
-  // Always include official marketplaces so users can browse them
+  // Get all marketplace names (configured + official/featured defaults)
+  // Always include official and featured marketplaces so users can browse them
   const marketplaceNames = new Set<string>();
   for (const mp of defaultMarketplaces) {
-    if (configuredMarketplaces[mp.name] || mp.official) {
+    if (configuredMarketplaces[mp.name] || mp.official || mp.featured) {
       marketplaceNames.add(mp.name);
     }
   }

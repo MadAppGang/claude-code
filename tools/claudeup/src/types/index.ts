@@ -32,6 +32,7 @@ export interface Marketplace {
   };
   description: string;
   official?: boolean;
+  featured?: boolean; // Featured marketplaces have plugins fetched by default (like official)
 }
 
 export interface DiscoveredMarketplace {
