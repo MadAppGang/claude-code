@@ -1,7 +1,10 @@
 #!/usr/bin/env node
 
 import { render } from 'ink';
+import { spawn } from 'node:child_process';
 import { App, VERSION } from './ui/InkApp.js';
+import { prerunClaude } from './prerunner/index.js';
+import { checkForUpdates } from './services/version-check.js';
 
 // ANSI escape codes for terminal control
 const ENTER_ALT_SCREEN = '\x1b[?1049h';
@@ -13,9 +16,33 @@ const CLEAR_SCREEN = '\x1b[2J\x1b[H';
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
-  // Handle --version flag
+  // Handle "claudeup claude [args]" - prerunner mode
+  if (args[0] === 'claude') {
+    const claudeArgs = args.slice(1);
+    const exitCode = await prerunClaude(claudeArgs);
+    process.exit(exitCode);
+    return;
+  }
+
+  // Handle "claudeup update" - self-update command
+  if (args[0] === 'update') {
+    console.log('Updating claudeup...');
+    const proc = spawn('npm', ['install', '-g', 'claudeup@latest'], {
+      stdio: 'inherit',
+      shell: true,
+    });
+    proc.on('exit', (code) => process.exit(code || 0));
+    return;
+  }
+
+  // Handle --version flag - show version and check for updates
   if (args.includes('--version') || args.includes('-v')) {
-    console.log(VERSION);
+    console.log(`claudeup v${VERSION}`);
+    const result = await checkForUpdates();
+    if (result.updateAvailable) {
+      console.log(`\nUpdate available: v${result.latestVersion}`);
+      console.log('Run: claudeup update');
+    }
     process.exit(0);
   }
 
@@ -26,11 +53,17 @@ async function main(): Promise<void> {
 TUI tool for managing Claude Code plugins, MCPs, and configuration.
 
 Usage: claudeup [options]
+       claudeup claude [args...]  Run claude with auto-update prerunner
+       claudeup update            Update claudeup to latest version
 
 Options:
-  -v, --version  Show version number
+  -v, --version  Show version and check for updates
   -h, --help     Show this help message
   --no-refresh   Skip auto-refresh of marketplaces on startup
+
+Commands:
+  claude [args...]   Check for plugin updates (1h cache), then run claude
+  update             Update claudeup itself to latest version
 
 Navigation:
   [1] Plugins    Manage plugin marketplaces and installed plugins
