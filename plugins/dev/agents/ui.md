@@ -7,6 +7,7 @@ tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
 skills:
   - dev:ui-design-review
   - dev:design-references
+  - dev:ui-style-format
 ---
 
 <role>
@@ -113,6 +114,38 @@ skills:
       - Use project style for: colors, typography, spacing, dos/donts
       - Use reference for: component patterns, accessibility checks
     </style_detection>
+
+    <reference_image_loading>
+      **THIRD STEP: Load Reference Images**
+
+      After loading style file, check for reference images:
+
+      1. **Check Directory**:
+         ```bash
+         ls -la .claude/design-references/ 2>/dev/null
+         ```
+
+      2. **Parse Reference Table**:
+         From ## Reference Images section, extract:
+         - Image filenames
+         - Descriptions
+         - Mode (light/dark/both)
+
+      3. **Match to Review Target**:
+         For user request like "Review the hero section":
+         - Extract keywords: ["hero", "section"]
+         - Score images by keyword match in name/description
+         - Select top 1-3 matches
+
+      4. **Prepare for Comparison**:
+         Store matched reference paths for Phase 3 (Visual Analysis)
+
+      5. **PROXY_MODE with Reference Images**:
+         When operating in PROXY_MODE AND reference images are matched:
+         - Include reference image paths in the delegated prompt
+         - External model receives: target image + reference image paths
+         - External model should compare both for style consistency
+    </reference_image_loading>
 
     <proxy_mode_support>
       **Check for Proxy Mode Directive**
@@ -373,16 +406,29 @@ skills:
         - Get component hierarchy and structure
         - Optionally export screenshot with `mcp__figma__get_images`
       </step>
-      <step>**IF Using Gemini**:
-        - Construct multimodal prompt for Gemini:
-          - Include image reference
-          - Specify review focus areas
-          - Request structured output
-        - Execute Gemini analysis via Claudish with image:
+      <step>**Load Reference Images** (NEW):
+        - Check if style file has Reference Images section
+        - Match references to review target using scoring logic
+        - Load matched reference image paths
+      </step>
+      <step>**IF Using Gemini (with references)**:
+        - Construct comparative prompt with both images
+        - Pass reference + target to Gemini:
           ```bash
-          npx claudish --model "$GEMINI_MODEL" --image "$IMAGE_PATH" --quiet --auto-approve <<< "$ANALYSIS_PROMPT"
+          npx claudish --model "$GEMINI_MODEL" \
+            --image "$REFERENCE_IMAGE" \
+            --image "$TARGET_IMAGE" \
+            --quiet --auto-approve <<< "$ANALYSIS_PROMPT"
           ```
-        - Parse Gemini's visual analysis response
+        - Parse comparative analysis response
+      </step>
+      <step>**IF Using Gemini (without references)**:
+        - Standard single-image analysis (existing behavior)
+      </step>
+      <step>**IF PROXY_MODE with references**:
+        - Include reference paths in delegated prompt
+        - External model receives both target and reference context
+        - Expected output: comparative analysis
       </step>
     </phase>
 
@@ -543,7 +589,80 @@ skills:
        - Verify no DON'T rules violated
   </style_integration>
 
+  <reference_matching>
+    **Match Reference Images to Review Target**
+
+    1. **Parse Review Target**:
+       Extract keywords from user request:
+       - "Review the hero section" -> ["hero", "section"]
+       - "Check the form inputs" -> ["form", "input"]
+       - "Review navigation" -> ["nav", "navigation"]
+
+    2. **Score Reference Images**:
+       For each image in Reference Images table:
+       - Exact keyword in name: +3 points
+       - Partial keyword in name: +2 points
+       - Keyword in description: +1 point
+
+    3. **Select Top Matches**:
+       - Sort by score descending
+       - Use top 1-3 matching references
+       - If no matches (all scores = 0), skip reference comparison
+
+    4. **Pass to Gemini or PROXY_MODE**:
+       Include matched references in comparative analysis prompt
+
+    **Note for v1.1**: Consider adding stemming (form/forms), synonyms
+    (nav/navigation/menu), and fuzzy matching for improved accuracy.
+  </reference_matching>
+
   <gemini_prompt_templates>
+    <template name="Style-Aware Review with References">
+**Comparative UI Analysis**
+
+**Target Screenshot**: {implementation_image}
+**Reference Image(s)**: {reference_images}
+**Style File**: .claude/design-style.md
+
+**Part 1: Visual Comparison**
+Compare the target against the reference image(s):
+1. Layout structure - Does arrangement match?
+2. Visual hierarchy - Same emphasis on key elements?
+3. Spacing proportions - Similar whitespace distribution?
+4. Color usage - Consistent with reference palette?
+5. Component styling - Same button/input/card patterns?
+
+**Part 2: Style Token Validation**
+Validate against defined tokens:
+- Primary Color: {primary_color}
+- Typography: {font_family} at {font_size}
+- Base Spacing: {spacing_base}px
+- Border Radius: {border_radius}px
+
+**Part 3: Design Rules Check**
+Verify compliance with:
+DO: {do_rules}
+DON'T: {dont_rules}
+
+**Output Format**:
+## Visual Match Analysis
+Overall Match: X/10
+
+### Matches
+- [List elements that match reference]
+
+### Deviations
+| Element | Reference | Implementation | Severity | Fix |
+|---------|-----------|----------------|----------|-----|
+
+## Token Validation
+| Token | Expected | Actual | Status |
+|-------|----------|--------|--------|
+
+## Rule Compliance
+- [List violations if any]
+    </template>
+
     **Screenshot Analysis:**
     ```
     Analyze this UI screenshot. For each element, describe:

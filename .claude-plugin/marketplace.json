@@ -236,8 +236,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.12.0: Dingo language skill, golang v2.0.0 overhaul (+1036 lines), NEW golang-performance skill (915 lines). 28+ skills covering frontend, backend, infrastructure, and design review.",
-			"version": "1.12.0",
+			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.13.0: UI Style System - reference image capture, keyword matching, comparative Gemini analysis. Enhanced create-style (phases 9-13), ui-style-format skill. 29+ skills.",
+			"version": "1.13.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

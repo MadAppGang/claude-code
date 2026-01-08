@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.12.0",
-  "description": "Universal development assistant with deep research, specification interviews, and DevOps guidance. v1.12.0: Go skills overhaul - golang v2.0.0 (+1036 lines: idiomatic patterns, error handling with %w, concurrency best practices, table-driven tests, 10 anti-patterns), NEW golang-performance skill (915 lines: pprof profiling, benchmarking, memory optimization, GC tuning). 28+ skills.",
+  "version": "1.13.0",
+  "description": "Universal development assistant with deep research, specification interviews, and DevOps guidance. v1.13.0: UI Style System - reference image capture, keyword-based matching, comparative Gemini analysis for design reviews. Enhanced create-style command (phases 9-13), ui-style-format skill. 29+ skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -89,7 +89,8 @@
     "./skills/backend/python",
     "./skills/backend/rust",
     "./skills/design/ui-design-review",
-    "./skills/design/design-references"
+    "./skills/design/design-references",
+    "./skills/design/ui-style-format"
   ],
   "dependencies": {
     "orchestration@mag-claude-plugins": "^0.8.0"
