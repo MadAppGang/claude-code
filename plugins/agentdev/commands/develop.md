@@ -1,7 +1,11 @@
 ---
-description: Full-cycle agent/command development with multi-model validation and performance tracking. Orchestrates design (architect) → plan review → implementation (developer) → quality review (reviewer) → iteration. Tracks model performance to ai-docs/llm-performance.json for shortlist optimization.
+description: |
+  Full-cycle agent/command development with multi-model validation and performance tracking.
+  Orchestrates design (architect) -> plan review -> implementation (developer) -> quality review (reviewer) -> iteration.
+  Tracks model performance to ai-docs/llm-performance.json for shortlist optimization.
+  Enable debug mode with /agentdev:debug-enable before running.
 allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: orchestration:multi-model-validation, orchestration:quality-gates, orchestration:todowrite-orchestration, orchestration:error-recovery, agentdev:xml-standards
+skills: orchestration:multi-model-validation, orchestration:quality-gates, orchestration:todowrite-orchestration, orchestration:error-recovery, agentdev:xml-standards, agentdev:debug-mode
 ---
 
 <mission>
@@ -51,9 +55,22 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
 <orchestration>
   <phases>
     <phase number="0" name="Init">
-      <objective>Setup workflow, validate prerequisites, and initialize session</objective>
+      <objective>Setup workflow, validate prerequisites, initialize session</objective>
       <steps>
         <step>Create TodoWrite with all phases</step>
+        <step>
+          **Dependency Check**:
+          ```bash
+          # Check jq availability (required for debug mode analysis)
+          if ! command -v jq &> /dev/null; then
+            echo "WARNING: jq not found. Debug analysis commands will not work."
+            echo "Install with: brew install jq (macOS) or apt-get install jq (Linux)"
+            JQ_AVAILABLE=false
+          else
+            JQ_AVAILABLE=true
+          fi
+          ```
+        </step>
         <step>Check Claudish: `npx claudish --version`</step>
         <step>If unavailable, notify user (will skip external reviews)</step>
         <step>
@@ -85,6 +102,22 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
           fi
           ```
           Store SESSION_PATH for all subsequent phases.
+        </step>
+        <step>
+          **Debug Mode Check** (reads from .claude/agentdev-debug.json):
+          ```bash
+          DEBUG_ENABLED=false
+          DEBUG_LEVEL="standard"
+          if [ -f ".claude/agentdev-debug.json" ]; then
+            if command -v jq &> /dev/null; then
+              DEBUG_ENABLED=$(jq -r '.enabled // false' .claude/agentdev-debug.json)
+              DEBUG_LEVEL=$(jq -r '.level // "standard"' .claude/agentdev-debug.json)
+            fi
+          fi
+          if [ "$DEBUG_ENABLED" = "true" ]; then
+            echo "Debug mode: ENABLED (level: $DEBUG_LEVEL)"
+          fi
+          ```
         </step>
       </steps>
       <quality_gate>Session initialized (SESSION_PATH set), Claudish checked</quality_gate>

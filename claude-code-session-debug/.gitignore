@@ -1,0 +1,17 @@
+# Debug session files contain potentially sensitive session data
+# Do not commit these to version control
+
+# JSONL debug capture files
+*.jsonl
+
+# Any JSON files (except schema)
+*.json
+!schema.json
+
+# Backup files
+*.bak
+*.backup
+
+# Temporary files
+*.tmp
+*.temp
