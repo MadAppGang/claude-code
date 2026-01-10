@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "2.13.1",
-	"description": "Deep code investigation with claudemem v0.9.0. NEW: Explore agent hook - automatically redirects to detective for AST analysis. Anti-pattern warnings, built-in alternatives (--tokens, --page-size, --max-depth). PageRank structural analysis, callers/callees dependency tracing.",
+	"version": "2.14.0",
+	"description": "Deep code investigation with claudemem. NEW v2.14.0: Imperative hook blocking with evasion detection - blocks Grep, code-search Glob patterns, and bulk Read (5+ files). Chained blocking prevents workarounds. PageRank structural analysis, callers/callees dependency tracing.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

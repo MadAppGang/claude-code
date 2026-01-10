@@ -217,6 +217,46 @@ This skill works with:
 
 ---
 
+## EVASION TRACKING NOTICE
+
+This skill is now enforced by the hook system with EVASION TRACKING:
+
+### What Gets Tracked
+
+| Tool | Tracking Behavior |
+|------|------------------|
+| Grep | Block recorded with timestamp, forbidden tools listed |
+| Glob | Check for evasion from recent Grep/Explore block |
+| Read | Count sequential reads, detect bulk patterns |
+| Bash | Check for search commands after recent block |
+
+### Evasion Window
+
+- **1 minute**: After a tool is blocked, workaround attempts within 1 minute are detected
+- **State file**: `/tmp/hook-state-{session}.json` tracks blocks and reads
+- **Rolling window**: Last 5 blocks are remembered
+
+### What Triggers Evasion Block
+
+1. **Glob after Grep blocked**: Immediately blocked with evasion message
+2. **Read (3rd) after Grep blocked**: Blocked entirely
+3. **Read (5th) standalone**: Blocked as bulk read
+4. **Bash search after any block**: Blocked if search command detected
+
+### You Cannot Escape
+
+The hook system is designed to be inescapable when claudemem is indexed:
+
+- Every Grep is blocked with results
+- Code-search Glob patterns are blocked
+- Bulk Read patterns are blocked
+- Bash search commands are blocked
+- Explore subagent is blocked
+
+**The only forward path is claudemem or detective skills.**
+
+---
+
 ## Quick Reference
 
 ```
@@ -239,5 +279,5 @@ This skill works with:
 ---
 
 **Maintained by:** MadAppGang
-**Plugin:** code-analysis v2.2.0
+**Plugin:** code-analysis v2.14.0
 **Purpose:** Intercept and redirect bulk file operations to semantic search

@@ -148,6 +148,53 @@ Task({
 ╚══════════════════════════════════════════════════════════════════╝
 ```
 
+---
+
+## WORKAROUND PROHIBITION
+
+```
+==============================================================================================
+
+   WORKAROUND TOOLS ARE BLOCKED
+
+   When Grep is blocked, DO NOT attempt:
+   - Glob with code patterns (will be blocked)
+   - Multiple Read calls (will be blocked after 3rd read)
+   - Bash with grep/rg/find (will be blocked)
+   - Task with Explore subagent (will be blocked)
+
+   The hook system TRACKS evasion attempts.
+   Sequential workaround tools WILL be blocked.
+
+   ONLY PATH FORWARD:
+      Invoke Skill: code-analysis:claudemem-search
+
+==============================================================================================
+```
+
+### Why Workarounds Fail
+
+1. **Evasion Detection**: Hook tracks "Grep blocked" state for 1 minute
+2. **Chained Blocking**: Glob/Read/Bash after Grep block triggers evasion block
+3. **Bulk Detection**: 3+ sequential Reads trigger warning, 5+ trigger block
+4. **Pattern Matching**: Code-search Glob patterns are auto-detected and blocked
+
+### The ONLY Correct Response to a Block
+
+When you see a block message like:
+
+```
+GREP BLOCKED - MANDATORY REDIRECT
+```
+
+You MUST:
+1. Read the "CLAUDEMEM RESULTS" section in the block message
+2. If results are sufficient, proceed with analysis
+3. If more data needed, invoke `code-analysis:claudemem-search` skill
+4. NEVER attempt Glob, Read, or Bash search as alternatives
+
+---
+
 ## Task-to-Tool Mapping Reference
 
 | User Request | ❌ DON'T Use | ✅ DO Use |
@@ -322,5 +369,5 @@ Don't duplicate work with inferior Read/Glob.
 ---
 
 **Maintained by:** MadAppGang
-**Plugin:** code-analysis v2.2.0
+**Plugin:** code-analysis v2.14.0
 **Purpose:** Prevent tool familiarity bias, intercept multi-file reads, enforce semantic search

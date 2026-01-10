@@ -62,43 +62,62 @@ Append the following to CLAUDE.md:
 
 ## Code Search: CLAUDEMEM ENFORCED
 
-> Added by `code-analysis` plugin v2.3.0
+> Added by `code-analysis` plugin v2.14.0
 
-### Automatic Interception
+### Mandatory Enforcement Rules
 
-The code-analysis plugin automatically intercepts search tools:
+**The hook system is INESCAPABLE when claudemem is indexed.**
 
-| Tool | Behavior |
-|------|----------|
-| **Grep** | BLOCKED → Replaced with `claudemem search` |
-| **Bash grep/rg/find** | BLOCKED → Replaced with `claudemem search` |
-| **Glob (broad patterns)** | WARNING → Suggests `claudemem search` |
-| **Read (bulk 3+ files)** | WARNING → Suggests `claudemem search` |
+| Tool | Behavior | Workaround Blocked? |
+|------|----------|-------------------|
+| **Grep** | BLOCKED - Results provided in block message | N/A (primary) |
+| **Glob (code patterns)** | BLOCKED if pattern matches `**/*.ts` etc | YES |
+| **Bash grep/rg/find** | BLOCKED - Pattern extracted and analyzed | YES |
+| **Read (3+ files)** | WARNING at 3, BLOCKED at 5+ | YES |
+| **Task (Explore)** | BLOCKED - Redirect to detective | YES |
 
-### Why
+### Evasion Detection
 
-- **Semantic search** - Finds code by meaning, not just text patterns
-- **Pre-indexed** - Instant results from vector database
-- **Ranked results** - Most relevant code chunks first
-- **No noise** - Excludes generated types, fixtures, node_modules
+The hook system tracks blocked tools and detects workaround patterns:
+
+- Grep blocked -> Glob attempted -> **EVASION BLOCKED**
+- Grep blocked -> 5 Read calls -> **BULK READ BLOCKED**
+- Explore blocked -> Bash search -> **EVASION BLOCKED**
+
+**There is no workaround. Use claudemem or detective skills.**
+
+### Required Response to Block
+
+When you see a block message:
+
+1. **READ** the provided claudemem results in the block message
+2. **USE** those results if sufficient
+3. **INVOKE** `code-analysis:claudemem-search` skill if more data needed
+4. **NEVER** attempt Glob, bulk Read, or Bash search as alternatives
 
 ### Manual Commands
 
 ```bash
 claudemem search "authentication flow"  # Semantic search
-claudemem status                         # Check index
-claudemem index                          # Re-index project
+claudemem --agent symbol "UserService"  # Find definition
+claudemem --agent callers "login"       # Impact analysis
+claudemem status                        # Check index
+claudemem index                         # Re-index project
 ```
 
-### How It Works
+### Why This Exists
 
-1. You call `Grep({ pattern: "auth" })`
-2. PreToolUse hook intercepts the call
-3. Hook runs `claudemem search "auth"` instead
-4. Results returned to Claude as context
-5. Original Grep is blocked
+1. **Token Efficiency**: claudemem ~500 tokens vs 5+ files ~5000+ tokens
+2. **Semantic Ranking**: Results ranked by relevance, not file order
+3. **No Noise**: Excludes node_modules, generated types, fixtures
+4. **AST Analysis**: Understands code structure, not just text patterns
 
-This is transparent - you get semantic results without changing your workflow.
+### Consequences of Ignoring
+
+- Workaround tools will be blocked
+- Evasion patterns are logged
+- Each block adds context overhead
+- Task fails to progress until compliance
 ```
 
 ### 6. Confirm setup
