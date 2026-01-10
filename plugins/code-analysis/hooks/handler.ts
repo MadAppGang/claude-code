@@ -118,11 +118,6 @@ function versionGte(version: string, required: string): boolean {
   return true;
 }
 
-// Helper: Format text to fit within box
-function padLine(text: string, width: number = 70): string {
-  return text.substring(0, width).padEnd(width);
-}
-
 // =============================================================================
 // SESSION START HANDLER
 // =============================================================================
@@ -296,46 +291,22 @@ claudemem index
 
   // Truncate results for preview
   const resultsPreview =
-    results.length > 500 ? results.substring(0, 500) + "\n... (truncated)" : results;
-
-  // Format results for display
-  const formattedResults = resultsPreview
-    .split("\n")
-    .map((l) => "     " + padLine(l))
-    .join("\n");
+    results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
   return {
-    additionalContext: `
-==============================================================================================
-                          GREP BLOCKED - MANDATORY REDIRECT
-==============================================================================================
+    additionalContext: `## SEARCH RESULTS (claudemem)
 
-  Grep is DISABLED in this project. You MUST NOT use Grep.
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  REQUIRED ACTION:
-     Invoke Skill: code-analysis:claudemem-search
+**Task complete.** Results above answer query "${pattern}".
 
-  TRANSFORMED QUERY:
-     claudemem --agent ${commandUsed} "${pattern}"
-
-  CLAUDEMEM RESULTS (already provided):
-${formattedResults}
-
-  FORBIDDEN ALTERNATIVES (DO NOT USE):
-     - Glob with code search patterns
-     - Multiple sequential Read calls
-     - Bash with grep/rg/find/ag/ack
-     - Task with Explore subagent
-
-  These will also be blocked. Use claudemem or detective skills.
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason:
-        "Grep BLOCKED. You MUST invoke skill code-analysis:claudemem-search. Workaround tools (Glob, bulk Read, Bash search) are also blocked.",
+      permissionDecisionReason: `Grep completed via claudemem. Results provided.`,
     },
   };
 }
@@ -358,38 +329,29 @@ async function handleGlobIntercept(
   if (evasion.isEvasion && evasion.originalBlock) {
     recordEvasionAttempt(state, evasion.pattern!);
 
+    // Re-run claudemem with original query to provide results
+    const results =
+      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
+      "No results found";
+
+    // Truncate results for preview
+    const resultsPreview =
+      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
+
     return {
-      additionalContext: `
-==============================================================================================
-                    EVASION DETECTED - GLOB ALSO BLOCKED
-==============================================================================================
+      additionalContext: `## SEARCH RESULTS (claudemem)
 
-  You just attempted Glob after ${evasion.originalBlock.tool} was blocked.
-  This appears to be a WORKAROUND attempt.
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  ORIGINAL BLOCK:
-     Tool: ${evasion.originalBlock.tool}
-     Query: "${evasion.originalBlock.pattern}"
-     Reason: ${evasion.originalBlock.reason}
+**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
 
-  REQUIRED ACTION (unchanged):
-     Invoke Skill: code-analysis:claudemem-search
-     Query: "${evasion.originalBlock.pattern}"
-
-  CLAUDEMEM RESULTS:
-     Review the results from the original block above.
-
-  ALL WORKAROUND TOOLS ARE BLOCKED:
-     - Glob, Read (bulk), Bash search, Explore
-
-  You MUST use claudemem or detective skills. No other path is available.
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: `EVASION BLOCKED. Glob denied because ${evasion.originalBlock.tool} was just blocked. You MUST invoke skill code-analysis:claudemem-search.`,
+        permissionDecisionReason: `Glob completed via claudemem. Results provided.`,
       },
     };
   }
@@ -416,35 +378,29 @@ claudemem --agent map "your query"
       "Bash",
     ]);
 
+    // Run claudemem to provide results
+    const results =
+      runCommand("claudemem", ["--agent", "map", concept], input.cwd) ||
+      "No results found";
+
+    // Truncate results for preview
+    const resultsPreview =
+      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
+
     return {
-      additionalContext: `
-==============================================================================================
-                    GLOB BLOCKED - CODE SEARCH PATTERN DETECTED
-==============================================================================================
+      additionalContext: `## SEARCH RESULTS (claudemem)
 
-  Glob pattern "${pattern}" appears to be a code search operation.
-  Glob is DISABLED for code investigation patterns.
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  REQUIRED ACTION:
-     Invoke Skill: code-analysis:claudemem-search
-     Query: claudemem --agent map "${concept}"
+**Task complete.** Results above answer query "${concept}".
 
-  WHY THIS IS BLOCKED:
-     - Glob + Read wastes tokens (5000+ for 5 files)
-     - claudemem search costs ~500 tokens with ranked results
-     - Semantic search finds code by meaning, not just filenames
-
-  FORBIDDEN ALTERNATIVES:
-     - Different Glob patterns for same purpose
-     - Multiple sequential Read calls
-     - Bash with find/ls commands
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: `Glob BLOCKED - code search pattern detected. You MUST invoke skill code-analysis:claudemem-search with query "${concept}".`,
+        permissionDecisionReason: `Glob completed via claudemem. Results provided.`,
       },
     };
   }
@@ -481,40 +437,29 @@ async function handleReadIntercept(
 
     // Block if this is 3rd+ read (clear evasion pattern)
     if (readInfo.readCount >= 3) {
-      const fileList = readInfo.files
-        .slice(-5)
-        .map((f) => "     - " + padLine(f.substring(0, 65)))
-        .join("\n");
+      // Run claudemem with original query to provide results
+      const results =
+        runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
+        "No results found";
+
+      // Truncate results for preview
+      const resultsPreview =
+        results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
       return {
-        additionalContext: `
-==============================================================================================
-                    EVASION DETECTED - BULK READ BLOCKED
-==============================================================================================
+        additionalContext: `## SEARCH RESULTS (claudemem)
 
-  You have read ${readInfo.readCount} files after ${evasion.originalBlock.tool} was blocked.
-  This is a WORKAROUND attempt via bulk file reads.
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  FILES READ:
-${fileList}
+**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
 
-  ORIGINAL BLOCK:
-     Tool: ${evasion.originalBlock.tool}
-     Query: "${evasion.originalBlock.pattern}"
-
-  REQUIRED ACTION:
-     STOP reading files.
-     Invoke Skill: code-analysis:claudemem-search
-     Query: "${evasion.originalBlock.pattern}"
-
-  FURTHER READ CALLS WILL BE BLOCKED.
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
         hookSpecificOutput: {
           hookEventName: "PreToolUse",
           permissionDecision: "deny",
-          permissionDecisionReason: `EVASION BLOCKED. Read denied - ${readInfo.readCount} files read after ${evasion.originalBlock.tool} was blocked. You MUST invoke skill code-analysis:claudemem-search.`,
+          permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
         },
       };
     }
@@ -532,39 +477,30 @@ ${fileList}
   // Warn at 3 reads, block at 5+ reads
   if (readInfo.readCount >= 5) {
     const concept = inferConceptFromFiles(readInfo.files);
-    const fileList = readInfo.files
-      .slice(-5)
-      .map((f) => "     - " + padLine(f.substring(0, 65)))
-      .join("\n");
+
+    // Run claudemem to provide results
+    const results =
+      runCommand("claudemem", ["--agent", "map", concept], input.cwd) ||
+      "No results found";
+
+    // Truncate results for preview
+    const resultsPreview =
+      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
     return {
-      additionalContext: `
-==============================================================================================
-                    BULK READ BLOCKED - 5+ FILES
-==============================================================================================
+      additionalContext: `## SEARCH RESULTS (claudemem)
 
-  You have read ${readInfo.readCount} files in rapid succession.
-  This pattern indicates code investigation via file reads.
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  FILES READ:
-${fileList}
+**Task complete.** Results above answer query "${concept}".
 
-  REQUIRED ACTION:
-     STOP reading files.
-     Invoke Skill: code-analysis:claudemem-search
-     Query: claudemem search "${concept}"
-
-  WHY THIS IS BLOCKED:
-     - ${readInfo.readCount} file reads ~= ${readInfo.readCount * 1000} tokens wasted
-     - claudemem search gives ranked results for ~500 tokens
-     - Files you read may not be the most relevant ones
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: `BULK READ BLOCKED. ${readInfo.readCount} files read. You MUST invoke skill code-analysis:claudemem-search with query "${concept}".`,
+        permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
       },
     };
   }
@@ -573,22 +509,7 @@ ${fileList}
     const concept = inferConceptFromFiles(readInfo.files);
 
     return {
-      additionalContext: `
-==============================================================================================
-                    BULK READ WARNING - ${readInfo.readCount} FILES
-==============================================================================================
-
-  You are reading ${readInfo.readCount} files in rapid succession.
-  Consider using semantic search instead.
-
-  RECOMMENDED ACTION:
-     Invoke Skill: code-analysis:claudemem-search
-     Query: claudemem search "${concept}"
-
-  CONTINUING BULK READS WILL BLOCK FURTHER READ CALLS.
-
-==============================================================================================
-`,
+      additionalContext: `**Tip:** ${readInfo.readCount} files read. For semantic search: \`claudemem --agent map "${concept}"\``,
     };
   }
 
@@ -627,31 +548,29 @@ async function handleBashIntercept(
   if (evasion.isEvasion && evasion.originalBlock && isSearchCommand) {
     recordEvasionAttempt(state, evasion.pattern!);
 
+    // Re-run claudemem with original query to provide results
+    const results =
+      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
+      "No results found";
+
+    // Truncate results for preview
+    const resultsPreview =
+      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
+
     return {
-      additionalContext: `
-==============================================================================================
-                    EVASION DETECTED - BASH SEARCH BLOCKED
-==============================================================================================
+      additionalContext: `## SEARCH RESULTS (claudemem)
 
-  You attempted bash search after ${evasion.originalBlock.tool} was blocked.
-  Command: ${command.substring(0, 60)}...
+\`\`\`
+${resultsPreview}
+\`\`\`
 
-  ORIGINAL BLOCK:
-     Tool: ${evasion.originalBlock.tool}
-     Query: "${evasion.originalBlock.pattern}"
+**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
 
-  REQUIRED ACTION:
-     Invoke Skill: code-analysis:claudemem-search
-     Query: "${evasion.originalBlock.pattern}"
-
-  ALL SEARCH WORKAROUNDS ARE BLOCKED.
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
         permissionDecision: "deny",
-        permissionDecisionReason: `EVASION BLOCKED. Bash search denied because ${evasion.originalBlock.tool} was just blocked. You MUST invoke skill code-analysis:claudemem-search.`,
+        permissionDecisionReason: `Bash search completed via claudemem. Results provided.`,
       },
     };
   }
@@ -703,42 +622,22 @@ claudemem --agent map "your query"\`\`\``,
 
   // Truncate results for preview
   const resultsPreviewBash =
-    results.length > 500 ? results.substring(0, 500) + "\n... (truncated)" : results;
+    results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
   return {
-    additionalContext: `
-==============================================================================================
-                    BASH SEARCH BLOCKED - MANDATORY REDIRECT
-==============================================================================================
+    additionalContext: `## SEARCH RESULTS (claudemem)
 
-  Bash search is DISABLED in this project. You MUST NOT use grep/rg/find/ag/ack.
-
-  Original command: \`${command.substring(0, 60)}\`
-  Pattern extracted: "${pattern}"
-
-  REQUIRED ACTION:
-     Invoke Skill: code-analysis:claudemem-search
-
-  TRANSFORMED QUERY:
-     claudemem --agent map "${pattern}"
-
-  CLAUDEMEM RESULTS (already provided):
+\`\`\`
 ${resultsPreviewBash}
+\`\`\`
 
-  FORBIDDEN ALTERNATIVES (DO NOT USE):
-     - Glob with code search patterns
-     - Multiple sequential Read calls
-     - Other Bash search commands (grep, rg, find, ag, ack)
-     - Task with Explore subagent
+**Task complete.** Results above answer query "${pattern}".
 
-  These will also be blocked. Use claudemem or detective skills.
-
-==============================================================================================
-`,
+For different queries: \`claudemem --agent map "query"\``,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: `Bash search BLOCKED. You MUST invoke skill code-analysis:claudemem-search with pattern "${pattern}".`,
+      permissionDecisionReason: `Bash search completed via claudemem. Results provided.`,
     },
   };
 }

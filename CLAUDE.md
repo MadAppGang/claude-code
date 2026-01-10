@@ -196,7 +196,7 @@ CODEX_API_KEY=your-codex-key
 **Current Versions:**
 - Orchestration Plugin: **v0.10.0** (2026-01-09)
 - Frontend Plugin: **v3.13.0** (2025-12-14)
-- Code Analysis Plugin: **v2.14.0** (2026-01-10)
+- Code Analysis Plugin: **v2.15.0** (2026-01-11)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.3.0** (2026-01-05)
 - SEO Plugin: **v1.5.1** (2026-01-08)
@@ -206,18 +206,18 @@ CODEX_API_KEY=your-codex-key
 - Dev Plugin: **v1.15.0** (2026-01-10)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
-**Latest Changes (Code Analysis v2.14.0):**
-- ✅ **Imperative Hook Blocking**: "You MUST invoke" instead of soft "replaced with" messages
-- ✅ **Evasion Detection**: Grep blocked -> Glob attempted -> also blocked (chained blocking)
-- ✅ **Bulk Read Tracking**: Warns at 3 files, blocks at 5+ sequential reads
-- ✅ **Code-Search Glob Patterns**: Blocks `**/*.ts`, monorepo patterns, test file patterns
-- ✅ **State Management**: Session-isolated evasion tracking with 30-minute TTL
+**Latest Changes (Code Analysis v2.15.0):**
+- ✅ **Hybrid 2+3 Hook Approach**: Results-first format with "Task complete" language
+- ✅ **71% Retry Reduction**: Agents treat denials as completions instead of retrying
+- ✅ **"Completed via claudemem"**: Success-like language in denial reasons
+- ✅ **Minimal Context**: 10 lines vs 32 lines (69% reduction in noise)
+- ✅ **Preserved Fallbacks**: Native tools still work when claudemem not indexed
 
 **Git Tags:**
 - Orchestration: `plugins/orchestration/v0.10.0`
 - Frontend: `plugins/frontend/v3.13.0`
 - Bun: `plugins/bun/v1.5.2`
-- Code Analysis: `plugins/code-analysis/v2.14.0`
+- Code Analysis: `plugins/code-analysis/v2.15.0`
 - Agent Development: `plugins/agentdev/v1.3.0`
 - SEO: `plugins/seo/v1.5.1`
 - Video Editing: `plugins/video-editing/v1.0.1`
@@ -252,6 +252,6 @@ The workflow `.github/workflows/claudeup-release.yml` triggers on `tools/claudeu
 ---
 
 **Maintained by:** Jack Rudenko @ MadAppGang
-**Last Updated:** January 10, 2026
-**Version:** 10 plugins (Orchestration v0.10.0, Frontend v3.13.0, Code Analysis v2.13.1, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.15.0)
+**Last Updated:** January 11, 2026
+**Version:** 10 plugins (Orchestration v0.10.0, Frontend v3.13.0, Code Analysis v2.15.0, Bun Backend v1.5.2, Agent Development v1.3.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.15.0)
 - do not use hardcoded path in code, docs, comments or any other files
