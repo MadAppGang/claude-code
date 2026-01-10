@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.14.0",
-  "description": "Universal development assistant with deep research, specification interviews, and DevOps guidance. v1.14.0: PROXY_MODE support for architect and test-architect agents - enables multi-model validation workflows. 29+ skills.",
+  "version": "1.15.0",
+  "description": "Universal development assistant with documentation, deep research, specification interviews, and DevOps guidance. v1.15.0: /dev:doc command with doc-writer, doc-analyzer, doc-fixer agents for comprehensive documentation management. 30+ skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -47,7 +47,10 @@
     "./agents/spec-writer.md",
     "./agents/devops.md",
     "./agents/researcher.md",
-    "./agents/synthesizer.md"
+    "./agents/synthesizer.md",
+    "./agents/doc-writer.md",
+    "./agents/doc-analyzer.md",
+    "./agents/doc-fixer.md"
   ],
   "commands": [
     "./commands/help.md",
@@ -58,7 +61,8 @@
     "./commands/ui.md",
     "./commands/create-style.md",
     "./commands/interview.md",
-    "./commands/deep-research.md"
+    "./commands/deep-research.md",
+    "./commands/doc.md"
   ],
   "skills": [
     "./skills/context-detection",
@@ -90,7 +94,8 @@
     "./skills/backend/rust",
     "./skills/design/ui-design-review",
     "./skills/design/design-references",
-    "./skills/design/ui-style-format"
+    "./skills/design/ui-style-format",
+    "./skills/documentation-standards"
   ],
   "dependencies": {
     "orchestration@mag-claude-plugins": "^0.8.0"

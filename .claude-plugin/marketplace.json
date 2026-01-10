@@ -238,8 +238,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with deep research, interviews, and DevOps guidance. v1.14.0: PROXY_MODE support for architect and test-architect agents - enables multi-model validation workflows. 29+ skills.",
-			"version": "1.14.0",
+			"description": "Universal development assistant with documentation, deep research, interviews, and DevOps guidance. v1.15.0: /dev:doc command with doc-writer, doc-analyzer, doc-fixer agents for comprehensive documentation management. 30+ skills.",
+			"version": "1.15.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
