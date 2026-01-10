@@ -596,6 +596,118 @@ const INSTALLED_PLUGINS_FILE = path.join(
 	"installed_plugins.json",
 );
 
+const KNOWN_MARKETPLACES_FILE = path.join(
+	os.homedir(),
+	".claude",
+	"plugins",
+	"known_marketplaces.json",
+);
+
+interface KnownMarketplaceEntry {
+	source: { source: string; path?: string; repo?: string };
+	installLocation: string;
+	lastUpdated: string;
+}
+
+type KnownMarketplaces = Record<string, KnownMarketplaceEntry>;
+
+/**
+ * Read known_marketplaces.json to get marketplace source info
+ */
+async function readKnownMarketplaces(): Promise<KnownMarketplaces> {
+	try {
+		if (await fs.pathExists(KNOWN_MARKETPLACES_FILE)) {
+			return await fs.readJson(KNOWN_MARKETPLACES_FILE);
+		}
+	} catch {
+		// Return empty if can't read
+	}
+	return {};
+}
+
+/**
+ * Get the source path for a plugin from its marketplace
+ * For directory-based marketplaces, returns the local directory path
+ * For GitHub marketplaces, returns the cloned repo path in ~/.claude/plugins/marketplaces/
+ */
+async function getPluginSourcePath(
+	pluginName: string,
+	marketplace: string,
+): Promise<string | null> {
+	const known = await readKnownMarketplaces();
+	const mpEntry = known[marketplace];
+
+	if (!mpEntry) {
+		return null;
+	}
+
+	let basePath: string;
+
+	if (mpEntry.source.source === "directory" && mpEntry.source.path) {
+		// Directory-based marketplace - use the source path directly
+		basePath = mpEntry.source.path;
+	} else {
+		// GitHub-based marketplace - use installLocation (cloned repo path)
+		basePath = mpEntry.installLocation;
+	}
+
+	// Look for plugin in standard locations
+	const possiblePaths = [
+		path.join(basePath, "plugins", pluginName),
+		path.join(basePath, pluginName),
+	];
+
+	for (const pluginPath of possiblePaths) {
+		if (await fs.pathExists(pluginPath)) {
+			return pluginPath;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Copy plugin files from source to cache
+ * This ensures the cache is populated with the latest plugin version
+ */
+async function copyPluginToCache(
+	pluginId: string,
+	version: string,
+	marketplace: string,
+): Promise<boolean> {
+	const { pluginName } = parsePluginId(pluginId) || {
+		pluginName: pluginId.split("@")[0],
+	};
+
+	const sourcePath = await getPluginSourcePath(pluginName, marketplace);
+	if (!sourcePath) {
+		return false;
+	}
+
+	const cachePath = getPluginCachePath(pluginId, version, marketplace);
+
+	try {
+		// Remove existing cache directory if it exists
+		if (await fs.pathExists(cachePath)) {
+			await fs.remove(cachePath);
+		}
+
+		// Copy plugin files to cache
+		await fs.copy(sourcePath, cachePath, {
+			overwrite: true,
+			errorOnExist: false,
+		});
+
+		return true;
+	} catch (error) {
+		console.warn(
+			`Failed to copy plugin ${pluginId} to cache:`,
+			error instanceof Error ? error.message : "Unknown error",
+		);
+		return false;
+	}
+}
+
 /**
  * Read installed_plugins.json registry
  */
@@ -658,6 +770,7 @@ function getPluginCachePath(
 
 /**
  * Update installed_plugins.json when a plugin is installed/updated
+ * Also copies plugin files from source to cache to ensure latest version is available
  */
 export async function updateInstalledPluginsRegistry(
 	pluginId: string,
@@ -676,6 +789,11 @@ export async function updateInstalledPluginsRegistry(
 		}
 
 		const { marketplace } = parsed;
+
+		// Copy plugin files from source to cache
+		// This ensures the cache has the latest plugin version
+		await copyPluginToCache(pluginId, version, marketplace);
+
 		const installPath = getPluginCachePath(pluginId, version, marketplace);
 		const now = new Date().toISOString();
 
