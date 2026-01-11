@@ -1,6 +1,6 @@
 ---
 name: claudemem-search
-description: "⚡ PRIMARY TOOL for semantic code search AND structural analysis. NEW: AST tree navigation with map, symbol, callers, callees, context commands. PageRank ranking. ANTI-PATTERNS: Reading files without mapping, Grep for 'how does X work', Modifying without caller analysis."
+description: "⚡ PRIMARY TOOL for semantic code search AND structural analysis. NEW: AST tree navigation with map, symbol, callers, callees, context commands. PageRank ranking. Recommended workflow: Map structure first, then search semantically, analyze callers before modifying."
 allowed-tools: Bash, Task, AskUserQuestion
 ---
 
@@ -977,123 +977,55 @@ PageRank measures how "central" a symbol is in the codebase:
 
 ---
 
-## 🔴 ANTI-PATTERNS (DO NOT DO THESE)
+## 💡 Better Approaches (Recommended Patterns)
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                           COMMON MISTAKES TO AVOID                            ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║                                                                              ║
-║  ❌ Anti-Pattern 1: Blind File Reading                                       ║
-║     → BAD: cat src/core/*.ts | head -1000                                   ║
-║     → GOOD: claudemem --agent map "your task"                         ║
-║     → WHY: Wastes tokens on irrelevant code, misses important files         ║
-║                                                                              ║
-║  ❌ Anti-Pattern 2: Grep Without Context                                     ║
-║     → BAD: grep -r "Database" src/                                          ║
-║     → GOOD: claudemem --agent symbol Database                         ║
-║     → WHY: Grep returns string matches, not semantic relationships          ║
-║                                                                              ║
-║  ❌ Anti-Pattern 3: Modifying Without Impact Analysis                        ║
-║     → BAD: Edit src/auth/tokens.ts without knowing callers                  ║
-║     → GOOD: claudemem --agent callers generateToken  FIRST            ║
-║     → WHY: Changes may break callers you don't know about                   ║
-║                                                                              ║
-║  ❌ Anti-Pattern 4: Searching Before Mapping                                 ║
-║     → BAD: claudemem search "fix the bug"                              ║
-║     → GOOD: claudemem --agent map "feature"  THEN search              ║
-║     → WHY: Search results lack context without structural understanding     ║
-║                                                                              ║
-║  ❌ Anti-Pattern 5: Ignoring PageRank                                        ║
-║     → BAD: Read every file that matches "Database"                          ║
-║     → GOOD: Focus on high-PageRank symbols first                            ║
-║     → WHY: Low-PageRank = utilities, High-PageRank = core abstractions      ║
-║                                                                              ║
-║  ❌ Anti-Pattern 6: Not Using --agent                                       ║
-║     → BAD: claudemem search "query" (includes ASCII art)                    ║
-║     → GOOD: claudemem --agent search "query"                          ║
-║     → WHY: Logo and decorations make parsing unreliable                     ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+Claudemem provides more efficient alternatives to common search patterns:
 
-### Additional Anti-Pattern: Output Truncation
+| Instead of... | Try this | Benefit |
+|---------------|----------|---------|
+| `cat src/core/*.ts \| head -1000` | `claudemem --agent map "task"` | Saves tokens, finds relevant files |
+| `grep -r "Database" src/` | `claudemem --agent symbol Database` | Semantic relationships, not just strings |
+| Edit without caller check | `claudemem --agent callers X` first | Know what depends on your changes |
+| Search immediately | `map` first, then `search` | Context improves search accuracy |
+| Read every matching file | Focus on high-PageRank symbols | Core code first, utilities later |
+| `claudemem search "query"` | `claudemem --agent search "query"` | Clean output without ASCII art |
 
-## CRITICAL: NEVER TRUNCATE CLAUDEMEM OUTPUT
+### Why These Patterns Work Better
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   ⛔ OUTPUT TRUNCATION IS FORBIDDEN                                          ║
-║                                                                              ║
-║   claudemem output is ALREADY OPTIMIZED for LLM context windows.             ║
-║   Truncating it may hide the most critical results.                          ║
-║                                                                              ║
-║   ❌ NEVER DO THIS (any form of output truncation):                          ║
-║      claudemem --agent map "query" | head -80                                ║
-║      claudemem --agent callers UserService | head -100                       ║
-║      claudemem --agent callees Func | tail -50                               ║
-║      claudemem --agent impact Svc | head -N                                  ║
-║      claudemem --agent search "auth" | grep -m 10 "pattern"                  ║
-║      claudemem --agent map "q" | awk 'NR <= 50'                              ║
-║      claudemem --agent callers X | sed '50q'                                 ║
-║      claudemem --agent search "x" | sort | head -20                          ║
-║      claudemem --agent map "q" | grep "pattern" | head -20                   ║
-║                                                                              ║
-║   WHY `tail` IS EQUALLY PROBLEMATIC:                                         ║
-║      `tail` skips the BEGINNING of output, which often contains:             ║
-║      • Summary headers showing total counts                                  ║
-║      • Highest-ranked results (PageRank, relevance score)                    ║
-║      • Context that explains what follows                                    ║
-║                                                                              ║
-║   ✅ ALWAYS DO THIS:                                                         ║
-║      claudemem --agent map "query"                                           ║
-║      claudemem --agent callers UserService                                   ║
-║      claudemem --agent callees Func                                          ║
-║      claudemem --agent impact Svc                                            ║
-║      claudemem --agent search "auth" -n 10        # Use built-in limit       ║
-║                                                                              ║
-║   WHY THIS MATTERS:                                                          ║
-║   • search results are sorted by relevance - truncating loses best matches   ║
-║   • map results are sorted by PageRank - truncating loses core architecture  ║
-║   • callers/callees show ALL dependencies - truncating causes missed changes ║
-║   • impact shows full blast radius - truncating underestimates risk          ║
-║                                                                              ║
-║   ═══════════════════════════════════════════════════════════════════════    ║
-║   IF OUTPUT IS TOO LARGE, USE BUILT-IN FLAGS:                                ║
-║   ═══════════════════════════════════════════════════════════════════════    ║
-║                                                                              ║
-║   --tokens N     Token-limited output (respects LLM context)                 ║
-║                  Example: claudemem --agent map "query" --tokens 2000        ║
-║                                                                              ║
-║   --page-size N  Pagination with N results per page                          ║
-║   --page N       Fetch specific page number                                  ║
-║                  Example: claudemem --agent search "x" --page-size 20 --page 1║
-║                                                                              ║
-║   -n N           Limit result count at query level (not post-hoc)            ║
-║                  Example: claudemem --agent search "auth" -n 10              ║
-║                                                                              ║
-║   --max-depth N  Limit traversal depth (for context, callers, impact)        ║
-║                  Example: claudemem --agent context Func --max-depth 3       ║
-║                                                                              ║
-║   ACCEPTABLE: Piping to file for later analysis                              ║
-║      claudemem --agent map "query" > /tmp/full-map.txt                       ║
-║      (Full output preserved, can be processed separately)                    ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+1. **Token Efficiency**: `map` identifies relevant files before reading, avoiding wasted context
+2. **Semantic Understanding**: `symbol` and `callers` understand code relationships, not just text
+3. **Impact Awareness**: `callers` reveals dependencies before you modify code
+4. **PageRank Guidance**: High-PageRank symbols are heavily connected - understand them first
 
-NOTE: The freshness check pattern `head -5` for sampling stale files remains valid.
-      This prohibition applies only to truncating claudemem COMMAND OUTPUT.
+### Output Handling
 
-### Anti-Pattern vs Correct Pattern Summary
+## Tip: Use Complete Claudemem Output
 
-| Anti-Pattern | Why It's Wrong | Correct Pattern |
-|--------------|----------------|-----------------|
-| Read files blindly | No ranking, token waste | `map` first, then read specific lines |
-| `grep -r "auth"` | No semantic understanding | `claudemem --agent symbol auth` |
-| Modify without callers | Breaking changes | `callers` before any modification |
-| Search immediately | No structural context | `map` → `symbol` → `callers` → search |
-| Treat all symbols equal | Miss core abstractions | Focus on high-PageRank first |
-| `cmd \| head/tail/awk/sed` | Output is pre-optimized; truncation hides critical results | Use full output or `-n`, `--tokens` flags |
+Results are ranked by PageRank - most important symbols appear first.
+Using the complete output ensures you see all relevant results.
+
+### Managing Large Output
+
+If output is too large, use built-in flags instead of truncating:
+
+| Flag | Purpose | Example |
+|------|---------|---------|
+| `--tokens N` | Limit by token count | `claudemem --agent map "query" --tokens 2000` |
+| `-n N` | Limit result count | `claudemem --agent search "auth" -n 10` |
+| `--page-size N` | Pagination | `claudemem --agent search "x" --page-size 20` |
+| `--max-depth N` | Limit traversal | `claudemem --agent context Func --max-depth 3` |
+
+**Tip:** Piping to file preserves full output: `claudemem --agent map "query" > /tmp/map.txt`
+
+### Quick Reference: Recommended Patterns
+
+| Instead of... | Try this | Why |
+|--------------|----------|-----|
+| Read files blindly | `map` first, then read specific lines | Ranked results, less tokens |
+| `grep -r "auth"` | `claudemem --agent symbol auth` | Semantic understanding |
+| Modify without callers | `callers` before any modification | Avoid breaking changes |
+| Search immediately | `map` → `symbol` → search | Structural context first |
+| `cmd \| head` | Use `-n` or `--tokens` flags | Output is pre-optimized |
 
 ---
 
@@ -1564,56 +1496,36 @@ fi
 
 ---
 
-## FALLBACK PROTOCOL
+## Fallback Options
 
-**CRITICAL: Never use grep/find/Glob without explicit user approval.**
+If claudemem returns no results or the index isn't available:
 
-If claudemem fails or returns irrelevant results:
+1. **Check index status** - Run `claudemem status` to verify
+2. **Try different query** - Rephrase or use more specific terms
+3. **Reindex if needed** - Run `claudemem index` (~1-2 min)
+4. **Native tools available** - grep/Glob work but without semantic ranking
 
-1. **STOP** - Do not silently switch to grep/find
-2. **DIAGNOSE** - Run `claudemem status` to check index health
-3. **COMMUNICATE** - Tell user what happened
-4. **ASK** - Get explicit user permission via AskUserQuestion
+### Using Native Tools
 
-```typescript
-// Fallback AskUserQuestion Templates
-AskUserQuestion({
-  questions: [{
-    question: "claudemem [command] failed or returned no relevant results. How should I proceed?",
-    header: "Investigation Issue",
-    multiSelect: false,
-    options: [
-      { label: "Reindex codebase", description: "Run claudemem index (~1-2 min)" },
-      { label: "Try different query", description: "Rephrase the search" },
-      { label: "Use grep (not recommended)", description: "Traditional search - loses semantic understanding" },
-      { label: "Cancel", description: "Stop investigation" }
-    ]
-  }]
-})
-```
+Native search tools (grep, Glob, find) are available when needed. They work well for:
+- Exact string matches
+- File pattern searches
+- When the index isn't available
 
-**Grep Fallback Warning:**
+For bypass, use: `_bypass_claudemem: true` in tool input.
 
-If user explicitly chooses grep fallback, display this warning:
+### Comparison
 
-```markdown
-## WARNING: Using Fallback Search (grep)
+| Feature | claudemem | grep/Glob |
+|---------|-----------|-----------|
+| Semantic understanding | ✓ | - |
+| Call graph analysis | ✓ | - |
+| PageRank ranking | ✓ | - |
+| Exact string match | ✓ | ✓ |
+| Works without index | - | ✓ |
 
-You have chosen to use grep as a fallback. Please understand the limitations:
-
-| Feature | claudemem | grep |
-|---------|-----------|------|
-| Semantic understanding | Yes | No |
-| Call graph analysis | Yes | No |
-| Symbol relationships | Yes | No |
-| PageRank ranking | Yes | No |
-| False positives | Low | High |
-
-**Recommendation:** After completing this task, run `claudemem index` to rebuild
-the index for future investigations.
-
-Proceeding with grep...
-```
+**Tip:** After using native tools, consider running `claudemem index` to enable
+semantic search for future investigations.
 
 **See ultrathink-detective skill for complete Fallback Protocol documentation.**
 

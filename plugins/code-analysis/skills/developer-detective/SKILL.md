@@ -1,28 +1,26 @@
 ---
 name: developer-detective
-description: "⚡ PRIMARY TOOL for: 'how does X work', 'find implementation of', 'trace data flow', 'where is X defined', 'audit integrations', 'find all usages'. Uses claudemem v0.3.0 AST with callers/callees analysis. GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ Implementation analysis skill. Best for: 'how does X work', 'find implementation of', 'trace data flow', 'where is X defined', 'find all usages'. Uses claudemem AST with callers/callees for efficient code tracing."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 
-# ⛔⛔⛔ CRITICAL: AST STRUCTURAL ANALYSIS ONLY ⛔⛔⛔
+# Developer Detective Skill
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   🧠 THIS SKILL USES claudemem v0.3.0 AST ANALYSIS EXCLUSIVELY               ║
-║                                                                              ║
-║   ❌ GREP IS FORBIDDEN                                                       ║
-║   ❌ FIND IS FORBIDDEN                                                       ║
-║   ❌ GLOB IS FORBIDDEN                                                       ║
-║                                                                              ║
-║   ✅ claudemem --agent callers <name> FOR USAGE ANALYSIS             ║
-║   ✅ claudemem --agent callees <name> FOR DEPENDENCY TRACING         ║
-║   ✅ claudemem --agent context <name> FOR FULL UNDERSTANDING         ║
-║                                                                              ║
-║   ⭐ v0.3.0: callers/callees show exact data flow and dependencies          ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill uses claudemem's callers/callees analysis for implementation investigation.
+
+## Why Claudemem Works Better for Development
+
+| Task | claudemem | Native Tools |
+|------|-----------|--------------|
+| Find usages | `callers` shows all call sites | Grep (text match) |
+| Trace dependencies | `callees` shows called functions | Manual reading |
+| Understand context | `context` gives full picture | Multiple reads |
+| Impact analysis | Caller chain reveals risk | Unknown |
+
+**Primary commands:**
+- `claudemem --agent callers <name>` - What calls this code
+- `claudemem --agent callees <name>` - What this code calls
+- `claudemem --agent context <name>` - Full understanding
 
 # Developer Detective Skill
 

@@ -1,28 +1,26 @@
 ---
 name: debugger-detective
-description: "⚡ PRIMARY TOOL for: 'why is X broken', 'find bug source', 'root cause analysis', 'trace error', 'debug issue', 'find where X fails'. Uses claudemem v0.3.0 AST with context command for call chain analysis. GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ Debugging skill. Best for: 'why is X broken', 'find bug source', 'root cause analysis', 'trace error', 'debug issue'. Uses claudemem AST with context command for efficient call chain analysis."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 
-# ⛔⛔⛔ CRITICAL: AST STRUCTURAL ANALYSIS ONLY ⛔⛔⛔
+# Debugger Detective Skill
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   🧠 THIS SKILL USES claudemem v0.3.0 AST ANALYSIS EXCLUSIVELY               ║
-║                                                                              ║
-║   ❌ GREP IS FORBIDDEN                                                       ║
-║   ❌ FIND IS FORBIDDEN                                                       ║
-║   ❌ GLOB IS FORBIDDEN                                                       ║
-║                                                                              ║
-║   ✅ claudemem --agent context <name> FOR FULL CALL CHAIN            ║
-║   ✅ claudemem --agent callers <name> TO TRACE BACK TO SOURCE        ║
-║   ✅ claudemem --agent callees <name> TO TRACE FORWARD               ║
-║                                                                              ║
-║   ⭐ v0.3.0: context shows full call chain for root cause analysis          ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill uses claudemem's context command for debugging and root cause analysis.
+
+## Why Claudemem Works Better for Debugging
+
+| Task | claudemem | Native Tools |
+|------|-----------|--------------|
+| Trace backwards | `callers` shows call chain | Manual tracing |
+| Trace forwards | `callees` shows dependencies | Manual tracing |
+| Full context | `context` gives both directions | Multiple reads |
+| Root cause | Call chain reveals origin | Trial and error |
+
+**Primary commands:**
+- `claudemem --agent context <name>` - Full call chain (callers + callees)
+- `claudemem --agent callers <name>` - Trace back to error source
+- `claudemem --agent callees <name>` - Trace forward from failure point
 
 # Debugger Detective Skill
 

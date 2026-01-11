@@ -1,32 +1,30 @@
 ---
 name: ultrathink-detective
-description: "⚡ PRIMARY TOOL for: 'comprehensive audit', 'deep analysis', 'full codebase review', 'multi-perspective investigation', 'complex questions'. Combines ALL detective perspectives (architect+developer+tester+debugger). Uses Opus model. REPLACES grep/glob entirely. Uses claudemem v0.3.0 AST with ALL commands (map, symbol, callers, callees, context). GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ Comprehensive analysis skill. Best for: 'comprehensive audit', 'deep analysis', 'full codebase review', 'multi-perspective investigation', 'complex questions'. Combines all perspectives (architect+developer+tester+debugger). Uses Opus model with full claudemem AST analysis."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 model: opus
 ---
 
-# ⛔⛔⛔ CRITICAL: AST STRUCTURAL ANALYSIS ONLY ⛔⛔⛔
+# Ultrathink Detective Skill
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   🧠 THIS SKILL USES claudemem v0.3.0 AST ANALYSIS EXCLUSIVELY               ║
-║                                                                              ║
-║   ❌ GREP IS FORBIDDEN                                                       ║
-║   ❌ FIND IS FORBIDDEN                                                       ║
-║   ❌ GLOB IS FORBIDDEN                                                       ║
-║                                                                              ║
-║   ✅ claudemem --agent map "query" FOR ARCHITECTURE                   ║
-║   ✅ claudemem --agent symbol <name> FOR EXACT LOCATIONS              ║
-║   ✅ claudemem --agent callers <name> FOR IMPACT ANALYSIS             ║
-║   ✅ claudemem --agent callees <name> FOR DEPENDENCY TRACING          ║
-║   ✅ claudemem --agent context <name> FOR FULL CALL CHAIN             ║
-║   ✅ claudemem --agent search "query" FOR SEMANTIC SEARCH             ║
-║                                                                              ║
-║   ⭐ v0.3.0: ALL commands used for comprehensive multi-dimensional analysis ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill uses ALL claudemem commands for comprehensive multi-perspective investigation.
+
+## Combines All Detective Perspectives
+
+| Perspective | Focus | Commands Used |
+|-------------|-------|---------------|
+| Architect | System design, layers | `map`, `symbol` |
+| Developer | Implementation, flow | `callers`, `callees` |
+| Tester | Coverage, gaps | `callers` for tests |
+| Debugger | Root cause, chains | `context` |
+
+**Full command set:**
+- `claudemem --agent map "query"` - Architecture overview
+- `claudemem --agent symbol <name>` - Exact locations
+- `claudemem --agent callers <name>` - Impact analysis
+- `claudemem --agent callees <name>` - Dependency tracing
+- `claudemem --agent context <name>` - Full call chain
+- `claudemem --agent search "query"` - Semantic search
 
 # Ultrathink Detective Skill
 

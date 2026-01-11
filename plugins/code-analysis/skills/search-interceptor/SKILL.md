@@ -1,74 +1,46 @@
 ---
 name: search-interceptor
-description: "⛔ INTERCEPT TRIGGER: Automatically invoked BEFORE Read 3+ files OR Glob with broad patterns. Validates whether bulk file operations should be replaced with semantic search. Prevents token waste from sequential file reads."
+description: "💡 Bulk file read optimizer. Suggests semantic search alternatives when reading multiple files. Helps reduce token usage by using claudemem's ranked results instead of sequential file reads."
 allowed-tools: Bash, AskUserQuestion
 ---
 
 # Search Interceptor
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   ⛔ INTERCEPT TRIGGERS:                                                     ║
-║                                                                              ║
-║   • About to Read 3+ files in same directory                                ║
-║   • About to Glob with **/*.ts, **/*.py, or similar broad pattern           ║
-║   • Planning sequential file reads to "understand" something                 ║
-║   • Rationalizing "let me read while agents work"                           ║
-║                                                                              ║
-║   WHEN TRIGGERED: Validate if claudemem search is better                    ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill helps optimize bulk file operations by suggesting semantic search alternatives when they would be more efficient.
 
-## Purpose
+## When Semantic Search is More Efficient
 
-This skill intercepts bulk file operations before they execute, validating whether semantic search would be more efficient.
+| Scenario | Token Cost | Alternative |
+|----------|------------|-------------|
+| Read 5+ files | ~5000 tokens | `claudemem search` (~500 tokens) |
+| Glob all *.ts files | ~3000+ tokens | `claudemem --agent map` |
+| Sequential reads to understand | Variable | One semantic query |
 
-## When This Skill Triggers
+## When to Consider Alternatives
 
-### Trigger 1: Multiple File Reads Planned
+### Multiple File Reads
 
-```
-YOU ARE ABOUT TO:
-  Read file1.ts
-  Read file2.ts
-  Read file3.ts
-  Read file4.ts
-  ...
-
-STOP. Ask: Can this be ONE claudemem query?
+If planning to read several files, consider:
+```bash
+# Instead of reading 5 files individually
+claudemem search "concept from those files" -n 15
+# Gets ranked results with context
 ```
 
-### Trigger 2: Broad Glob Pattern
+### Broad Glob Patterns
 
-```
-YOU ARE ABOUT TO:
-  Glob("src/services/**/*.ts")
-  Then read all N matches
-
-STOP. Ask: What am I looking for SEMANTICALLY?
-```
-
-### Trigger 3: Parallelization Rationalization
-
-```
-YOU ARE THINKING:
-  "Let me read these files while the agent works..."
-
-STOP. This is tool familiarity bias.
+If using patterns like `src/**/*.ts`:
+```bash
+# Instead of globbing and reading all matches
+claudemem --agent map "what you're looking for"
+# Gets structural overview with PageRank ranking
 ```
 
-### Trigger 4: File Paths in Prompt
+### File Paths Mentioned in Task
 
-```
-PROMPT MENTIONS:
-  src/services/prime/internal_api/client.ts
-  src/services/prime/api.ts
-  ...
-
-YOUR INSTINCT: Read them directly
-STOP. Search semantically first for context.
+Even when specific paths are mentioned, semantic search often finds additional relevant code:
+```bash
+claudemem search "concept related to mentioned files"
 ```
 
 ---
@@ -179,28 +151,16 @@ claudemem search "HTTP controller endpoint route handler" -n 20
 
 ---
 
-## The Psychology of Tool Familiarity Bias
+## Why Semantic Search Often Works Better
 
-### Why You Default to Read/Glob
+| Native Tools | Semantic Search |
+|--------------|-----------------|
+| No ranking | Ranked by relevance + PageRank |
+| No relationships | Shows code connections |
+| ~5000 tokens for 5 files | ~500 tokens for ranked results |
+| Only explicitly requested code | Discovers related code |
 
-1. **Predictability**: Read always works, output is deterministic
-2. **No skill overhead**: Don't need to invoke a skill first
-3. **Instant gratification**: See file contents immediately
-4. **Habit**: These are your "native" tools
-
-### Why This Is Wrong for Investigation
-
-1. **No ranking**: File #5 might be more relevant than File #1
-2. **No context**: You see code but not relationships
-3. **Token waste**: Reading 5 files costs ~5000 tokens; claudemem search costs ~500
-4. **Missing code**: You only see what you explicitly request
-
-### Breaking the Habit
-
-```
-BEFORE: "I need to understand X, let me Read files..."
-AFTER:  "I need to understand X, let me claudemem search for X concepts..."
-```
+**Tip:** For investigation tasks, try `claudemem search` first to get a ranked view of relevant code.
 
 ---
 
@@ -217,67 +177,37 @@ This skill works with:
 
 ---
 
-## EVASION TRACKING NOTICE
+## Hook System Integration
 
-This skill is now enforced by the hook system with EVASION TRACKING:
+The hook system may provide claudemem results proactively when the index is available:
 
-### What Gets Tracked
+- **Grep queries** → May receive claudemem search results instead
+- **Bulk reads** → May receive suggestion to use semantic search
+- **Broad globs** → May receive map results
 
-| Tool | Tracking Behavior |
-|------|------------------|
-| Grep | Block recorded with timestamp, forbidden tools listed |
-| Glob | Check for evasion from recent Grep/Explore block |
-| Read | Count sequential reads, detect bulk patterns |
-| Bash | Check for search commands after recent block |
+### Using the Bypass Flag
 
-### Evasion Window
+When you specifically need native tool behavior:
+```json
+{ "pattern": "exact string", "_bypass_claudemem": true }
+```
 
-- **1 minute**: After a tool is blocked, workaround attempts within 1 minute are detected
-- **State file**: `/tmp/hook-state-{session}.json` tracks blocks and reads
-- **Rolling window**: Last 5 blocks are remembered
-
-### What Triggers Evasion Block
-
-1. **Glob after Grep blocked**: Immediately blocked with evasion message
-2. **Read (3rd) after Grep blocked**: Blocked entirely
-3. **Read (5th) standalone**: Blocked as bulk read
-4. **Bash search after any block**: Blocked if search command detected
-
-### You Cannot Escape
-
-The hook system is designed to be inescapable when claudemem is indexed:
-
-- Every Grep is blocked with results
-- Code-search Glob patterns are blocked
-- Bulk Read patterns are blocked
-- Bash search commands are blocked
-- Explore subagent is blocked
-
-**The only forward path is claudemem or detective skills.**
+This tells hooks you intentionally want native tool output.
 
 ---
 
 ## Quick Reference
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    INTERCEPTION QUICK CHECK                      │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  BEFORE bulk Read/Glob, ask:                                    │
-│                                                                  │
-│  1. Is claudemem indexed?     → claudemem status                │
-│  2. Can this be ONE query?    → Usually YES                     │
-│  3. Am I rationalizing?       → "While agents work" = BAD       │
-│  4. Files in prompt?          → Search first, not Read          │
-│                                                                  │
-│  DEFAULT: Use claudemem search. EXCEPTION: Exact string match.  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+Before bulk Read/Glob operations, consider:
+
+1. **Is claudemem indexed?** → `claudemem status`
+2. **Can this be one semantic query?** → Often yes
+3. **Do you need exact matches?** → Use native tools with bypass flag
+
+**General guideline:** For understanding/investigation, try semantic search first. For exact matches, use native tools.
 
 ---
 
 **Maintained by:** MadAppGang
-**Plugin:** code-analysis v2.14.0
-**Purpose:** Intercept and redirect bulk file operations to semantic search
+**Plugin:** code-analysis v2.16.0
+**Purpose:** Help optimize bulk file operations with semantic search alternatives

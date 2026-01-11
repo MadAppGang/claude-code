@@ -1,27 +1,25 @@
 ---
 name: architect-detective
-description: "⚡ PRIMARY TOOL for: 'what's the architecture', 'system design', 'how are layers organized', 'find design patterns', 'audit structure', 'map dependencies'. Uses claudemem v0.3.0 AST structural analysis with PageRank. GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ Architecture analysis skill. Best for: 'what's the architecture', 'system design', 'how are layers organized', 'find design patterns', 'audit structure'. Uses claudemem AST structural analysis with PageRank for efficient architecture mapping."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 
-# ⛔⛔⛔ CRITICAL: AST STRUCTURAL ANALYSIS ONLY ⛔⛔⛔
+# Architect Detective Skill
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   🧠 THIS SKILL USES claudemem v0.3.0 AST ANALYSIS EXCLUSIVELY               ║
-║                                                                              ║
-║   ❌ GREP IS FORBIDDEN                                                       ║
-║   ❌ FIND IS FORBIDDEN                                                       ║
-║   ❌ GLOB IS FORBIDDEN                                                       ║
-║                                                                              ║
-║   ✅ claudemem --agent map "query" IS THE PRIMARY COMMAND             ║
-║   ✅ claudemem --agent symbol <name> FOR EXACT LOCATIONS              ║
-║                                                                              ║
-║   ⭐ v0.3.0: PageRank shows which symbols are architectural pillars         ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill uses claudemem's AST structural analysis for architecture investigation.
+
+## Why Claudemem Works Better for Architecture
+
+| Task | claudemem | Native Tools |
+|------|-----------|--------------|
+| Find core abstractions | `map` with PageRank ranking | Read all files |
+| Identify design patterns | Structural symbol graph | Grep patterns |
+| Map dependencies | `callers`/`callees` chains | Manual tracing |
+| Find architectural pillars | High-PageRank symbols | Unknown |
+
+**Primary commands:**
+- `claudemem --agent map "query"` - Architecture overview with PageRank
+- `claudemem --agent symbol <name>` - Exact file:line locations
 
 # Architect Detective Skill
 

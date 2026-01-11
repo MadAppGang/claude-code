@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "2.15.1",
-	"description": "Deep code investigation with claudemem. NEW v2.15.1: Fixed claudish model routing (removed invalid or/ prefix). v2.15.0: Hybrid 2+3 hook approach - results-first format with 'Task complete' language reduces retry behavior by 71%. Hooks provide claudemem results directly instead of blocking with banners.",
+	"version": "2.16.0",
+	"description": "Deep code investigation with claudemem. v2.16.0: Reduced hook aggressiveness - shorter TTL (30s), smarter Read evasion (5+ threshold), bypass flags (_bypass_claudemem). Skills now use benefit-focused language instead of scary warnings.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",

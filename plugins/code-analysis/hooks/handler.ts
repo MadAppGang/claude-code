@@ -43,6 +43,23 @@ import {
 } from "./state";
 
 // =============================================================================
+// BYPASS HELPER
+// =============================================================================
+
+/**
+ * Check if tool input has explicit bypass flags.
+ * Power users can add these flags to skip claudemem enforcement.
+ */
+function shouldBypass(toolInput: Record<string, unknown> | undefined): boolean {
+  if (!toolInput) return false;
+  return (
+    toolInput._bypass_claudemem === true ||
+    toolInput._native === true ||
+    toolInput._no_claudemem === true
+  );
+}
+
+// =============================================================================
 // TYPES
 // =============================================================================
 
@@ -238,6 +255,13 @@ async function handleGrepIntercept(
   const pattern = input.tool_input?.pattern as string;
   if (!pattern) return null;
 
+  // Check for explicit bypass
+  if (shouldBypass(input.tool_input)) {
+    return {
+      additionalContext: `[Bypass flag set - using native Grep]`,
+    };
+  }
+
   // Load state for evasion tracking
   const state = loadState(input.session_id);
 
@@ -320,6 +344,13 @@ async function handleGlobIntercept(
 ): Promise<HookOutput | null> {
   const pattern = input.tool_input?.pattern as string;
   if (!pattern) return null;
+
+  // Check for explicit bypass
+  if (shouldBypass(input.tool_input)) {
+    return {
+      additionalContext: `[Bypass flag set - using native Glob]`,
+    };
+  }
 
   // Load state
   const state = loadState(input.session_id);
@@ -425,29 +456,33 @@ async function handleReadIntercept(
   const filePath = input.tool_input?.file_path as string;
   if (!filePath) return null;
 
+  // Check for explicit bypass
+  if (shouldBypass(input.tool_input)) {
+    return null; // Allow native read
+  }
+
   // Load state
   const state = loadState(input.session_id);
 
-  // Check for evasion first (Read after Grep/Glob blocked)
+  // Track reads first (needed for evasion check threshold)
+  const readInfo = trackRead(state, filePath);
+
+  // Check for evasion (only triggers if 5+ reads due to state.ts threshold)
   const evasion = checkForEvasion(state, "Read");
-  if (evasion.isEvasion && evasion.originalBlock) {
-    // Track this read
-    const readInfo = trackRead(state, filePath);
+  if (evasion.isEvasion && evasion.originalBlock && readInfo.readCount >= 5) {
     recordEvasionAttempt(state, evasion.pattern!);
 
-    // Block if this is 3rd+ read (clear evasion pattern)
-    if (readInfo.readCount >= 3) {
-      // Run claudemem with original query to provide results
-      const results =
-        runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
-        "No results found";
+    // Run claudemem with original query to provide results
+    const results =
+      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
+      "No results found";
 
-      // Truncate results for preview
-      const resultsPreview =
-        results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
+    // Truncate results for preview
+    const resultsPreview =
+      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
-      return {
-        additionalContext: `## SEARCH RESULTS (claudemem)
+    return {
+      additionalContext: `## SEARCH RESULTS (claudemem)
 
 \`\`\`
 ${resultsPreview}
@@ -456,25 +491,21 @@ ${resultsPreview}
 **Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
 
 For different queries: \`claudemem --agent map "query"\``,
-        hookSpecificOutput: {
-          hookEventName: "PreToolUse",
-          permissionDecision: "deny",
-          permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
-        },
-      };
-    }
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "deny",
+        permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
+      },
+    };
   }
 
-  // Track reads even without evasion context
-  const readInfo = trackRead(state, filePath);
-
-  // Check if indexed (only relevant for warnings)
+  // Check if indexed (only relevant for blocking)
   const status = isIndexed(input.cwd);
   if (!status.indexed) {
-    return null; // No warning if not indexed
+    return null; // No blocking if not indexed
   }
 
-  // Warn at 3 reads, block at 5+ reads
+  // Only block at 5+ reads (no 3-file warning)
   if (readInfo.readCount >= 5) {
     const concept = inferConceptFromFiles(readInfo.files);
 
@@ -505,15 +536,7 @@ For different queries: \`claudemem --agent map "query"\``,
     };
   }
 
-  if (readInfo.readCount >= 3) {
-    const concept = inferConceptFromFiles(readInfo.files);
-
-    return {
-      additionalContext: `**Tip:** ${readInfo.readCount} files read. For semantic search: \`claudemem --agent map "${concept}"\``,
-    };
-  }
-
-  return null;
+  return null; // Allow individual reads (no warnings)
 }
 
 // =============================================================================
@@ -525,6 +548,13 @@ async function handleBashIntercept(
 ): Promise<HookOutput | null> {
   const command = input.tool_input?.command as string;
   if (!command) return null;
+
+  // Check for explicit bypass
+  if (shouldBypass(input.tool_input)) {
+    return {
+      additionalContext: `[Bypass flag set - using native Bash]`,
+    };
+  }
 
   // Load state
   const state = loadState(input.session_id);
@@ -651,6 +681,13 @@ async function handleTaskIntercept(
 ): Promise<HookOutput | null> {
   // Type guard check
   if (!input.tool_input || typeof input.tool_input !== "object") return null;
+
+  // Check for explicit bypass
+  if (shouldBypass(input.tool_input)) {
+    return {
+      additionalContext: `[Bypass flag set - using native Task]`,
+    };
+  }
 
   const toolInput = input.tool_input as {
     subagent_type?: string;

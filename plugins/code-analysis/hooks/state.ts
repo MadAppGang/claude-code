@@ -64,8 +64,9 @@ export interface ReadTrackResult {
 
 const STATE_DIR = "/tmp";
 const STATE_TTL_MS = 30 * 60 * 1000; // 30 minutes
-const EVASION_WINDOW_MS = 60 * 1000; // 1 minute window
+const EVASION_WINDOW_MS = 30 * 1000; // 30 seconds (reduced from 60s)
 const BULK_WINDOW_MS = 60 * 1000; // 1 minute window for bulk read detection
+const READ_EVASION_THRESHOLD = 5; // Only consider Read evasion if 5+ reads
 
 // Glob patterns that indicate code search (should be blocked)
 const CODE_SEARCH_GLOB_PATTERNS = [
@@ -152,6 +153,13 @@ export function checkForEvasion(
   for (const block of state.recent_blocks) {
     if (now - block.timestamp < EVASION_WINDOW_MS) {
       if (block.alternatives_forbidden.includes(currentTool)) {
+        // Special case: Read is NOT evasion unless bulk (5+ in window)
+        if (currentTool === "Read") {
+          if (state.read_tracker.files.length < READ_EVASION_THRESHOLD) {
+            continue; // Allow individual reads
+          }
+        }
+
         return {
           isEvasion: true,
           originalBlock: block,

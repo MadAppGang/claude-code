@@ -1,27 +1,25 @@
 ---
 name: tester-detective
-description: "⚡ PRIMARY TOOL for: 'what's tested', 'find test coverage', 'audit test quality', 'missing tests', 'edge cases', 'test patterns'. Uses claudemem v0.3.0 AST with callers analysis for test discovery. GREP/FIND/GLOB ARE FORBIDDEN."
+description: "⚡ Test analysis skill. Best for: 'what's tested', 'find test coverage', 'audit test quality', 'missing tests', 'edge cases'. Uses claudemem AST with callers analysis for efficient test discovery."
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 
-# ⛔⛔⛔ CRITICAL: AST STRUCTURAL ANALYSIS ONLY ⛔⛔⛔
+# Tester Detective Skill
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   🧠 THIS SKILL USES claudemem v0.3.0 AST ANALYSIS EXCLUSIVELY               ║
-║                                                                              ║
-║   ❌ GREP IS FORBIDDEN                                                       ║
-║   ❌ FIND IS FORBIDDEN                                                       ║
-║   ❌ GLOB IS FORBIDDEN                                                       ║
-║                                                                              ║
-║   ✅ claudemem --agent callers <name> TO FIND TESTS                  ║
-║   ✅ claudemem --agent map "test spec" TO MAP TEST INFRASTRUCTURE    ║
-║                                                                              ║
-║   ⭐ v0.3.0: callers shows which tests call each function                   ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+This skill uses claudemem's callers analysis for test coverage investigation.
+
+## Why Claudemem Works Better for Test Analysis
+
+| Task | claudemem | Native Tools |
+|------|-----------|--------------|
+| Find tests for function | `callers` shows test files | Grep *.test.ts |
+| Coverage gaps | No test callers = untested | Manual checking |
+| Test distribution | Caller analysis | Unknown |
+| Test relationships | AST direct mapping | Text search |
+
+**Primary commands:**
+- `claudemem --agent callers <name>` - Find tests that call this function
+- `claudemem --agent map "test spec"` - Map test infrastructure
 
 # Tester Detective Skill
 
