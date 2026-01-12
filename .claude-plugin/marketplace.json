@@ -38,31 +38,6 @@
 			"strict": true
 		},
 		{
-			"name": "bun",
-			"source": "./plugins/bun",
-			"description": "Production-ready TypeScript backend development with Bun runtime. Includes specialized agents for backend development, API design, and DevOps. Features comprehensive best practices, tools integration (Biome, Prisma, Hono, Docker), testing workflows, and AWS ECS deployment guidance (2025).",
-			"version": "1.5.2",
-			"author": {
-				"name": "Jack Rudenko",
-				"email": "i@madappgang.com",
-				"company": "MadAppGang"
-			},
-			"category": "development",
-			"keywords": [
-				"bun",
-				"typescript",
-				"backend",
-				"hono",
-				"prisma",
-				"biome",
-				"docker",
-				"aws-ecs",
-				"api",
-				"testing"
-			],
-			"strict": true
-		},
-		{
 			"name": "multimodel",
 			"source": "./plugins/multimodel",
 			"description": "Multi-model collaboration and blind voting. Run tasks across multiple AI models in parallel, collect independent votes (APPROVE/REJECT/ABSTAIN), and present aggregated verdicts. Features model preference memory, agent recommendations, and performance tracking.",
