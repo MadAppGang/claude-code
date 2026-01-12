@@ -38,8 +38,8 @@
 		{
 			"name": "code-analysis",
 			"source": "./plugins/code-analysis",
-			"description": "Deep code investigation with claudemem. v2.16.0: Reduced hook aggressiveness - shorter TTL (30s), smarter Read evasion (5+ threshold), bypass flags (_bypass_claudemem). Skills now use benefit-focused language.",
-			"version": "2.16.0",
+			"description": "Deep code investigation with claudemem. v3.0.0: ENRICHMENT MODE - hooks enhance native tools with AST context instead of blocking. Grep/Glob/Bash searches receive claudemem results while running normally.",
+			"version": "3.0.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",
@@ -56,7 +56,8 @@
 				"debugging",
 				"code-navigation",
 				"semantic-search",
-				"claudemem"
+				"claudemem",
+				"enrichment"
 			],
 			"strict": true
 		},
@@ -264,8 +265,8 @@
 		{
 			"name": "dev",
 			"source": "./plugins/dev",
-			"description": "Universal development assistant with documentation, deep research, interviews, and DevOps guidance. v1.15.0: /dev:doc command with doc-writer, doc-analyzer, doc-fixer agents for comprehensive documentation management. 30+ skills.",
-			"version": "1.15.1",
+			"description": "Universal development assistant with documentation, deep research, interviews, and DevOps guidance. v1.17.0: Dingo skill auto-detection - agents auto-load dingo+golang skills for .dingo files. 30+ skills.",
+			"version": "1.17.0",
 			"author": {
 				"name": "Jack Rudenko",
 				"email": "i@madappgang.com",

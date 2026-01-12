@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.15.1",
-  "description": "Universal development assistant with documentation, deep research, specification interviews, and DevOps guidance. v1.15.1: Fixed claudish model routing (removed invalid or/ prefix). v1.15.0: /dev:doc command with doc-writer, doc-analyzer, doc-fixer agents for comprehensive documentation management. 30+ skills.",
+  "version": "1.17.0",
+  "description": "Universal development assistant with self-improving learning, documentation, deep research, specification interviews, and DevOps guidance. v1.17.0: Dingo skill auto-detection - agents now auto-load dingo+golang skills when .dingo files detected. v1.16.0: Added /dev:learn command for session-based learning. 30+ skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -14,6 +14,9 @@
     "language-agnostic",
     "auto-detection",
     "multi-stack",
+    "self-improving",
+    "learning",
+    "preferences",
     "interview",
     "specification",
     "requirements",
@@ -62,7 +65,11 @@
     "./commands/create-style.md",
     "./commands/interview.md",
     "./commands/deep-research.md",
-    "./commands/doc.md"
+    "./commands/doc.md",
+    "./commands/learn.md"
+  ],
+  "outputStyles": [
+    "./output-styles/self-improving.md"
   ],
   "skills": [
     "./skills/context-detection",
