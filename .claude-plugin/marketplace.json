@@ -87,34 +87,6 @@
 			"strict": true
 		},
 		{
-			"name": "orchestration",
-			"source": "./plugins/orchestration",
-			"description": "Shared multi-agent coordination and workflow orchestration patterns for complex Claude Code workflows. v0.10.0: Preference order (PROXY_MODE first, Bash+CLI fallback), dev plugin agents added. Skills-only plugin with parallel execution (3-5x speedup), dynamic model discovery, session-based artifact isolation.",
-			"version": "0.10.1",
-			"author": {
-				"name": "Jack Rudenko",
-				"email": "i@madappgang.com",
-				"company": "MadAppGang"
-			},
-			"category": "development",
-			"keywords": [
-				"orchestration",
-				"multi-agent",
-				"workflow",
-				"claudish",
-				"quality-gates",
-				"parallel-execution",
-				"coordination",
-				"grok",
-				"gemini",
-				"consensus",
-				"error-recovery",
-				"tdd",
-				"skills"
-			],
-			"strict": true
-		},
-		{
 			"name": "multimodel",
 			"source": "./plugins/multimodel",
 			"description": "Multi-model collaboration and blind voting. Run tasks across multiple AI models in parallel, collect independent votes (APPROVE/REJECT/ABSTAIN), and present aggregated verdicts. Features model preference memory, agent recommendations, and performance tracking.",
