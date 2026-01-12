@@ -12,7 +12,7 @@
 | Plugin | Version | Purpose |
 |--------|---------|---------|
 | **Frontend** | v3.13.0 | React/TypeScript dev with 11 agents, multi-model review |
-| **Code Analysis** | v2.13.1 | Codebase investigation with claudemem, Explore agent hook |
+| **Code Analysis** | v3.0.0 | Codebase investigation with claudemem, enrichment mode (non-blocking) |
 | **Bun Backend** | v1.5.2 | TypeScript backend with Bun, Apidog integration |
 | **Orchestration** | v0.8.2 | Multi-agent coordination patterns (6 skills) |
 | **Agent Development** | v1.3.0 | Create Claude Code agents, PROXY_MODE error handling |

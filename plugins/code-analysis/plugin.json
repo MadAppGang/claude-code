@@ -1,7 +1,7 @@
 {
 	"name": "code-analysis",
-	"version": "2.16.0",
-	"description": "Deep code investigation with claudemem. v2.16.0: Reduced hook aggressiveness - shorter TTL (30s), smarter Read evasion (5+ threshold), bypass flags (_bypass_claudemem). Skills now use benefit-focused language instead of scary warnings.",
+	"version": "3.0.0",
+	"description": "Deep code investigation with claudemem. v3.0.0: ENRICHMENT MODE - hooks now enhance native tools with AST context instead of blocking. Grep/Glob/Bash searches receive claudemem results as additional context while still running normally.",
 	"author": {
 		"name": "Jack Rudenko",
 		"email": "i@madappgang.com",
@@ -20,8 +20,8 @@
 		"semantic-search",
 		"claudemem",
 		"hooks",
-		"interception",
-		"enforcement"
+		"enrichment",
+		"context-enhancement"
 	],
 	"category": "development",
 	"hooks": "./hooks/hooks.json",

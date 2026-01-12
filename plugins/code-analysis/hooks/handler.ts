@@ -1,16 +1,16 @@
 #!/usr/bin/env bun
 /**
  * =============================================================================
- * UNIFIED HOOK HANDLER - TypeScript replacement for bash scripts (v2.0.0)
+ * UNIFIED HOOK HANDLER - TypeScript replacement for bash scripts (v3.0.0)
  * =============================================================================
  * Handles all Claude Code hook events for the code-analysis plugin.
  * Replaces: session-start.sh, intercept-*.sh, auto-reindex.sh
  *
- * v2.0.0 Changes:
- * - Imperative blocking messages with visual templates
- * - Evasion tracking for workaround detection
- * - Chained blocking (Grep blocked -> Glob/Read/Bash also blocked)
- * - Bulk read detection and blocking
+ * v3.0.0 Changes (BREAKING):
+ * - Enrichment mode: hooks now ALLOW all tools (no blocking)
+ * - claudemem results provided as additional context alongside native tools
+ * - Removed evasion tracking (no longer needed)
+ * - Helpful suggestions instead of imperative blocking
  *
  * Usage: bun handler.ts < stdin.json
  * Output: JSON to fd 3 (or stdout if fd 3 not available)
@@ -32,10 +32,7 @@ import { join, extname } from "path";
 import {
   loadState,
   saveState,
-  recordBlock,
-  checkForEvasion,
   trackRead,
-  recordEvasionAttempt,
   isCodeSearchGlobPattern,
   extractConceptFromGlob,
   inferConceptFromFiles,
@@ -241,7 +238,9 @@ Run \`claudemem index\` to enable AST analysis.`,
 
 AST index: ${status.symbolCount}
 
-**ENFORCEMENT ACTIVE**: Grep/rg/find intercepted and blocked. Workaround tools (Glob, bulk Read, Bash search) are also tracked.`,
+**ENRICHMENT MODE ACTIVE**: Code search tools will receive additional context from claudemem AST analysis. Native tools will still run normally.
+
+💡 Use \`claudemem --agent map "query"\` for direct AST searches.`,
   };
 }
 
@@ -304,33 +303,28 @@ claudemem index
     commandUsed = "map";
   }
 
-  // Record this block for evasion detection
-  recordBlock(
-    state,
-    "Grep",
-    pattern,
-    "claudemem indexed - native search disabled",
-    ["Glob", "Read", "Bash"] // Forbidden alternatives
-  );
-
   // Truncate results for preview
   const resultsPreview =
     results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
   return {
-    additionalContext: `## SEARCH RESULTS (claudemem)
+    additionalContext: `## 📊 claudemem Enhancement
 
+**Pattern:** "${pattern}"
+
+**Results:**
 \`\`\`
 ${resultsPreview}
 \`\`\`
 
-**Task complete.** Results above answer query "${pattern}".
+💡 **Tip:** For faster AST-based search next time, try:
+\`claudemem --agent ${commandUsed} "${pattern}"\`
 
-For different queries: \`claudemem --agent map "query"\``,
+**Your Grep will also run below.**`,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: `Grep completed via claudemem. Results provided.`,
+      permissionDecision: "allow",
+      permissionDecisionReason: "Enriched with claudemem context",
     },
   };
 }
@@ -352,41 +346,6 @@ async function handleGlobIntercept(
     };
   }
 
-  // Load state
-  const state = loadState(input.session_id);
-
-  // Check for evasion first
-  const evasion = checkForEvasion(state, "Glob");
-  if (evasion.isEvasion && evasion.originalBlock) {
-    recordEvasionAttempt(state, evasion.pattern!);
-
-    // Re-run claudemem with original query to provide results
-    const results =
-      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
-      "No results found";
-
-    // Truncate results for preview
-    const resultsPreview =
-      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
-
-    return {
-      additionalContext: `## SEARCH RESULTS (claudemem)
-
-\`\`\`
-${resultsPreview}
-\`\`\`
-
-**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
-
-For different queries: \`claudemem --agent map "query"\``,
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: `Glob completed via claudemem. Results provided.`,
-      },
-    };
-  }
-
   // Check if indexed
   const status = isIndexed(input.cwd);
   if (!status.indexed) {
@@ -403,12 +362,6 @@ claudemem --agent map "your query"
   if (isCodeSearchGlobPattern(pattern)) {
     const concept = extractConceptFromGlob(pattern);
 
-    // Record block
-    recordBlock(state, "Glob", pattern, "code search pattern detected", [
-      "Read",
-      "Bash",
-    ]);
-
     // Run claudemem to provide results
     const results =
       runCommand("claudemem", ["--agent", "map", concept], input.cwd) ||
@@ -419,19 +372,24 @@ claudemem --agent map "your query"
       results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
     return {
-      additionalContext: `## SEARCH RESULTS (claudemem)
+      additionalContext: `## 📊 claudemem Enhancement
 
+**Detected code search pattern:** \`${pattern}\`
+**Inferred query:** "${concept}"
+
+**Results:**
 \`\`\`
 ${resultsPreview}
 \`\`\`
 
-**Task complete.** Results above answer query "${concept}".
+💡 **Tip:** For semantic search, try:
+\`claudemem --agent map "${concept}"\`
 
-For different queries: \`claudemem --agent map "query"\``,
+**Your Glob will also run below.**`,
       hookSpecificOutput: {
         hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: `Glob completed via claudemem. Results provided.`,
+        permissionDecision: "allow",
+        permissionDecisionReason: "Enriched with claudemem context",
       },
     };
   }
@@ -464,49 +422,17 @@ async function handleReadIntercept(
   // Load state
   const state = loadState(input.session_id);
 
-  // Track reads first (needed for evasion check threshold)
+  // Track reads
   const readInfo = trackRead(state, filePath);
 
-  // Check for evasion (only triggers if 5+ reads due to state.ts threshold)
-  const evasion = checkForEvasion(state, "Read");
-  if (evasion.isEvasion && evasion.originalBlock && readInfo.readCount >= 5) {
-    recordEvasionAttempt(state, evasion.pattern!);
-
-    // Run claudemem with original query to provide results
-    const results =
-      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
-      "No results found";
-
-    // Truncate results for preview
-    const resultsPreview =
-      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
-
-    return {
-      additionalContext: `## SEARCH RESULTS (claudemem)
-
-\`\`\`
-${resultsPreview}
-\`\`\`
-
-**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
-
-For different queries: \`claudemem --agent map "query"\``,
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
-      },
-    };
-  }
-
-  // Check if indexed (only relevant for blocking)
+  // Check if indexed
   const status = isIndexed(input.cwd);
   if (!status.indexed) {
-    return null; // No blocking if not indexed
+    return null; // No suggestions if not indexed
   }
 
-  // Only block at 5+ reads (no 3-file warning)
-  if (readInfo.readCount >= 5) {
+  // Show informational message at 5th read only
+  if (readInfo.readCount === 5) {
     const concept = inferConceptFromFiles(readInfo.files);
 
     // Run claudemem to provide results
@@ -519,24 +445,27 @@ For different queries: \`claudemem --agent map "query"\``,
       results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
     return {
-      additionalContext: `## SEARCH RESULTS (claudemem)
+      additionalContext: `## 💡 claudemem Suggestion
 
+**Detected:** Reading multiple files (${readInfo.readCount})
+**Inferred topic:** "${concept}"
+
+**Related code (from claudemem):**
 \`\`\`
 ${resultsPreview}
 \`\`\`
 
-**Task complete.** Results above answer query "${concept}".
+💡 **Tip:** For bulk code exploration, try:
+\`claudemem --agent map "${concept}"\`
 
-For different queries: \`claudemem --agent map "query"\``,
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: `Bulk read completed via claudemem. Results provided.`,
-      },
+This provides AST-based structural analysis instead of reading many files.
+
+**Your reads will continue normally.**`,
+      // NO hookSpecificOutput - this is purely informational
     };
   }
 
-  return null; // Allow individual reads (no warnings)
+  return null; // Allow all reads
 }
 
 // =============================================================================
@@ -556,12 +485,6 @@ async function handleBashIntercept(
     };
   }
 
-  // Load state
-  const state = loadState(input.session_id);
-
-  // Check for evasion
-  const evasion = checkForEvasion(state, "Bash");
-
   // Check if command contains grep/find/rg
   const searchPatterns = [
     /\bgrep\b/,
@@ -574,38 +497,7 @@ async function handleBashIntercept(
 
   const isSearchCommand = searchPatterns.some((p) => p.test(command));
 
-  // If evasion detected and search command, block
-  if (evasion.isEvasion && evasion.originalBlock && isSearchCommand) {
-    recordEvasionAttempt(state, evasion.pattern!);
-
-    // Re-run claudemem with original query to provide results
-    const results =
-      runCommand("claudemem", ["--agent", "map", evasion.originalBlock.pattern], input.cwd) ||
-      "No results found";
-
-    // Truncate results for preview
-    const resultsPreview =
-      results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
-
-    return {
-      additionalContext: `## SEARCH RESULTS (claudemem)
-
-\`\`\`
-${resultsPreview}
-\`\`\`
-
-**Task complete.** Results above answer query "${evasion.originalBlock.pattern}".
-
-For different queries: \`claudemem --agent map "query"\``,
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: `Bash search completed via claudemem. Results provided.`,
-      },
-    };
-  }
-
-  // Non-evasion case: Check for search commands normally
+  // If not a search command, allow it
   if (!isSearchCommand) return null;
 
   // Check if indexed
@@ -636,38 +528,34 @@ claudemem --agent map "your query"\`\`\``,
     };
   }
 
-  // Run claudemem instead
+  // Run claudemem to provide additional context
   const results =
     runCommand("claudemem", ["--agent", "map", pattern], input.cwd) ||
     "No results found";
-
-  // Record block
-  recordBlock(
-    state,
-    "Bash",
-    pattern,
-    "bash search command replaced with claudemem",
-    ["Glob", "Read"]
-  );
 
   // Truncate results for preview
   const resultsPreviewBash =
     results.length > 800 ? results.substring(0, 800) + "\n... (truncated)" : results;
 
   return {
-    additionalContext: `## SEARCH RESULTS (claudemem)
+    additionalContext: `## 📊 claudemem Enhancement
 
+**Bash search detected:** \`${command.substring(0, 60)}${command.length > 60 ? '...' : ''}\`
+**Pattern:** "${pattern}"
+
+**Results:**
 \`\`\`
 ${resultsPreviewBash}
 \`\`\`
 
-**Task complete.** Results above answer query "${pattern}".
+💡 **Tip:** For faster searches, try:
+\`claudemem --agent map "${pattern}"\`
 
-For different queries: \`claudemem --agent map "query"\``,
+**Your Bash command will also run below.**`,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason: `Bash search completed via claudemem. Results provided.`,
+      permissionDecision: "allow",
+      permissionDecisionReason: "Enriched with claudemem context",
     },
   };
 }
@@ -703,9 +591,6 @@ async function handleTaskIntercept(
     return null; // Allow all other Task calls to proceed
   }
 
-  // Load state for evasion tracking
-  const state = loadState(input.session_id);
-
   // Check if claudemem is indexed for this project
   const status = isIndexed(input.cwd);
 
@@ -728,15 +613,6 @@ Then use \`code-analysis:detective\` agent instead of Explore.`,
       },
     };
   }
-
-  // Record block for evasion tracking
-  recordBlock(
-    state,
-    "Explore",
-    toolInput.prompt || toolInput.description || "explore",
-    "claudemem indexed - Explore replaced with detective",
-    ["Glob", "Read", "Grep", "Bash"]
-  );
 
   // Extract the search intent from the prompt
   const prompt = toolInput.prompt || "";
@@ -763,46 +639,41 @@ Then use \`code-analysis:detective\` agent instead of Explore.`,
     }
   }
 
-  // Build helpful context for the redirect
-  const structuralOverview = mapResults
-    ? `\n**Structural Overview** (from claudemem map):\n${mapResults}\n`
+  // Build helpful context for the suggestion
+  const previewSection = mapResults
+    ? `
+
+**Preview from claudemem:**
+\`\`\`
+${mapResults.substring(0, 400)}${mapResults.length > 400 ? '\n... (truncated)' : ''}
+\`\`\`
+`
     : "";
 
   return {
-    additionalContext: `
-==============================================================================================
-                    EXPLORE BLOCKED - USE DETECTIVE INSTEAD
-==============================================================================================
+    additionalContext: `## 💡 Detective Agent Suggestion
 
-  The Explore agent is BLOCKED. Use \`code-analysis:detective\` instead.
+**Explore agent called with:** "${searchContext.substring(0, 100)}${searchContext.length > 100 ? '...' : ''}"
 
-  The code-analysis plugin provides AST-based structural analysis with PageRank ranking,
-  which is more effective than the built-in Explore agent's grep/find approach.
-${structuralOverview}
-  HOW TO USE:
+For AST-based structural analysis with PageRank ranking, consider using:
+\`\`\`
+Task({
+  subagent_type: "code-analysis:detective",
+  prompt: "${escapeForTemplate(searchContext)}",
+  description: "Investigate codebase structure"
+})
+\`\`\`
 
-  Task({
-    subagent_type: "code-analysis:detective",
-    prompt: "${escapeForTemplate(searchContext || "your search query")}",
-    description: "Investigate codebase structure"
-  })
-
-  WHAT DETECTIVE PROVIDES:
-  - AST structural analysis (not just text matching)
-  - PageRank symbol importance ranking
-  - Caller/callee dependency tracing
-  - Semantic code navigation
-
-  WORKAROUND TOOLS ARE ALSO BLOCKED:
-  - Glob, Read (bulk), Grep, Bash search
-
-==============================================================================================
-`,
+**Why detective?**
+- AST structural analysis (not text matching)
+- PageRank symbol importance ranking
+- Caller/callee dependency tracing
+${previewSection}
+**Your Explore agent will also run below if you choose.**`,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
-      permissionDecision: "deny",
-      permissionDecisionReason:
-        "Explore agent replaced with code-analysis:detective for AST structural analysis. See context above for how to use detective.",
+      permissionDecision: "allow",
+      permissionDecisionReason: "Suggested detective agent, but allowing Explore",
     },
   };
 }
