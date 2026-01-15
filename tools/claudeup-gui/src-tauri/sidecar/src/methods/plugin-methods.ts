@@ -25,7 +25,7 @@ import {
   type PluginInfo,
   type LoggerCallback,
   type ProgressCallback,
-} from 'claudeup-core';
+} from '../../../../../claudeup-core/dist/index.js';
 
 type Scope = 'global' | 'project' | 'local';
 
