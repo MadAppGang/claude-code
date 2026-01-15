@@ -10,10 +10,12 @@ import RightSidebar from './components/plugins/RightSidebar';
 import { usePlugins } from './hooks/usePlugins';
 import { adaptPluginsFromBackend } from './utils/pluginAdapter';
 import { useMarketplaces, useAddMarketplace, useRemoveMarketplace, Marketplace } from './hooks/useMarketplaces';
-import { useProjects, useCurrentProject, useSwitchProject, Project } from './hooks/useProjects';
+import { useProjects, useCurrentProject, useSwitchProject, useAddProject, useRemoveProject, Project } from './hooks/useProjects';
+import { useProjectDialog } from './hooks/useProjectDialog';
 import { ToastProvider, useToast, ToastContainer } from './components/Toast';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ErrorDisplay } from './components/ErrorDisplay';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,6 +74,9 @@ const AppContent: React.FC = () => {
   const addMarketplaceMutation = useAddMarketplace();
   const removeMarketplaceMutation = useRemoveMarketplace();
   const switchProjectMutation = useSwitchProject();
+  const addProjectMutation = useAddProject();
+  const removeProjectMutation = useRemoveProject();
+  const { selectProjectFolder } = useProjectDialog();
 
   // Transform backend data to frontend format
   const plugins = useMemo(() => {
@@ -171,14 +176,44 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleSwitchProject = async (path: string) => {
+  const handleAddProject = async () => {
+    const path = await selectProjectFolder();
+    if (!path) return; // User cancelled
+
     try {
-      await switchProjectMutation.mutateAsync({ path });
+      await addProjectMutation.mutateAsync({ path });
+      toast.addToast('Project added successfully', 'success');
+    } catch (error) {
+      toast.addToast(
+        `Failed to add project: ${error instanceof Error ? error.message : String(error)}`,
+        'error'
+      );
+    }
+  };
+
+  const handleSwitchProject = async (projectId: string) => {
+    try {
+      await switchProjectMutation.mutateAsync({ projectId });
       setIsProjectMenuOpen(false);
       toast.addToast('Switched project successfully', 'success');
     } catch (error) {
       toast.addToast(
         `Failed to switch project: ${error instanceof Error ? error.message : String(error)}`,
+        'error'
+      );
+    }
+  };
+
+  const handleRemoveProject = async (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    if (!window.confirm("Remove this project?")) return;
+
+    try {
+      await removeProjectMutation.mutateAsync({ projectId });
+      toast.addToast('Project removed successfully', 'success');
+    } catch (error) {
+      toast.addToast(
+        `Failed to remove project: ${error instanceof Error ? error.message : String(error)}`,
         'error'
       );
     }
@@ -223,6 +258,11 @@ const AppContent: React.FC = () => {
   const isLoading = pluginsLoading || marketplacesLoading || projectsLoading || currentProjectLoading;
   if (isLoading) {
     return <LoadingSpinner message="Loading data..." />;
+  }
+
+  // Show welcome screen if no project selected
+  if (!currentProject) {
+    return <WelcomeScreen onAddProject={handleAddProject} />;
   }
 
   // Helper to extract error message from various error types
@@ -322,8 +362,8 @@ const AppContent: React.FC = () => {
               {projects.map(proj => (
                 <button
                   key={proj.id}
-                  onClick={() => handleSwitchProject(proj.path)}
-                  className={`flex items-center gap-2.5 px-2 py-2 rounded text-left transition-colors ${
+                  onClick={() => handleSwitchProject(proj.id)}
+                  className={`flex items-center gap-2.5 px-2 py-2 rounded text-left transition-colors group relative ${
                     proj.id === activeProject?.id ? 'bg-accent/10 text-textMain' : 'hover:bg-white/5 text-textMuted hover:text-textMain'
                   }`}
                 >
@@ -333,12 +373,24 @@ const AppContent: React.FC = () => {
                     <span className="text-[10px] text-textFaint truncate">{proj.path}</span>
                   </div>
                   {proj.id === activeProject?.id && <Check size={12} className="text-accent" />}
+
+                  {/* Delete Button */}
+                  <div
+                    onClick={(e) => handleRemoveProject(e, proj.id)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-red-500/20 text-textFaint hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all z-10"
+                    title="Remove Project"
+                  >
+                    <Trash2 size={10} />
+                  </div>
                 </button>
               ))}
 
               <div className="h-px bg-borderSubtle my-1" />
 
-              <button className="flex items-center gap-2.5 px-2 py-2 rounded hover:bg-white/5 text-textMain text-left transition-colors">
+              <button
+                onClick={handleAddProject}
+                className="flex items-center gap-2.5 px-2 py-2 rounded hover:bg-white/5 text-textMain text-left transition-colors"
+              >
                 <FolderOpen size={13} className="text-textFaint" />
                 <span className="text-[12px] font-medium">Open Folder...</span>
               </button>
