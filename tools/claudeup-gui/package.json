@@ -1,6 +1,6 @@
 {
   "name": "claudeup",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Cross-platform GUI for claudeup plugin manager",
   "type": "module",
   "scripts": {
