@@ -26,7 +26,7 @@
     "longDescription": "Cross-platform desktop application for managing Claude Code plugins, MCP servers, and configuration.",
     "macOS": {
       "minimumSystemVersion": "10.15",
-      "signingIdentity": "-",
+      "signingIdentity": "Developer ID Application: MADAPPGANG PTY. LTD. (E85N35G3YB)",
       "providerShortName": null,
       "entitlements": null
     },
