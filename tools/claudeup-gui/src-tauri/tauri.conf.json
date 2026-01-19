@@ -18,13 +18,27 @@
     ],
     "resources": [],
     "externalBin": ["binaries/claudeup-sidecar"],
-    "copyright": "",
+    "copyright": "© 2026 MadAppGang",
     "shortDescription": "GUI for claudeup plugin manager",
     "longDescription": "Cross-platform desktop application for managing Claude Code plugins, MCP servers, and configuration.",
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    },
     "windows": {
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERBNDU3OENFM0FBN0VCMDEKUldRQjY2YzZ6bmhGMnJUaVdsQnNzNUcvMlY2aGE2b1lkdXVHRXJVK1hjSmxPT1lESWtTZWZrelUK",
+      "endpoints": [
+        "https://github.com/MadAppGang/claude-code/releases/latest/download/latest.json"
+      ]
     }
   },
   "app": {

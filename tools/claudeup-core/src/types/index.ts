@@ -66,12 +66,15 @@ export interface DiscoveredMarketplace {
 
 // Installed plugins registry
 export interface InstalledPluginEntry {
-  pluginName: string;
+  pluginName?: string;
   version: string;
-  marketplace: string;
+  marketplace?: string;
   scope: 'user' | 'project' | 'local';
   projectPath?: string;
+  installPath?: string;
   installedAt: string;
+  lastUpdated?: string;
+  gitCommitSha?: string;
 }
 
 export interface InstalledPluginsRegistry {

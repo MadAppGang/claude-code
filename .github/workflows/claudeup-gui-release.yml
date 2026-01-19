@@ -1,0 +1,149 @@
+name: claudeup-gui Release
+
+on:
+  push:
+    tags:
+      - 'tools/claudeup-gui/v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # For macOS signing (set these in GitHub Secrets)
+  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+  # For Tauri updater
+  TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+
+jobs:
+  build-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            sidecar_name: claudeup-sidecar-aarch64-apple-darwin
+          - platform: macos-13
+            target: x86_64-apple-darwin
+            sidecar_name: claudeup-sidecar-x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            sidecar_name: claudeup-sidecar-x86_64-unknown-linux-gnu
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            sidecar_name: claudeup-sidecar-x86_64-pc-windows-msvc.exe
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      # Import Apple certificate for macOS signing
+      - name: Import Apple Certificate
+        if: runner.os == 'macOS' && env.APPLE_CERTIFICATE != ''
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_CERTIFICATE }}
+          p12-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+
+      # Build claudeup-core first (needed by sidecar)
+      - name: Install claudeup-core dependencies
+        working-directory: tools/claudeup-core
+        run: npm install
+
+      - name: Build claudeup-core (JS only)
+        working-directory: tools/claudeup-core
+        run: npx tsup src/index.ts --format esm,cjs --no-dts --outDir dist
+
+      # Build sidecar
+      - name: Install sidecar dependencies
+        working-directory: tools/claudeup-gui/src-tauri/sidecar
+        run: npm install
+
+      - name: Build sidecar TypeScript
+        working-directory: tools/claudeup-gui/src-tauri/sidecar
+        run: bun build src/server.ts --outdir dist --target node --minify
+
+      - name: Compile sidecar to native binary (Unix)
+        if: runner.os != 'Windows'
+        working-directory: tools/claudeup-gui/src-tauri/sidecar
+        run: |
+          bun build dist/server.js --compile --outfile ../binaries/${{ matrix.sidecar_name }}
+          chmod +x ../binaries/${{ matrix.sidecar_name }}
+
+      - name: Compile sidecar to native binary (Windows)
+        if: runner.os == 'Windows'
+        working-directory: tools/claudeup-gui/src-tauri/sidecar
+        run: bun build dist/server.js --compile --outfile ../binaries/${{ matrix.sidecar_name }}
+
+      # Build frontend
+      - name: Install frontend dependencies
+        working-directory: tools/claudeup-gui
+        run: npm install
+
+      # Build Tauri app with signing
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS notarization
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Tauri updater signing
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: tools/claudeup-gui
+          tagName: ${{ github.ref_name }}
+          releaseName: 'claudeup-gui v__VERSION__'
+          releaseBody: |
+            ## claudeup-gui v__VERSION__
+
+            Cross-platform GUI for managing Claude Code plugins, MCP servers, and configuration.
+
+            ### Download
+
+            | Platform | Download |
+            |----------|----------|
+            | **macOS (Apple Silicon)** | [claudeup-gui_\_\_VERSION\_\__aarch64.dmg](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___aarch64.dmg) |
+            | **macOS (Intel)** | [claudeup-gui_\_\_VERSION\_\__x64.dmg](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64.dmg) |
+            | **Windows** | [claudeup-gui_\_\_VERSION\_\__x64-setup.exe](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64-setup.exe) |
+            | **Linux (deb)** | [claudeup-gui_\_\_VERSION\_\__amd64.deb](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___amd64.deb) |
+            | **Linux (AppImage)** | [claudeup-gui_\_\_VERSION\_\__amd64.AppImage](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___amd64.AppImage) |
+
+            ### Auto-Updates
+            This app supports automatic updates. Once installed, you'll receive updates automatically.
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }}

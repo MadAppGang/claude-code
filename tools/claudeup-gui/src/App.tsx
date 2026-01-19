@@ -148,15 +148,15 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleRemoveMarketplace = async (e: React.MouseEvent, id: string) => {
+  const handleRemoveMarketplace = async (e: React.MouseEvent, mp: { id: string; name: string }) => {
     e.stopPropagation();
     if (!window.confirm("Remove this marketplace?")) return;
 
     try {
-      await removeMarketplaceMutation.mutateAsync({ id });
+      await removeMarketplaceMutation.mutateAsync({ name: mp.name });
       toast.addToast('Marketplace removed successfully', 'success');
 
-      if (state.activeMarketplace === id && marketplaces.length > 0) {
+      if (state.activeMarketplace === mp.id && marketplaces.length > 0) {
         setState(prev => ({ ...prev, activeMarketplace: marketplaces[0].id }));
       }
     } catch (error) {
@@ -435,7 +435,7 @@ const AppContent: React.FC = () => {
 
                 {/* Delete Button (Hidden unless hover) */}
                 <div
-                   onClick={(e) => handleRemoveMarketplace(e, mp.id)}
+                   onClick={(e) => handleRemoveMarketplace(e, mp)}
                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded hover:bg-red-500/20 text-textFaint hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all z-10"
                    title="Remove Registry"
                 >
