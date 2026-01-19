@@ -1,0 +1,46 @@
+{
+  "name": "instantly",
+  "version": "1.0.1",
+  "description": "Cold email outreach toolkit with Instantly.ai MCP integration. Features campaign analytics, sequence building, A/B testing, lead management, and auto-optimization. ~75% autonomy with user confirmation for sending operations.",
+  "author": {
+    "name": "Jack Rudenko",
+    "email": "i@madappgang.com",
+    "company": "MadAppGang"
+  },
+  "license": "MIT",
+  "keywords": [
+    "instantly",
+    "cold-email",
+    "outreach",
+    "email-campaigns",
+    "lead-generation",
+    "ab-testing",
+    "email-sequences",
+    "deliverability",
+    "sales-automation"
+  ],
+  "category": "productivity",
+  "dependencies": {
+    "orchestration@mag-claude-plugins": "^0.8.0"
+  },
+  "agents": [
+    "./agents/campaign-analyst.md",
+    "./agents/sequence-builder.md",
+    "./agents/outreach-optimizer.md"
+  ],
+  "commands": [
+    "./commands/start.md",
+    "./commands/analytics.md",
+    "./commands/sequence.md",
+    "./commands/ab-test.md",
+    "./commands/leads.md"
+  ],
+  "skills": [
+    "./skills/campaign-metrics",
+    "./skills/ab-testing-patterns",
+    "./skills/sequence-best-practices",
+    "./skills/email-deliverability"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./mcp-servers/mcp-config.json"
+}

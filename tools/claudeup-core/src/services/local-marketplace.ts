@@ -18,6 +18,95 @@ import { validateFilePath } from '../utils/validators.js';
 
 const execAsync = promisify(execCb);
 
+/**
+ * Metadata extracted from component markdown frontmatter
+ */
+export interface ComponentMeta {
+  name: string;
+  description?: string;
+  allowedTools?: string[];
+  disableModelInvocation?: boolean;
+  // Additional frontmatter fields
+  [key: string]: unknown;
+}
+
+/**
+ * Parse YAML frontmatter from markdown content
+ */
+function parseFrontmatter(content: string): Record<string, unknown> {
+  const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!frontmatterMatch) return {};
+
+  const frontmatter: Record<string, unknown> = {};
+  const lines = frontmatterMatch[1].split('\n');
+
+  for (const line of lines) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const key = line.slice(0, colonIndex).trim();
+    let value: string | boolean | string[] = line.slice(colonIndex + 1).trim();
+
+    // Strip surrounding quotes from YAML strings
+    if (typeof value === 'string' && value.length >= 2) {
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+    }
+
+    // Parse boolean values
+    if (value === 'true') value = true;
+    else if (value === 'false') value = false;
+    // Parse comma-separated lists (like allowed-tools)
+    else if (key === 'allowed-tools' && typeof value === 'string') {
+      value = value.split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    frontmatter[key] = value;
+  }
+
+  return frontmatter;
+}
+
+/**
+ * Truncate description to a reasonable length for UI display
+ */
+function truncateDescription(desc: string | undefined, maxLength = 100): string | undefined {
+  if (!desc) return undefined;
+  // Remove newlines, escape sequences, and excessive whitespace
+  const cleaned = desc
+    .replace(/\\n/g, ' ')
+    .replace(/\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  // Truncate at word boundary
+  const truncated = cleaned.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(' ');
+  return (lastSpace > maxLength * 0.7 ? truncated.slice(0, lastSpace) : truncated) + '...';
+}
+
+/**
+ * Extract component metadata from a markdown file
+ */
+async function extractComponentMeta(filePath: string, name: string): Promise<ComponentMeta> {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    const frontmatter = parseFrontmatter(content);
+
+    // Only extract specific known fields, don't spread all frontmatter
+    return {
+      name,
+      description: truncateDescription(frontmatter['description'] as string | undefined),
+      allowedTools: frontmatter['allowed-tools'] as string[] | undefined,
+      disableModelInvocation: frontmatter['disable-model-invocation'] as boolean | undefined,
+    };
+  } catch {
+    return { name };
+  }
+}
+
 export interface LocalMarketplacePlugin {
   name: string;
   version: string;
@@ -27,9 +116,9 @@ export interface LocalMarketplacePlugin {
   author?: { name: string; email?: string };
   strict?: boolean;
   lspServers?: Record<string, unknown>;
-  agents?: string[];
-  commands?: string[];
-  skills?: string[];
+  agents?: ComponentMeta[];
+  commands?: ComponentMeta[];
+  skills?: ComponentMeta[];
   mcpServers?: string[];
 }
 
@@ -159,9 +248,9 @@ async function scanSingleMarketplace(
 
     if (manifest.plugins && Array.isArray(manifest.plugins)) {
       for (const plugin of manifest.plugins) {
-        let agents: string[] = [];
-        let commands: string[] = [];
-        let skills: string[] = [];
+        let agents: ComponentMeta[] = [];
+        let commands: ComponentMeta[] = [];
+        let skills: ComponentMeta[] = [];
         let mcpServers: string[] = [];
 
         const sourceStr = typeof plugin.source === 'string' ? plugin.source : null;
@@ -176,24 +265,40 @@ async function scanSingleMarketplace(
           }
 
           try {
-            // Scan for agents
+            // Scan for agents with metadata
             const agentsDir = path.join(pluginPath, 'agents');
             if (await fs.pathExists(agentsDir)) {
               const agentFiles = await fs.readdir(agentsDir);
-              agents = agentFiles.filter((f) => f.endsWith('.md')).map((f) => f.replace('.md', ''));
+              const mdFiles = agentFiles.filter((f) => f.endsWith('.md'));
+              agents = await Promise.all(
+                mdFiles.map((f) => extractComponentMeta(path.join(agentsDir, f), f.replace('.md', '')))
+              );
             }
-            // Scan for commands
+            // Scan for commands with metadata
             const commandsDir = path.join(pluginPath, 'commands');
             if (await fs.pathExists(commandsDir)) {
               const cmdFiles = await fs.readdir(commandsDir);
-              commands = cmdFiles.filter((f) => f.endsWith('.md')).map((f) => f.replace('.md', ''));
+              const mdFiles = cmdFiles.filter((f) => f.endsWith('.md'));
+              commands = await Promise.all(
+                mdFiles.map((f) => extractComponentMeta(path.join(commandsDir, f), f.replace('.md', '')))
+              );
             }
-            // Scan for skills
+            // Scan for skills with metadata
             const skillsDir = path.join(pluginPath, 'skills');
             if (await fs.pathExists(skillsDir)) {
-              const skillFiles = await fs.readdir(skillsDir);
-              skills = skillFiles.filter(
-                (f) => f.endsWith('.md') || fs.statSync(path.join(skillsDir, f)).isDirectory(),
+              const entries = await fs.readdir(skillsDir, { withFileTypes: true });
+              const skillItems = entries.filter((e) => e.name.endsWith('.md') || e.isDirectory());
+              skills = await Promise.all(
+                skillItems.map(async (e) => {
+                  const skillPath = e.isDirectory()
+                    ? path.join(skillsDir, e.name, 'SKILL.md')
+                    : path.join(skillsDir, e.name);
+                  const name = e.name.replace('.md', '');
+                  if (await fs.pathExists(skillPath)) {
+                    return extractComponentMeta(skillPath, name);
+                  }
+                  return { name };
+                })
               );
             }
             // Scan for MCP servers

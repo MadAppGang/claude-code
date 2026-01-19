@@ -2,14 +2,14 @@
   "enabledPlugins": {
     "agentdev@mag-claude-plugins": true,
     "code-analysis@mag-claude-plugins": true,
-    "orchestration@mag-claude-plugins": true,
     "agent-sdk-dev@claude-code-plugins": true,
     "commit-commands@claude-code-plugins": true,
     "explanatory-output-style@claude-code-plugins": true,
     "learning-output-style@claude-code-plugins": true,
-    "plugin-dev@claude-code-plugins": true,
     "ralph-wiggum@claude-code-plugins": true,
-    "feature-dev@claude-code-plugins": true
+    "feature-dev@claude-code-plugins": true,
+    "dev@mag-claude-plugins": true,
+    "multimodel@mag-claude-plugins": true
   },
   "enableAllProjectMcpServers": true,
   "extraKnownMarketplaces": {
@@ -33,6 +33,8 @@
     "learning-output-style@claude-code-plugins": "1.0.0",
     "plugin-dev@claude-code-plugins": "0.1.0",
     "ralph-wiggum@claude-code-plugins": "1.0.0",
-    "feature-dev@claude-code-plugins": "1.0.0"
+    "feature-dev@claude-code-plugins": "1.0.0",
+    "dev@mag-claude-plugins": "1.17.0",
+    "multimodel@mag-claude-plugins": "1.0.0"
   }
 }

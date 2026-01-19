@@ -15,11 +15,14 @@
  */
 
 import path from "node:path";
+import os from "node:os";
 import {
   getConfiguredMarketplaces,
   getEnabledPlugins,
   readSettings,
   writeSettings,
+  readGlobalSettings,
+  writeGlobalSettings,
   getGlobalConfiguredMarketplaces,
   getGlobalEnabledPlugins,
   getGlobalInstalledPluginVersions,
@@ -28,6 +31,10 @@ import {
   updateInstalledPluginsRegistry,
   removeFromInstalledPluginsRegistry,
 } from "./claude-settings.js";
+
+// Path constants for local marketplaces
+const MARKETPLACES_DIR = path.join(os.homedir(), ".claude", "plugins", "marketplaces");
+const KNOWN_MARKETPLACES_FILE = path.join(os.homedir(), ".claude", "plugins", "known_marketplaces.json");
 import { defaultMarketplaces } from "../data/marketplaces.js";
 import {
   scanLocalMarketplaces,
@@ -37,6 +44,7 @@ import {
   type RefreshResult,
   type ProgressCallback,
   type RepairMarketplaceResult,
+  type ComponentMeta,
 } from "./local-marketplace.js";
 import {
   formatMarketplaceName,
@@ -78,9 +86,9 @@ export interface PluginInfo {
   author?: { name: string; email?: string };
   homepage?: string;
   tags?: string[];
-  agents?: string[];
-  commands?: string[];
-  skills?: string[];
+  agents?: ComponentMeta[];
+  commands?: ComponentMeta[];
+  skills?: ComponentMeta[];
   mcpServers?: string[];
   lspServers?: Record<string, unknown>;
 }
@@ -191,17 +199,31 @@ export async function getAvailablePlugins(
   projectPath?: string,
   logger?: LoggerCallback,
 ): Promise<PluginInfo[]> {
-  const configuredMarketplaces = await getConfiguredMarketplaces(projectPath);
-  const enabledPlugins = await getEnabledPlugins(projectPath);
-  const installedVersions = await getInstalledPluginVersions(projectPath);
+  const configuredMarketplaces = projectPath
+    ? await getConfiguredMarketplaces(projectPath)
+    : await getGlobalConfiguredMarketplaces();
+  const enabledPlugins = projectPath
+    ? await getEnabledPlugins(projectPath)
+    : await getGlobalEnabledPlugins();
+  const installedVersions = projectPath
+    ? await getInstalledPluginVersions(projectPath)
+    : await getGlobalInstalledPluginVersions();
 
   // Fetch all scopes for per-scope status
   const userEnabledPlugins = await getGlobalEnabledPlugins();
   const userInstalledVersions = await getGlobalInstalledPluginVersions();
-  const projectEnabledPlugins = await getEnabledPlugins(projectPath);
-  const projectInstalledVersions = await getInstalledPluginVersions(projectPath);
-  const localEnabledPlugins = await getLocalEnabledPlugins(projectPath);
-  const localInstalledVersions = await getLocalInstalledPluginVersions(projectPath);
+  const projectEnabledPlugins = projectPath
+    ? await getEnabledPlugins(projectPath)
+    : {};
+  const projectInstalledVersions = projectPath
+    ? await getInstalledPluginVersions(projectPath)
+    : {};
+  const localEnabledPlugins = projectPath
+    ? await getLocalEnabledPlugins(projectPath)
+    : {};
+  const localInstalledVersions = projectPath
+    ? await getLocalInstalledPluginVersions(projectPath)
+    : {};
 
   const plugins: PluginInfo[] = [];
   const seenPluginIds = new Set<string>();
@@ -240,10 +262,13 @@ export async function getAvailablePlugins(
     }
   }
 
+  // Pre-fetch local marketplaces for merging detailed plugin info (agents, commands, skills, mcpServers)
+  const localMarketplaces = await getLocalMarketplaces();
+
   // Fetch plugins from each configured marketplace
   for (const mpName of marketplaceNames) {
     const marketplace = defaultMarketplaces.find((m) => m.name === mpName);
-    if (!marketplace) continue;
+    if (!marketplace || !marketplace.source.repo) continue;
 
     const marketplacePlugins = await fetchMarketplacePlugins(
       mpName,
@@ -251,11 +276,17 @@ export async function getAvailablePlugins(
       logger,
     );
 
+    // Check if we have a local clone for this marketplace (for detailed plugin info)
+    const localMp = localMarketplaces.get(mpName);
+
     for (const plugin of marketplacePlugins) {
       const pluginId = `${plugin.name}@${mpName}`;
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
       const scopeStatus = buildScopeStatus(pluginId);
+
+      // Try to get detailed info from local marketplace clone
+      const localPlugin = localMp?.plugins.find((p) => p.name === plugin.name);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -276,12 +307,17 @@ export async function getAvailablePlugins(
         author: plugin.author,
         homepage: plugin.homepage,
         tags: plugin.tags,
+        // Merge detailed info from local marketplace clone if available
+        agents: localPlugin?.agents,
+        commands: localPlugin?.commands,
+        skills: localPlugin?.skills,
+        mcpServers: localPlugin?.mcpServers,
+        lspServers: localPlugin?.lspServers,
       });
     }
   }
 
   // Fetch ALL plugins from local marketplace caches (for marketplaces not in defaults)
-  const localMarketplaces = await getLocalMarketplaces();
 
   for (const [mpName, localMp] of localMarketplaces) {
     // Skip if already fetched from defaults
@@ -424,10 +460,13 @@ export async function getGlobalAvailablePlugins(
     }
   }
 
+  // Pre-fetch local marketplaces for merging detailed plugin info (agents, commands, skills, mcpServers)
+  const localMarketplaces = await getLocalMarketplaces();
+
   // Fetch plugins from each configured marketplace
   for (const mpName of marketplaceNames) {
     const marketplace = defaultMarketplaces.find((m) => m.name === mpName);
-    if (!marketplace) continue;
+    if (!marketplace || !marketplace.source.repo) continue;
 
     const marketplacePlugins = await fetchMarketplacePlugins(
       mpName,
@@ -435,11 +474,17 @@ export async function getGlobalAvailablePlugins(
       logger,
     );
 
+    // Check if we have a local clone for this marketplace (for detailed plugin info)
+    const localMp = localMarketplaces.get(mpName);
+
     for (const plugin of marketplacePlugins) {
       const pluginId = `${plugin.name}@${mpName}`;
       const installedVersion = installedVersions[pluginId];
       const isEnabled = enabledPlugins[pluginId] === true;
       const scopeStatus = buildScopeStatus(pluginId);
+
+      // Try to get detailed info from local marketplace clone
+      const localPlugin = localMp?.plugins.find((p) => p.name === plugin.name);
 
       seenPluginIds.add(pluginId);
       plugins.push({
@@ -460,13 +505,17 @@ export async function getGlobalAvailablePlugins(
         author: plugin.author,
         homepage: plugin.homepage,
         tags: plugin.tags,
+        // Merge detailed info from local marketplace clone if available
+        agents: localPlugin?.agents,
+        commands: localPlugin?.commands,
+        skills: localPlugin?.skills,
+        mcpServers: localPlugin?.mcpServers,
+        lspServers: localPlugin?.lspServers,
       });
     }
   }
 
   // Fetch ALL plugins from local marketplace caches (for marketplaces not in defaults)
-  const localMarketplaces = await getLocalMarketplaces();
-
   for (const [mpName, localMp] of localMarketplaces) {
     // Skip if already fetched from defaults
     if (marketplaceNames.has(mpName)) continue;
@@ -581,7 +630,9 @@ function compareVersions(
 async function getInstalledPluginVersions(
   projectPath?: string,
 ): Promise<Record<string, string>> {
-  const settings = await readSettings(projectPath);
+  const settings = projectPath
+    ? await readSettings(projectPath)
+    : await readGlobalSettings();
   return settings.installedPluginVersions || {};
 }
 
@@ -600,16 +651,23 @@ export async function saveInstalledPluginVersion(
   // Validate plugin ID format
   validatePluginId(pluginId);
 
-  const settings = await readSettings(projectPath);
-  settings.installedPluginVersions = settings.installedPluginVersions || {};
-  settings.installedPluginVersions[pluginId] = version;
-  await writeSettings(settings, projectPath);
+  if (projectPath) {
+    const settings = await readSettings(projectPath);
+    settings.installedPluginVersions = settings.installedPluginVersions || {};
+    settings.installedPluginVersions[pluginId] = version;
+    await writeSettings(settings, projectPath);
+  } else {
+    const settings = await readGlobalSettings();
+    settings.installedPluginVersions = settings.installedPluginVersions || {};
+    settings.installedPluginVersions[pluginId] = version;
+    await writeGlobalSettings(settings);
+  }
 
   // Update installed_plugins.json registry
   await updateInstalledPluginsRegistry(
     pluginId,
     version,
-    "project",
+    projectPath ? "project" : "user",
     projectPath ? path.resolve(projectPath) : undefined,
   );
 }
@@ -627,16 +685,24 @@ export async function removeInstalledPluginVersion(
   // Validate plugin ID format
   validatePluginId(pluginId);
 
-  const settings = await readSettings(projectPath);
-  if (settings.installedPluginVersions) {
-    delete settings.installedPluginVersions[pluginId];
-    await writeSettings(settings, projectPath);
+  if (projectPath) {
+    const settings = await readSettings(projectPath);
+    if (settings.installedPluginVersions) {
+      delete settings.installedPluginVersions[pluginId];
+      await writeSettings(settings, projectPath);
+    }
+  } else {
+    const settings = await readGlobalSettings();
+    if (settings.installedPluginVersions) {
+      delete settings.installedPluginVersions[pluginId];
+      await writeGlobalSettings(settings);
+    }
   }
 
   // Remove from installed_plugins.json registry
   await removeFromInstalledPluginsRegistry(
     pluginId,
-    "project",
+    projectPath ? "project" : "user",
     projectPath ? path.resolve(projectPath) : undefined,
   );
 }
@@ -656,7 +722,7 @@ export function clearMarketplaceCache(): void {
  */
 async function getLocalMarketplaces(): Promise<Map<string, LocalMarketplace>> {
   if (localMarketplacesPromise === null) {
-    localMarketplacesPromise = scanLocalMarketplaces();
+    localMarketplacesPromise = scanLocalMarketplaces(MARKETPLACES_DIR, KNOWN_MARKETPLACES_FILE);
   }
   return localMarketplacesPromise;
 }
@@ -689,10 +755,10 @@ export async function refreshAllMarketplaces(
   onProgress?: ProgressCallback,
 ): Promise<RefreshAndRepairResult> {
   // First, git pull all local marketplaces
-  const refreshResults = await refreshLocalMarketplaces(onProgress);
+  const refreshResults = await refreshLocalMarketplaces(MARKETPLACES_DIR, KNOWN_MARKETPLACES_FILE, onProgress);
 
   // Auto-repair plugin.json files with missing agents/commands/skills
-  const repairResults = await repairAllMarketplaces();
+  const repairResults = await repairAllMarketplaces(MARKETPLACES_DIR);
 
   // Then clear all caches to force fresh data
   clearMarketplaceCache();

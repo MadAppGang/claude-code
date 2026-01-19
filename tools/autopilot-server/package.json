@@ -1,0 +1,26 @@
+{
+  "name": "autopilot-server",
+  "version": "1.0.0",
+  "description": "Autopilot server for autonomous task execution with Linear integration",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:e2e": "bun test tests/e2e",
+    "typecheck": "tsc --noEmit",
+    "lint": "bunx biome check src tests",
+    "format": "bunx biome format --write src tests"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.3",
+    "async-mutex": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.3.0",
+    "@biomejs/biome": "^1.5.0"
+  }
+}

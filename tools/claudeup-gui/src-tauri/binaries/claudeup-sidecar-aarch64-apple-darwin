@@ -1,0 +1,8 @@
+#!/bin/bash
+# Wrapper script to run sidecar with Node.js
+# This avoids macOS code signing issues with Bun-compiled binaries
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SIDECAR_DIR="$SCRIPT_DIR/../sidecar/dist"
+
+exec node "$SIDECAR_DIR/server.js"

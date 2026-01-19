@@ -1,5 +1,5 @@
 import { Plugin as BackendPlugin } from '../hooks/usePlugins';
-import { Plugin as FrontendPlugin, ScopeStatus } from '../types';
+import { Plugin as FrontendPlugin } from '../types';
 
 /**
  * Get display name for marketplace ID
@@ -19,14 +19,40 @@ export function getMarketplaceName(id: string): string {
 export function adaptPluginFromBackend(
   backendPlugin: BackendPlugin
 ): FrontendPlugin {
-  // Derive per-scope status from backend
-  const userScope: ScopeStatus | null = backendPlugin.scope === 'global'
-    ? { enabled: backendPlugin.enabled, version: backendPlugin.version }
-    : null;
+  // Debug: log raw backend data
+  if (backendPlugin.name === 'dev' || backendPlugin.name === 'code-analysis') {
+    console.log('[adaptPluginFromBackend] Sample plugin:', backendPlugin.name, {
+      hasAgents: !!(backendPlugin as any).agents?.length,
+      agents: (backendPlugin as any).agents?.slice(0, 3),
+      hasCommands: !!(backendPlugin as any).commands?.length,
+      hasSkills: !!(backendPlugin as any).skills?.length,
+    });
+  }
 
-  const projectScope: ScopeStatus | null = backendPlugin.scope === 'project'
-    ? { enabled: backendPlugin.enabled, version: backendPlugin.version }
-    : null;
+  // The backend now provides per-scope status directly
+  const userScope = (backendPlugin as any).userScope || null;
+  const projectScope = (backendPlugin as any).projectScope || null;
+  const localScope = (backendPlugin as any).localScope || null;
+
+  // Transform backend component data to Capability objects
+  // Backend may return either strings (old format) or ComponentMeta objects (new format)
+  const mapToCapabilities = (items?: unknown[]): { name: string; description?: string; allowedTools?: string[]; disableModelInvocation?: boolean }[] => {
+    if (!items) return [];
+    return items.map(item => {
+      if (typeof item === 'string') {
+        // Old format: just the name
+        return { name: item };
+      }
+      // New format: ComponentMeta object
+      const meta = item as Record<string, unknown>;
+      return {
+        name: meta.name as string,
+        description: meta.description as string | undefined,
+        allowedTools: meta.allowedTools as string[] | undefined,
+        disableModelInvocation: meta.disableModelInvocation as boolean | undefined,
+      };
+    });
+  };
 
   return {
     // Core fields (direct mapping)
@@ -40,25 +66,25 @@ export function adaptPluginFromBackend(
     // Computed fields
     marketplaceDisplay: getMarketplaceName(backendPlugin.marketplace),
     installedVersion: backendPlugin.version,
-    hasUpdate: false, // TODO: Implement version comparison with catalog
+    hasUpdate: (backendPlugin as any).hasUpdate || false,
 
-    // Metadata (TODO: Load from marketplace.json)
-    category: 'development',
-    author: undefined,
-    homepage: undefined,
-    license: undefined,
-    keywords: [],
+    // Metadata from backend
+    category: (backendPlugin as any).category || 'development',
+    author: (backendPlugin as any).author,
+    homepage: (backendPlugin as any).homepage,
+    license: (backendPlugin as any).license,
+    keywords: (backendPlugin as any).tags || [],
 
-    // Per-scope status
+    // Per-scope status from backend
     userScope,
     projectScope,
-    localScope: null, // Backend doesn't track local scope yet
+    localScope,
 
-    // Components (TODO: Load from plugin metadata)
-    agents: [],
-    commands: [],
-    skills: [],
-    mcpServers: [],
+    // Components from backend (transform string arrays to Capability objects)
+    agents: mapToCapabilities((backendPlugin as any).agents),
+    commands: mapToCapabilities((backendPlugin as any).commands),
+    skills: mapToCapabilities((backendPlugin as any).skills),
+    mcpServers: (backendPlugin as any).mcpServers || [],
     hooks: undefined,
   };
 }

@@ -1,14 +1,25 @@
-import React, { createContext, useContext, useReducer, type ReactNode } from 'react';
-import { appReducer, initialState } from './reducer.js';
-import type { AppState, AppAction, Route, ModalState, ProgressState } from './types.js';
+import React, {
+	createContext,
+	useContext,
+	useReducer,
+	type ReactNode,
+} from "react";
+import { appReducer, initialState } from "./reducer.js";
+import type {
+	AppState,
+	AppAction,
+	Route,
+	ModalState,
+	ProgressState,
+} from "./types.js";
 
 // ============================================================================
 // Context Type
 // ============================================================================
 
 interface AppContextValue {
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
+	state: AppState;
+	dispatch: React.Dispatch<AppAction>;
 }
 
 // ============================================================================
@@ -22,17 +33,24 @@ const AppContext = createContext<AppContextValue | null>(null);
 // ============================================================================
 
 interface AppProviderProps {
-  children: ReactNode;
-  initialProjectPath?: string;
+	children: ReactNode;
+	initialProjectPath?: string;
 }
 
-export function AppProvider({ children, initialProjectPath }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, {
-    ...initialState,
-    projectPath: initialProjectPath || process.cwd(),
-  });
+export function AppProvider({
+	children,
+	initialProjectPath,
+}: AppProviderProps) {
+	const [state, dispatch] = useReducer(appReducer, {
+		...initialState,
+		projectPath: initialProjectPath || process.cwd(),
+	});
 
-  return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>;
+	return (
+		<AppContext.Provider value={{ state, dispatch }}>
+			{children}
+		</AppContext.Provider>
+	);
 }
 
 // ============================================================================
@@ -40,11 +58,11 @@ export function AppProvider({ children, initialProjectPath }: AppProviderProps) 
 // ============================================================================
 
 export function useApp(): AppContextValue {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  return context;
+	const context = useContext(AppContext);
+	if (!context) {
+		throw new Error("useApp must be used within an AppProvider");
+	}
+	return context;
 }
 
 // ============================================================================
@@ -52,20 +70,20 @@ export function useApp(): AppContextValue {
 // ============================================================================
 
 export function useNavigation() {
-  const { state, dispatch } = useApp();
+	const { state, dispatch } = useApp();
 
-  return {
-    currentRoute: state.currentRoute,
-    currentScreen: state.currentRoute.screen,
+	return {
+		currentRoute: state.currentRoute,
+		currentScreen: state.currentRoute.screen,
 
-    navigateTo: (route: Route) => {
-      dispatch({ type: 'NAVIGATE', route });
-    },
+		navigateTo: (route: Route) => {
+			dispatch({ type: "NAVIGATE", route });
+		},
 
-    navigateToScreen: (screen: Route['screen']) => {
-      dispatch({ type: 'NAVIGATE', route: { screen } as Route });
-    },
-  };
+		navigateToScreen: (screen: Route["screen"]) => {
+			dispatch({ type: "NAVIGATE", route: { screen } as Route });
+		},
+	};
 }
 
 // ============================================================================
@@ -73,118 +91,122 @@ export function useNavigation() {
 // ============================================================================
 
 export function useModal() {
-  const { dispatch } = useApp();
+	const { dispatch } = useApp();
 
-  return {
-    showModal: (modal: ModalState) => {
-      dispatch({ type: 'SHOW_MODAL', modal });
-    },
+	return {
+		showModal: (modal: ModalState) => {
+			dispatch({ type: "SHOW_MODAL", modal });
+		},
 
-    hideModal: () => {
-      dispatch({ type: 'HIDE_MODAL' });
-    },
+		hideModal: () => {
+			dispatch({ type: "HIDE_MODAL" });
+		},
 
-    confirm: (title: string, message: string): Promise<boolean> => {
-      return new Promise((resolve) => {
-        dispatch({
-          type: 'SHOW_MODAL',
-          modal: {
-            type: 'confirm',
-            title,
-            message,
-            onConfirm: () => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(true);
-            },
-            onCancel: () => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(false);
-            },
-          },
-        });
-      });
-    },
+		confirm: (title: string, message: string): Promise<boolean> => {
+			return new Promise((resolve) => {
+				dispatch({
+					type: "SHOW_MODAL",
+					modal: {
+						type: "confirm",
+						title,
+						message,
+						onConfirm: () => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(true);
+						},
+						onCancel: () => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(false);
+						},
+					},
+				});
+			});
+		},
 
-    input: (title: string, label: string, defaultValue?: string): Promise<string | null> => {
-      return new Promise((resolve) => {
-        dispatch({
-          type: 'SHOW_MODAL',
-          modal: {
-            type: 'input',
-            title,
-            label,
-            defaultValue,
-            onSubmit: (value: string) => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(value);
-            },
-            onCancel: () => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(null);
-            },
-          },
-        });
-      });
-    },
+		input: (
+			title: string,
+			label: string,
+			defaultValue?: string,
+		): Promise<string | null> => {
+			return new Promise((resolve) => {
+				dispatch({
+					type: "SHOW_MODAL",
+					modal: {
+						type: "input",
+						title,
+						label,
+						defaultValue,
+						onSubmit: (value: string) => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(value);
+						},
+						onCancel: () => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(null);
+						},
+					},
+				});
+			});
+		},
 
-    select: (
-      title: string,
-      message: string,
-      options: { label: string; value: string; description?: string }[]
-    ): Promise<string | null> => {
-      return new Promise((resolve) => {
-        dispatch({
-          type: 'SHOW_MODAL',
-          modal: {
-            type: 'select',
-            title,
-            message,
-            options,
-            onSelect: (value: string) => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(value);
-            },
-            onCancel: () => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve(null);
-            },
-          },
-        });
-      });
-    },
+		select: (
+			title: string,
+			message: string,
+			options: { label: string; value: string; description?: string }[],
+		): Promise<string | null> => {
+			return new Promise((resolve) => {
+				dispatch({
+					type: "SHOW_MODAL",
+					modal: {
+						type: "select",
+						title,
+						message,
+						options,
+						onSelect: (value: string) => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(value);
+						},
+						onCancel: () => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve(null);
+						},
+					},
+				});
+			});
+		},
 
-    message: (
-      title: string,
-      message: string,
-      variant: 'info' | 'success' | 'error' = 'info'
-    ): Promise<void> => {
-      return new Promise((resolve) => {
-        dispatch({
-          type: 'SHOW_MODAL',
-          modal: {
-            type: 'message',
-            title,
-            message,
-            variant,
-            onDismiss: () => {
-              dispatch({ type: 'HIDE_MODAL' });
-              resolve();
-            },
-          },
-        });
-      });
-    },
+		message: (
+			title: string,
+			message: string,
+			variant: "info" | "success" | "error" = "info",
+		): Promise<void> => {
+			return new Promise((resolve) => {
+				dispatch({
+					type: "SHOW_MODAL",
+					modal: {
+						type: "message",
+						title,
+						message,
+						variant,
+						onDismiss: () => {
+							dispatch({ type: "HIDE_MODAL" });
+							resolve();
+						},
+					},
+				});
+			});
+		},
 
-    loading: (message: string) => {
-      dispatch({
-        type: 'SHOW_MODAL',
-        modal: {
-          type: 'loading',
-          message,
-        },
-      });
-    },
-  };
+		loading: (message: string) => {
+			dispatch({
+				type: "SHOW_MODAL",
+				modal: {
+					type: "loading",
+					message,
+				},
+			});
+		},
+	};
 }
 
 // ============================================================================
@@ -192,22 +214,22 @@ export function useModal() {
 // ============================================================================
 
 export function useProgress() {
-  const { state, dispatch } = useApp();
+	const { state, dispatch } = useApp();
 
-  return {
-    progress: state.progress,
-    isVisible: state.progress !== null,
+	return {
+		progress: state.progress,
+		isVisible: state.progress !== null,
 
-    show: (message: string, current?: number, total?: number) => {
-      dispatch({ type: 'SHOW_PROGRESS', state: { message, current, total } });
-    },
+		show: (message: string, current?: number, total?: number) => {
+			dispatch({ type: "SHOW_PROGRESS", state: { message, current, total } });
+		},
 
-    update: (state: ProgressState) => {
-      dispatch({ type: 'UPDATE_PROGRESS', state });
-    },
+		update: (state: ProgressState) => {
+			dispatch({ type: "UPDATE_PROGRESS", state });
+		},
 
-    hide: () => {
-      dispatch({ type: 'HIDE_PROGRESS' });
-    },
-  };
+		hide: () => {
+			dispatch({ type: "HIDE_PROGRESS" });
+		},
+	};
 }

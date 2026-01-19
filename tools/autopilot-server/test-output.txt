@@ -1,0 +1,143 @@
+bun test v1.3.2 (b131639c)
+
+tests/unit/priority-queue.test.ts:
+[2026-01-10T05:08:13.788Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.788Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.790Z] [INFO] Task enqueued {"issueId":"issue-1768021693789","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.790Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.790Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.791Z] [INFO] Task enqueued {"issueId":"low-1","priority":"low","position":0,"queueSize":1}
+[2026-01-10T05:08:13.791Z] [INFO] Task enqueued {"issueId":"high-1","priority":"high","position":0,"queueSize":2}
+[2026-01-10T05:08:13.791Z] [INFO] Task enqueued {"issueId":"critical-1","priority":"critical","position":0,"queueSize":3}
+[2026-01-10T05:08:13.792Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.792Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.792Z] [INFO] Task enqueued {"issueId":"issue-1768021693792","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.792Z] [DEBUG] Task already in queue {"issueId":"issue-1768021693792"}
+[2026-01-10T05:08:13.792Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.792Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.792Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.792Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.793Z] [INFO] Task enqueued {"issueId":"1","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.793Z] [INFO] Task enqueued {"issueId":"2","priority":"normal","position":1,"queueSize":2}
+[2026-01-10T05:08:13.793Z] [WARN] Queue at capacity {"size":2,"max":2,"droppedTask":"3"}
+[2026-01-10T05:08:13.793Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.793Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.794Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.794Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.794Z] [INFO] Queue paused
+[2026-01-10T05:08:13.794Z] [INFO] Queue resumed
+[2026-01-10T05:08:13.794Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.794Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.794Z] [INFO] Task enqueued {"issueId":"issue-1768021693794","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.795Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.795Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.795Z] [INFO] Task enqueued {"issueId":"issue-1768021693795","priority":"normal","position":0,"queueSize":1}
+
+tests/unit/webhook-verifier.test.ts:
+[2026-01-10T05:08:13.798Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:13.798Z] [WARN] Invalid webhook signature
+[2026-01-10T05:08:13.798Z] [WARN] Missing webhook signature
+[2026-01-10T05:08:13.798Z] [WARN] Webhook verification bypassed in dev mode
+[2026-01-10T05:08:13.798Z] [WARN] Webhook too old {"ageMs":600000}
+[2026-01-10T05:08:13.798Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:13.798Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:13.798Z] [WARN] Duplicate webhook detected (replay attack prevented) {"signature":"d965da9d77fa271b..."}
+[2026-01-10T05:08:13.798Z] [WARN] Webhook timestamp in future {"webhookTimestamp":1768021993798}
+
+tests/unit/api.test.ts:
+[2026-01-10T05:08:13.800Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.800Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.801Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.801Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.802Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.802Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.804Z] [INFO] Task enqueued {"issueId":"test-123","priority":"high","position":0,"queueSize":1}
+[2026-01-10T05:08:13.804Z] [INFO] Task created via API {"id":"ae8785bb-895a-4175-9e1c-41aed059d24d","issueId":"test-123"}
+[2026-01-10T05:08:13.804Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.804Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.805Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.805Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.805Z] [INFO] Task enqueued {"issueId":"list-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.805Z] [INFO] Task created via API {"id":"e95cfc9d-333a-4201-9d70-19af262e3514","issueId":"list-test-123"}
+[2026-01-10T05:08:13.806Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.806Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.806Z] [INFO] Task enqueued {"issueId":"filter-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.806Z] [INFO] Task created via API {"id":"2d9d44fa-160c-48f0-b112-ee8168b860b0","issueId":"filter-test-123"}
+[2026-01-10T05:08:13.807Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.807Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.807Z] [INFO] Task enqueued {"issueId":"single-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:13.807Z] [INFO] Task created via API {"id":"f4910e53-cd6c-4deb-a523-01ea3bc8591f","issueId":"single-test-123"}
+[2026-01-10T05:08:13.808Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.808Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.808Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.808Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.808Z] [INFO] Queue paused
+[2026-01-10T05:08:13.808Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.808Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:13.808Z] [INFO] Queue paused
+[2026-01-10T05:08:13.808Z] [INFO] Queue resumed
+[2026-01-10T05:08:13.808Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:13.808Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+
+tests/integration/sdk-integration.test.ts:
+SDK exports: [ "AbortError", "EXIT_REASONS", "HOOK_EVENTS", "createSdkMcpServer", "query",
+  "tool", "unstable_v2_createSession", "unstable_v2_prompt", "unstable_v2_resumeSession"
+]
+Message type: system
+Message type: assistant
+Message type: result
+Result: 4
+Captured session ID: bc3d7bec-db64-4350-b791-e0a3d5ab9a8a
+Message types seen: [ "system", "assistant", "user", "result" ]
+Tools used: []
+Received message types: [ "system", "assistant", "user", "result" ]
+Error caught: 7955 |       const exitHandler = (code, signal) => {
+7956 |         if (this.abortController.signal.aborted) {
+7957 |           reject(new AbortError("Operation aborted"));
+7958 |           return;
+7959 |         }
+7960 |         const error = this.getProcessExitError(code, signal);
+                                  ^
+error: Claude Code process exited with code 1
+      at exitHandler (/Users/jack/mag/claude-code/tools/autopilot-server/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:7960:28)
+      at emit (node:events:98:22)
+      at #handleOnExit (node:child_process:520:14)
+
+[2026-01-10T05:08:53.137Z] [INFO] Session manager initialized {"sessions":9,"prompts":1}
+[2026-01-10T05:08:53.138Z] [INFO] Creating new Claude session {"issueId":"test-issue-1768021733137","tags":["@implement"]}
+[2026-01-10T05:09:23.935Z] [DEBUG] Session ID captured {"sessionId":"122cdf12-5fc4-4e28-b953-34873910e606"}
+[90m2026-01-10T05:09:23.935Z[0m [45m[37m[1m SYSTEM [0m init
+[90m2026-01-10T05:09:48.625Z[0m [44m[37m[1m CLAUDE [0m ✓ DONE: Hello! I have received the test task with ID `test-issue-1768021733137`. 
+
+The task is simply to say...
+[2026-01-10T05:09:53.806Z] [INFO] Session completed {"issueId":"test-issue-1768021733137","toolCalls":0,"status":"completed"}
+Session completed with 0 tool calls
+Transcript entries: 2
+
+tests/e2e/task-execution.test.ts:
+[2026-01-10T05:09:53.828Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:09:53.828Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":1}
+[2026-01-10T05:09:53.829Z] [INFO] Session manager initialized {"sessions":0,"prompts":1}
+[2026-01-10T05:09:53.829Z] [INFO] Creating new Claude session {"issueId":"e2e-issue-1768021793829","tags":[]}
+[2026-01-10T05:09:56.135Z] [DEBUG] Session ID captured {"sessionId":"1971604f-85c8-4053-b75f-ce6fbdb0c40e"}
+[90m2026-01-10T05:09:56.135Z[0m [45m[37m[1m SYSTEM [0m init
+[90m2026-01-10T05:10:18.568Z[0m [46m[30m[1m RESULT [0m [ERROR] <tool_use_error>File does not exist.</tool_use_error>
+[90m2026-01-10T05:10:21.161Z[0m [46m[30m[1m RESULT [0m [Glob] /Users/jack/mag/claude-code/tools/autopilot-server
+[90m2026-01-10T05:10:23.461Z[0m [46m[30m[1m RESULT [0m [Read]      1→{
+[90m2026-01-10T05:10:27.554Z[0m [44m[37m[1m CLAUDE [0m ✓ DONE: Perfect! I've successfully read the package.json file from the current directory.
+
+## Summary
+
+**Pro...
+[2026-01-10T05:10:29.816Z] [INFO] Session completed {"issueId":"e2e-issue-1768021793829","toolCalls":3,"status":"completed"}
+[2026-01-10T05:10:29.816Z] [INFO] Creating new Claude session {"issueId":"e2e-issue-1768021829816","tags":[]}
+;
+                                  ^
+error: Claude Code process exited with code 143
+      at exitHandler (/Users/jack/mag/claude-code/tools/autopilot-server/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:7960:28)
+      at emit (node:events:98:22)
+      at #handleOnExit (node:child_process:520:14)
+-------------------------------
+
+[2026-01-10T05:10:25.425Z] [DEBUG] Session ID captured {"sessionId":"3b968b69-9334-4189-9420-df50023c3907"}
+[90m2026-01-10T05:10:25.425Z[0m [45m[37m[1m SYSTEM [0m init

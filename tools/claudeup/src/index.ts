@@ -1,60 +1,63 @@
 #!/usr/bin/env node
 
-import { render } from 'ink';
-import React from 'react';
-import { spawn } from 'node:child_process';
-import { App, VERSION } from './ui/InkApp.js';
-import { prerunClaude } from './prerunner/index.js';
-import { checkForUpdates } from './services/version-check.js';
+import { render } from "ink";
+import React from "react";
+import { spawn } from "node:child_process";
+import { App, VERSION } from "./ui/InkApp.js";
+import { prerunClaude } from "./prerunner/index.js";
+import { checkForUpdates } from "./services/version-check.js";
 
 async function main(): Promise<void> {
-  const args = process.argv.slice(2);
+	const args = process.argv.slice(2);
 
-  // Detect "claudeup claude [args]" subcommand
-  if (args[0] === 'claude') {
-    const claudeArgs = args.slice(1); // All args after "claude"
-    const exitCode = await prerunClaude(claudeArgs);
-    process.exit(exitCode);
-    return;
-  }
+	// Detect "claudeup claude [args]" subcommand
+	if (args[0] === "claude") {
+		const claudeArgs = args.slice(1); // All args after "claude"
+		const exitCode = await prerunClaude(claudeArgs);
+		process.exit(exitCode);
+		return;
+	}
 
-  // Handle "claudeup update" - self-update command
-  if (args[0] === 'update') {
-    // Detect how claudeup was installed by checking the executable path
-    const { execSync } = await import('node:child_process');
-    let usesBun = false;
-    try {
-      const claudeupPath = execSync('which claudeup', { encoding: 'utf-8' }).trim();
-      usesBun = claudeupPath.includes('.bun') || claudeupPath.includes('bun/bin');
-    } catch {
-      // If which fails, default to npm
-    }
+	// Handle "claudeup update" - self-update command
+	if (args[0] === "update") {
+		// Detect how claudeup was installed by checking the executable path
+		const { execSync } = await import("node:child_process");
+		let usesBun = false;
+		try {
+			const claudeupPath = execSync("which claudeup", {
+				encoding: "utf-8",
+			}).trim();
+			usesBun =
+				claudeupPath.includes(".bun") || claudeupPath.includes("bun/bin");
+		} catch {
+			// If which fails, default to npm
+		}
 
-    const pkgManager = usesBun ? 'bun' : 'npm';
-    console.log(`Updating claudeup using ${pkgManager}...`);
+		const pkgManager = usesBun ? "bun" : "npm";
+		console.log(`Updating claudeup using ${pkgManager}...`);
 
-    const proc = spawn(pkgManager, ['install', '-g', 'claudeup@latest'], {
-      stdio: 'inherit',
-      shell: false,
-    });
-    proc.on('exit', (code) => process.exit(code || 0));
-    return;
-  }
+		const proc = spawn(pkgManager, ["install", "-g", "claudeup@latest"], {
+			stdio: "inherit",
+			shell: false,
+		});
+		proc.on("exit", (code) => process.exit(code || 0));
+		return;
+	}
 
-  // Handle --version flag - show version and check for updates
-  if (args.includes('--version') || args.includes('-v')) {
-    console.log(`claudeup v${VERSION}`);
-    const result = await checkForUpdates();
-    if (result.updateAvailable) {
-      console.log(`\nUpdate available: v${result.latestVersion}`);
-      console.log('Run: claudeup update');
-    }
-    process.exit(0);
-  }
+	// Handle --version flag - show version and check for updates
+	if (args.includes("--version") || args.includes("-v")) {
+		console.log(`claudeup v${VERSION}`);
+		const result = await checkForUpdates();
+		if (result.updateAvailable) {
+			console.log(`\nUpdate available: v${result.latestVersion}`);
+			console.log("Run: claudeup update");
+		}
+		process.exit(0);
+	}
 
-  // Handle --help flag
-  if (args.includes('--help') || args.includes('-h')) {
-    console.log(`claudeup v${VERSION}
+	// Handle --help flag
+	if (args.includes("--help") || args.includes("-h")) {
+		console.log(`claudeup v${VERSION}
 
 TUI tool for managing Claude Code plugins, MCPs, and configuration.
 
@@ -85,14 +88,14 @@ Keys:
   ?              Show help
   q / Escape     Back / Quit
 `);
-    process.exit(0);
-  }
+		process.exit(0);
+	}
 
-  // Render the Ink app
-  render(React.createElement(App));
+	// Render the Ink app
+	render(React.createElement(App));
 }
 
 main().catch((error) => {
-  console.error('Error starting claudeup:', error);
-  process.exit(1);
+	console.error("Error starting claudeup:", error);
+	process.exit(1);
 });

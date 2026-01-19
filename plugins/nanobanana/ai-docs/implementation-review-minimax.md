@@ -20,9 +20,9 @@ The Nanobanana plugin demonstrates excellent implementation quality with compreh
 | main.py | Python CLI | 481 | Good |
 | agents/style-manager.md | Agent | 262 | Good |
 | agents/image-generator.md | Agent | 345 | Good |
-| commands/nb-generate.md | Command | 159 | Good |
-| commands/nb-edit.md | Command | 124 | Good |
-| commands/nb-style.md | Command | 225 | Good |
+| commands/generate.md | Command | 159 | Good |
+| commands/edit.md | Command | 124 | Good |
+| commands/style.md | Command | 225 | Good |
 
 ---
 
@@ -46,7 +46,7 @@ None found.
 | Issue | Description | File |
 |-------|-------------|------|
 | Inconsistent example counts | Agent files have varying numbers of examples (2-5 vs recommended 5+) | agents/*.md |
-| Missing forbidden-tools | nb-generate.md and nb-edit.md have forbidden-tools in XML but not YAML | commands/*.md |
+| Missing forbidden-tools | generate.md and edit.md have forbidden-tools in XML but not YAML | commands/*.md |
 | No type hints in Python | Code would benefit from type annotations for maintainability | main.py |
 | No tests mentioned | No test files or testing strategy documented | - |
 

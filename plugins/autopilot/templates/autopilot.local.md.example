@@ -1,0 +1,97 @@
+---
+# Linear Configuration
+linear:
+  team_id: "TEAM_xxxxx"
+  project_id: "PROJECT_xxxxx"  # Optional
+  bot_user_id: "USER_xxxxx"
+  webhook_url: "https://your-domain.com/webhook/linear"
+
+# Proof-of-Work Settings
+proof:
+  confidence_threshold: 95
+  max_feedback_rounds: 5
+  require_screenshots: true
+  require_coverage: 80
+  deployment_provider: "vercel"  # vercel | netlify | none
+
+# Custom Tag Mappings
+# Override default mappings or add new ones
+tag_mappings:
+  "@frontend":
+    command: "/dev:feature"
+    agent: "developer"
+    skills: ["react-typescript", "testing-frontend"]
+
+  "@backend":
+    command: "/dev:implement"
+    agent: "developer"
+    skills: ["golang", "api-design"]
+
+  "@database":
+    command: "/dev:implement"
+    agent: "developer"
+    skills: ["database-patterns"]
+    systemPrompt: "You are a database specialist."
+
+  "@performance":
+    command: "/dev:implement"
+    agent: "developer"
+    skills: ["universal-patterns"]
+    systemPrompt: "You are a performance optimization expert."
+
+# State Machine Customization
+# Map your Linear workflow states to autopilot states
+states:
+  todo: "Todo"
+  in_progress: "In Progress"
+  in_review: "In Review"
+  done: "Done"
+  blocked: "Blocked"
+
+# Iteration Limits
+limits:
+  execution_retry: 2
+  feedback_rounds: 5
+  quality_check_fixes: 2
+---
+
+# Autopilot Configuration
+
+This file stores project-specific autopilot settings.
+
+## Setup Instructions
+
+1. Copy this file to `.claude/autopilot.local.md`
+2. Update the `linear` section with your team/project IDs
+3. Customize tag mappings as needed
+4. Adjust proof settings for your workflow
+
+## Finding Linear IDs
+
+### Team ID
+1. Go to your Linear workspace
+2. Click on team name in sidebar
+3. Look at URL: `linear.app/[workspace]/team/[TEAM_ID]`
+
+### Project ID
+1. Open a project in Linear
+2. Look at URL: `linear.app/[workspace]/project/[PROJECT_ID]`
+
+### User ID
+1. Go to Settings > API
+2. Create a Personal API Key
+3. Use the API to query your viewer ID
+
+## Custom Notes
+
+Add any project-specific notes here.
+
+### Example: Project-specific routing
+
+This project uses Go for backend, so we route @backend to Golang-specific skills.
+
+### Example: Custom tags
+
+- @migration - Database migration tasks
+- @security - Security-related work
+- @docs - Documentation updates

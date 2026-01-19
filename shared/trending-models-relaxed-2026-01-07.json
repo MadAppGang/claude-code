@@ -1,0 +1,394 @@
+{
+  "generatedAt": "2026-01-07",
+  "source": "OpenRouter Programming Rankings",
+  "url": "https://openrouter.ai/rankings?category=programming&view=month",
+  "filteringSummary": {
+    "relaxedFilters": {
+      "excludeAnthropic": true,
+      "maxPerProvider": 2,
+      "minPerCategory": 2,
+      "targetCount": "10-12"
+    },
+    "originalRankingsScraped": 12,
+    "anthropicModelsFiltered": 2,
+    "providersDeduplicated": 0,
+    "modelsRemoved": [
+      {
+        "slug": "anthropic/claude-sonnet-4-5",
+        "reason": "Excluded - Anthropic models available natively"
+      },
+      {
+        "slug": "anthropic/claude-opus-4-5",
+        "reason": "Excluded - Anthropic models available natively"
+      }
+    ],
+    "finalModelCount": 9,
+    "providersIncluded": ["x-ai", "google", "deepseek", "xiaomi", "openai", "minimax", "mistralai"],
+    "note": "Only 9 models available after filtering (some ranking slots had unavailable models). Target of 10-12 not fully met due to model availability."
+  },
+  "categoryDistribution": {
+    "fast-coding": {
+      "count": 4,
+      "models": ["x-ai/grok-code-fast-1", "deepseek/deepseek-chat", "minimax/minimax-m2", "mistralai/devstral-2512"]
+    },
+    "reasoning": {
+      "count": 2,
+      "models": ["google/gemini-2.5-flash", "xiaomi/mimo-v2-flash-20251210"]
+    },
+    "vision": {
+      "count": 2,
+      "models": ["x-ai/grok-4-fast", "google/gemini-3-flash-preview-20251217"],
+      "note": "Vision models identified from multimodal capability descriptions"
+    },
+    "budget": {
+      "count": 1,
+      "models": ["openai/gpt-oss-120b"],
+      "note": "Budget category limited by available models in top 12 rankings. MiMo-V2-Flash is free but categorized as reasoning due to capabilities."
+    }
+  },
+  "visionModelsSection": {
+    "identified": 2,
+    "models": [
+      {
+        "slug": "x-ai/grok-4-fast",
+        "name": "Grok 4 Fast",
+        "multimodal": true,
+        "capabilities": ["multimodal"],
+        "contextWindow": 2000000,
+        "tieredPricing": {
+          "enabled": true,
+          "tier1": { "context": "0-128K", "inputPrice": 0.20, "outputPrice": 0.50, "average": 0.35 },
+          "tier2": { "context": "128K-2M", "inputPrice": 0.40, "outputPrice": 1.00, "average": 0.70 },
+          "selectedContext": 128000
+        }
+      },
+      {
+        "slug": "google/gemini-3-flash-preview-20251217",
+        "name": "Gemini 3 Flash Preview",
+        "multimodal": true,
+        "capabilities": ["text", "images", "audio", "video", "PDFs"],
+        "contextWindow": 1048576,
+        "tieredPricing": { "enabled": false }
+      }
+    ]
+  },
+  "models": [
+    {
+      "rank": 1,
+      "slug": "x-ai/grok-code-fast-1",
+      "name": "Grok Code Fast 1",
+      "provider": "x-ai",
+      "category": "fast-coding",
+      "pricing": {
+        "inputPricePer1M": 0.20,
+        "outputPricePer1M": 1.50,
+        "averagePer1M": 0.85,
+        "tiered": false
+      },
+      "contextWindow": 256000,
+      "description": "Grok Code Fast 1 is a speedy and economical reasoning model that excels at agentic coding. With reasoning traces visible in the response, developers can steer Grok Code for high-quality work flows.",
+      "performance": {
+        "latency": "0.96s",
+        "throughput": "94.34 tps",
+        "uptime": "100.0%"
+      },
+      "useCases": [
+        "Agentic coding workflows",
+        "Code generation with reasoning traces",
+        "High-throughput coding tasks"
+      ],
+      "tradeoffs": [
+        "Smaller context window (256K) vs some competitors",
+        "Output pricing higher than budget alternatives"
+      ]
+    },
+    {
+      "rank": 2,
+      "slug": "google/gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "provider": "google",
+      "category": "reasoning",
+      "pricing": {
+        "inputPricePer1M": 0.30,
+        "outputPricePer1M": 2.50,
+        "averagePer1M": 1.40,
+        "tiered": false
+      },
+      "contextWindow": 1048576,
+      "description": "Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in 'thinking' capabilities, enabling it to provide responses with greater accuracy and nuanced context handling.",
+      "performance": {
+        "latency": "0.51s",
+        "throughput": "92.09 tps",
+        "uptime": "99.8%"
+      },
+      "useCases": [
+        "Advanced reasoning tasks",
+        "Mathematics and scientific computing",
+        "Long-context coding projects"
+      ],
+      "tradeoffs": [
+        "Higher output pricing than coding-specific models",
+        "Larger context may increase latency"
+      ]
+    },
+    {
+      "rank": 4,
+      "slug": "deepseek/deepseek-chat",
+      "name": "DeepSeek V3",
+      "provider": "deepseek",
+      "category": "fast-coding",
+      "pricing": {
+        "inputPricePer1M": 0.30,
+        "outputPricePer1M": 1.20,
+        "averagePer1M": 0.75,
+        "tiered": false
+      },
+      "contextWindow": 163840,
+      "description": "DeepSeek-V3 is the latest model from the DeepSeek team, building upon the instruction following and coding abilities of the previous versions. Pre-trained on nearly 15 trillion tokens, the reported evaluations reveal that the model outperforms other open-source models and rivals leading closed-source models.",
+      "performance": {
+        "latency": "0.98s",
+        "throughput": "49.02 tps",
+        "uptime": "99.9%"
+      },
+      "useCases": [
+        "Open-source coding",
+        "Cost-effective production deployments",
+        "Instruction following"
+      ],
+      "tradeoffs": [
+        "Smaller context window (163K)",
+        "Lower throughput than some competitors"
+      ]
+    },
+    {
+      "rank": 5,
+      "slug": "xiaomi/mimo-v2-flash-20251210",
+      "name": "MiMo-V2-Flash",
+      "provider": "xiaomi",
+      "category": "reasoning",
+      "pricing": {
+        "inputPricePer1M": 0,
+        "outputPricePer1M": 0,
+        "averagePer1M": 0,
+        "tiered": false,
+        "note": "Free model"
+      },
+      "contextWindow": 262144,
+      "description": "MiMo-V2-Flash is an open-source foundation language model developed by Xiaomi. It is a Mixture-of-Experts model with 309B total parameters and 15B active parameters, adopting hybrid attention architecture. MiMo-V2-Flash supports a hybrid-thinking toggle and a 256K context window, and excels at reasoning, coding, and agent scenarios.",
+      "performance": {
+        "note": "Top #1 open-source on SWE-bench Verified and Multilingual"
+      },
+      "useCases": [
+        "Free production usage",
+        "Reasoning-heavy coding tasks",
+        "Agentic workflows (disable reasoning mode for best performance)"
+      ],
+      "tradeoffs": [
+        "Free tier may have rate limits",
+        "Requires reasoning mode toggle for optimal agentic performance"
+      ],
+      "specialNote": "Turn off reasoning mode when integrating with agentic tools (Claude Code, Cline, Roo Code) for best performance"
+    },
+    {
+      "rank": 6,
+      "slug": "mistralai/devstral-2512",
+      "name": "Devstral 2 2512",
+      "provider": "mistralai",
+      "category": "fast-coding",
+      "pricing": {
+        "inputPricePer1M": 0.05,
+        "outputPricePer1M": 0.22,
+        "averagePer1M": 0.135,
+        "tiered": false
+      },
+      "contextWindow": 262144,
+      "description": "Devstral 2 is a state-of-the-art open-source model by Mistral AI specializing in agentic coding. It is a 123B-parameter dense transformer model supporting a 256K context window.",
+      "performance": {
+        "latency": "0.78s",
+        "throughput": "34.73 tps",
+        "uptime": "100.0%"
+      },
+      "useCases": [
+        "Codebase exploration",
+        "Multi-file editing and orchestration",
+        "Bug fixing and legacy system modernization"
+      ],
+      "tradeoffs": [
+        "Lower throughput than some competitors",
+        "Dense model (not MoE) may have higher inference costs at scale"
+      ]
+    },
+    {
+      "rank": 7,
+      "slug": "openai/gpt-oss-120b",
+      "name": "gpt-oss-120b",
+      "provider": "openai",
+      "category": "budget",
+      "pricing": {
+        "inputPricePer1M": 0.02,
+        "outputPricePer1M": 0.10,
+        "averagePer1M": 0.06,
+        "tiered": false
+      },
+      "contextWindow": 131072,
+      "description": "gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases. It activates 5.1B parameters per forward pass and is optimized to run on a single H100 GPU with native MXFP4 quantization.",
+      "performance": {
+        "latency": "0.92s",
+        "throughput": "73.69 tps",
+        "uptime": "92.3%"
+      },
+      "useCases": [
+        "Budget-conscious production deployments",
+        "High-reasoning tasks at extremely low cost",
+        "Self-hosted on single H100 GPU"
+      ],
+      "tradeoffs": [
+        "Lower uptime (92.3%) vs other providers",
+        "Smaller context window (131K)",
+        "Requires MXFP4 quantization support"
+      ]
+    },
+    {
+      "rank": 8,
+      "slug": "x-ai/grok-4-fast",
+      "name": "Grok 4 Fast",
+      "provider": "x-ai",
+      "category": "vision",
+      "pricing": {
+        "inputPricePer1M": 0.20,
+        "outputPricePer1M": 0.50,
+        "averagePer1M": 0.35,
+        "tiered": true,
+        "tierDetails": {
+          "tier1": { "context": "0-128K", "inputPrice": 0.20, "outputPrice": 0.50, "average": 0.35 },
+          "tier2": { "context": "128K-2M", "inputPrice": 0.40, "outputPrice": 1.00, "average": 0.70 }
+        },
+        "selectedContext": 128000,
+        "note": "Using cheapest tier (0-128K) per tiered pricing spec"
+      },
+      "contextWindow": 128000,
+      "description": "Grok 4 Fast is xAI's latest multimodal model with SOTA cost-efficiency and a 2M token context window. It comes in two flavors: non-reasoning and reasoning.",
+      "performance": {
+        "latency": "3.61s",
+        "throughput": "89.61 tps",
+        "uptime": "99.8%"
+      },
+      "multimodalCapabilities": ["multimodal"],
+      "useCases": [
+        "Multimodal coding tasks (images, diagrams)",
+        "Cost-efficient vision tasks",
+        "Long-context projects (up to 2M tokens with higher pricing)"
+      ],
+      "tradeoffs": [
+        "Selected tier limited to 128K context",
+        "Higher latency than Grok Code Fast 1",
+        "Tiered pricing requires careful context management"
+      ]
+    },
+    {
+      "rank": 9,
+      "slug": "google/gemini-3-flash-preview-20251217",
+      "name": "Gemini 3 Flash Preview",
+      "provider": "google",
+      "category": "vision",
+      "pricing": {
+        "inputPricePer1M": 0.50,
+        "outputPricePer1M": 3.00,
+        "averagePer1M": 1.75,
+        "tiered": false
+      },
+      "contextWindow": 1048576,
+      "description": "Gemini 3 Flash Preview is a high speed, high value thinking model designed for agentic workflows, multi turn chat, and coding assistance. It delivers near Pro level reasoning and tool use performance with substantially lower latency than larger Gemini variants.",
+      "performance": {
+        "latency": "1.24s",
+        "throughput": "48.44 tps",
+        "uptime": "99.9%"
+      },
+      "multimodalCapabilities": ["text", "images", "audio", "video", "PDFs"],
+      "useCases": [
+        "Multimodal understanding (text, images, audio, video, PDFs)",
+        "Agentic workflows with vision",
+        "Long-context coding projects with visual inputs"
+      ],
+      "tradeoffs": [
+        "Higher pricing than Gemini 2.5 Flash",
+        "Lower throughput than some competitors",
+        "Preview model may have stability considerations"
+      ]
+    },
+    {
+      "rank": 12,
+      "slug": "minimax/minimax-m2",
+      "name": "MiniMax M2",
+      "provider": "minimax",
+      "category": "fast-coding",
+      "pricing": {
+        "inputPricePer1M": 0.20,
+        "outputPricePer1M": 1.00,
+        "averagePer1M": 0.60,
+        "tiered": false
+      },
+      "contextWindow": 196608,
+      "description": "MiniMax-M2 is a compact, high-efficiency large language model optimized for end-to-end coding and agentic workflows. With 10 billion activated parameters (230 billion total), it delivers near-frontier intelligence across general reasoning, tool use, and multi-step task execution while maintaining low latency and deployment efficiency.",
+      "performance": {
+        "note": "Strong results on SWE-Bench Verified, Multi-SWE-Bench, Terminal-Bench"
+      },
+      "useCases": [
+        "End-to-end coding workflows",
+        "Multi-file editing and compile-run-fix loops",
+        "Test-validated repair"
+      ],
+      "tradeoffs": [
+        "Compact model may not match frontier capabilities",
+        "Best results when preserving reasoning between turns"
+      ]
+    }
+  ],
+  "recommendations": {
+    "forFastCoding": [
+      "x-ai/grok-code-fast-1",
+      "deepseek/deepseek-chat",
+      "minimax/minimax-m2",
+      "mistralai/devstral-2512"
+    ],
+    "forAdvancedReasoning": [
+      "google/gemini-2.5-flash",
+      "xiaomi/mimo-v2-flash-20251210"
+    ],
+    "forVisionMultimodal": [
+      "x-ai/grok-4-fast",
+      "google/gemini-3-flash-preview-20251217"
+    ],
+    "forBudgetConstraints": [
+      "openai/gpt-oss-120b"
+    ],
+    "forFreeUsage": [
+      "xiaomi/mimo-v2-flash-20251210"
+    ],
+    "forCostEfficiency": [
+      "mistralai/devstral-2512",
+      "openai/gpt-oss-120b",
+      "x-ai/grok-code-fast-1"
+    ]
+  },
+  "categoryBalanceImprovement": {
+    "previousApproach": {
+      "strictProviderDedupe": true,
+      "maxPerProvider": 1,
+      "resultingCategories": { "fast-coding": 3, "reasoning": 2, "budget": 1 },
+      "visionModelsIncluded": 0
+    },
+    "relaxedApproach": {
+      "strictProviderDedupe": false,
+      "maxPerProvider": 2,
+      "resultingCategories": { "fast-coding": 4, "reasoning": 2, "budget": 1, "vision": 2 },
+      "visionModelsIncluded": 2,
+      "improvements": [
+        "Added Grok 4 Fast (vision)",
+        "Added Gemini 3 Flash Preview (vision)",
+        "Improved provider diversity (x-ai and google now have 2 models each)",
+        "Budget category remains at 1 model due to limited budget options in rankings"
+      ]
+    }
+  }
+}

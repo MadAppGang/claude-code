@@ -50,11 +50,14 @@ export const ProjectStorage = {
 
   // Add new project
   addProject(path: string, name?: string): Project {
+    console.log('[ProjectStorage.addProject] path:', path, 'name:', name);
     const storage = this.load();
+    console.log('[ProjectStorage.addProject] current storage:', storage);
 
     // Check if project already exists
     const existing = storage.projects.find(p => p.path === path);
     if (existing) {
+      console.log('[ProjectStorage.addProject] Project already exists, updating:', existing);
       // Update lastOpened and set as current
       existing.lastOpened = new Date().toISOString();
       storage.currentProjectId = existing.id;
@@ -63,17 +66,23 @@ export const ProjectStorage = {
     }
 
     // Create new project
-    const folderName = path.split('/').pop() || 'Unknown';
+    const folderName = path.split('/').pop() || path.split('\\').pop() || 'Unknown';
     const project: Project = {
       id: uuidv4(),
       name: name || folderName,
       path,
       lastOpened: new Date().toISOString(),
     };
+    console.log('[ProjectStorage.addProject] Created new project:', project);
 
     storage.projects.push(project);
     storage.currentProjectId = project.id; // Auto-switch to new project
     this.save(storage);
+    console.log('[ProjectStorage.addProject] Saved storage with currentProjectId:', storage.currentProjectId);
+
+    // Verify it was saved
+    const verify = this.load();
+    console.log('[ProjectStorage.addProject] Verification - loaded storage:', verify);
 
     return project;
   },

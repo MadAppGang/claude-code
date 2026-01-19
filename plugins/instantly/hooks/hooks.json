@@ -1,0 +1,16 @@
+{
+	"description": "Instantly.ai cold email outreach - session initialization",
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+						"timeout": 10
+					}
+				]
+			}
+		]
+	}
+}

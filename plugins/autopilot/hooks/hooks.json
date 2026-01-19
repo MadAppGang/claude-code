@@ -1,0 +1,33 @@
+{
+  "description": "Autopilot plugin - webhook handling and task state management",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-linear-connection.sh",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-webhook-server.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/validate-linear-state.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

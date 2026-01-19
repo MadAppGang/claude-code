@@ -1,0 +1,125 @@
+bun test v1.3.2 (b131639c)
+
+tests/unit/priority-queue.test.ts:
+[2026-01-10T05:08:21.790Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.790Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.791Z] [INFO] Task enqueued {"issueId":"issue-1768021701790","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.792Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.792Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.793Z] [INFO] Task enqueued {"issueId":"low-1","priority":"low","position":0,"queueSize":1}
+[2026-01-10T05:08:21.793Z] [INFO] Task enqueued {"issueId":"high-1","priority":"high","position":0,"queueSize":2}
+[2026-01-10T05:08:21.793Z] [INFO] Task enqueued {"issueId":"critical-1","priority":"critical","position":0,"queueSize":3}
+[2026-01-10T05:08:21.793Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.794Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.794Z] [INFO] Task enqueued {"issueId":"issue-1768021701794","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.794Z] [DEBUG] Task already in queue {"issueId":"issue-1768021701794"}
+[2026-01-10T05:08:21.794Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.794Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.795Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.795Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.795Z] [INFO] Task enqueued {"issueId":"1","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.795Z] [INFO] Task enqueued {"issueId":"2","priority":"normal","position":1,"queueSize":2}
+[2026-01-10T05:08:21.795Z] [WARN] Queue at capacity {"size":2,"max":2,"droppedTask":"3"}
+[2026-01-10T05:08:21.796Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.796Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.796Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.796Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.796Z] [INFO] Queue paused
+[2026-01-10T05:08:21.796Z] [INFO] Queue resumed
+[2026-01-10T05:08:21.796Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.796Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.796Z] [INFO] Task enqueued {"issueId":"issue-1768021701796","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.797Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.797Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.797Z] [INFO] Task enqueued {"issueId":"issue-1768021701797","priority":"normal","position":0,"queueSize":1}
+
+tests/unit/webhook-verifier.test.ts:
+[2026-01-10T05:08:21.799Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:21.799Z] [WARN] Invalid webhook signature
+[2026-01-10T05:08:21.799Z] [WARN] Missing webhook signature
+[2026-01-10T05:08:21.799Z] [WARN] Webhook verification bypassed in dev mode
+[2026-01-10T05:08:21.799Z] [WARN] Webhook too old {"ageMs":600000}
+[2026-01-10T05:08:21.800Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:21.800Z] [DEBUG] No webhook timestamp provided
+[2026-01-10T05:08:21.800Z] [WARN] Duplicate webhook detected (replay attack prevented) {"signature":"d965da9d77fa271b..."}
+[2026-01-10T05:08:21.800Z] [WARN] Webhook timestamp in future {"webhookTimestamp":1768022001800}
+
+tests/unit/api.test.ts:
+[2026-01-10T05:08:21.802Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.802Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.802Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.802Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.802Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.802Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.803Z] [INFO] Task enqueued {"issueId":"test-123","priority":"high","position":0,"queueSize":1}
+[2026-01-10T05:08:21.803Z] [INFO] Task created via API {"id":"ce0c8431-1ba0-4624-a761-c169ae03c190","issueId":"test-123"}
+[2026-01-10T05:08:21.803Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.803Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.803Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.803Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.804Z] [INFO] Task enqueued {"issueId":"list-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.804Z] [INFO] Task created via API {"id":"f28d79e8-72a4-4f92-b602-34453cf018c2","issueId":"list-test-123"}
+[2026-01-10T05:08:21.804Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.804Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.804Z] [INFO] Task enqueued {"issueId":"filter-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.804Z] [INFO] Task created via API {"id":"ad52c058-f6e7-4f68-8073-2b1856c95404","issueId":"filter-test-123"}
+[2026-01-10T05:08:21.804Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.804Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.805Z] [INFO] Task enqueued {"issueId":"single-test-123","priority":"normal","position":0,"queueSize":1}
+[2026-01-10T05:08:21.805Z] [INFO] Task created via API {"id":"e3fa8b23-8c2f-4ff1-8614-1774f770f325","issueId":"single-test-123"}
+[2026-01-10T05:08:21.805Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.805Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.805Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.805Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.805Z] [INFO] Queue paused
+[2026-01-10T05:08:21.805Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.805Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+[2026-01-10T05:08:21.805Z] [INFO] Queue paused
+[2026-01-10T05:08:21.805Z] [INFO] Queue resumed
+[2026-01-10T05:08:21.806Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:08:21.806Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":2}
+
+tests/integration/sdk-integration.test.ts:
+SDK exports: [ "AbortError", "EXIT_REASONS", "HOOK_EVENTS", "createSdkMcpServer", "query",
+  "tool", "unstable_v2_createSession", "unstable_v2_prompt", "unstable_v2_resumeSession"
+]
+Message type: system
+Message type: assistant
+Message type: result
+Result: 4
+Captured session ID: f10f2496-7dd6-4fcb-b812-0d9633f0cfc8
+Message types seen: [ "system", "assistant", "user", "result" ]
+Tools used: []
+Received message types: [ "system", "assistant", "user", "result" ]
+killed 1 dangling process
+(fail) Claude Agent SDK Integration > Error Handling > should handle invalid options gracefully [30001.16ms]
+  ^ this test timed out after 30000ms.
+[2026-01-10T05:09:29.276Z] [INFO] Session manager initialized {"sessions":10,"prompts":1}
+[2026-01-10T05:09:29.277Z] [INFO] Creating new Claude session {"issueId":"test-issue-1768021769276","tags":["@implement"]}
+Error caught: 7955 |       const exitHandler = (code, signal) => {
+7956 |         if (this.abortController.signal.aborted) {
+7957 |           reject(new AbortError("Operation aborted"));
+7958 |           return;
+7959 |         }
+7960 |         const error = this.getProcessExitError(code, signal);
+                                  ^
+error: Claude Code process exited with code 143
+      at exitHandler (/Users/jack/mag/claude-code/tools/autopilot-server/node_modules/@anthropic-ai/claude-agent-sdk/sdk.mjs:7960:28)
+      at emit (node:events:98:22)
+      at #handleOnExit (node:child_process:520:14)
+
+[2026-01-10T05:09:56.138Z] [DEBUG] Session ID captured {"sessionId":"706a03fd-1052-4655-9b9d-b0b6148b45c7"}
+[90m2026-01-10T05:09:56.138Z[0m [45m[37m[1m SYSTEM [0m init
+[90m2026-01-10T05:10:23.396Z[0m [44m[37m[1m CLAUDE [0m ✓ DONE: Hello! I've received this task successfully. 
+
+## Task Confirmation
+- **Issue ID**: test-issue-17680...
+[2026-01-10T05:10:24.224Z] [INFO] Session completed {"issueId":"test-issue-1768021769276","toolCalls":0,"status":"completed"}
+Session completed with 0 tool calls
+Transcript entries: 2
+
+tests/e2e/task-execution.test.ts:
+[2026-01-10T05:10:24.245Z] [DEBUG] No existing queue state, starting fresh
+[2026-01-10T05:10:24.245Z] [INFO] Queue initialized {"pending":0,"active":0,"workers":1}
+[2026-01-10T05:10:24.246Z] [INFO] Session manager initialized {"sessions":0,"prompts":1}
+[2026-01-10T05:10:24.246Z] [INFO] Creating new Claude session {"issueId":"e2e-issue-1768021824246","tags":[]}

@@ -20,6 +20,10 @@ export interface Author {
 export interface Capability {
   name: string;
   description?: string;
+  allowedTools?: string[];
+  disableModelInvocation?: boolean;
+  // Additional frontmatter fields
+  [key: string]: unknown;
 }
 
 export interface Plugin {

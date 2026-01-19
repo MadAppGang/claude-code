@@ -44,7 +44,7 @@ Created 11 files (481 lines in main.py):
 - `main.py` - Core CLI implementation
 - `README.md` - User documentation
 - 2 agents: `style-manager.md`, `image-generator.md`
-- 3 commands: `nb-generate.md`, `nb-edit.md`, `nb-style.md`
+- 3 commands: `generate.md`, `edit.md`, `style.md`
 - 2 skills: `gemini-api/SKILL.md`, `style-format/SKILL.md`
 
 ### Phase 3: Quality Review (COMPLETED)
@@ -84,9 +84,9 @@ plugins/nanobanana/
 │   ├── style-manager.md  # Style CRUD with safety checks
 │   └── image-generator.md # Image generation orchestration
 ├── commands/
-│   ├── nb-generate.md    # /nb-generate command
-│   ├── nb-edit.md        # /nb-edit command
-│   └── nb-style.md       # /nb-style command
+│   ├── generate.md       # /nanobanana:generate command
+│   ├── edit.md           # /nanobanana:edit command
+│   └── style.md          # /nanobanana:style command
 └── skills/
     ├── gemini-api/SKILL.md      # API reference
     └── style-format/SKILL.md    # Style specification
@@ -103,7 +103,7 @@ plugins/nanobanana/
 
 2. **Markdown Style System**
    - Single .md files with description and references
-   - CRUD operations via /nb-style command
+   - CRUD operations via /nanobanana:style command
    - Preview before destructive operations
 
 3. **Batch Generation**
@@ -171,9 +171,9 @@ cd plugins/nanobanana && uv sync
 
 | Command | Purpose |
 |---------|---------|
-| `/nb-generate` | Generate images with optional styles |
-| `/nb-edit` | Edit existing images with prompts |
-| `/nb-style` | Manage style files (create/list/show/delete/update) |
+| `/nanobanana:generate` | Generate images with optional styles |
+| `/nanobanana:edit` | Edit existing images with prompts |
+| `/nanobanana:style` | Manage style files (create/list/show/delete/update) |
 
 ---
 

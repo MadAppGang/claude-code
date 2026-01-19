@@ -7,17 +7,26 @@ import {
 } from "../services/plugin-manager.js";
 import { runClaude } from "../services/claude-runner.js";
 
+export interface PrerunOptions {
+	force?: boolean; // Bypass cache and force update check
+}
+
 /**
  * Prerun orchestration: Check for updates, apply them, then run claude
  * @param claudeArgs - Arguments to pass to claude CLI
+ * @param options - Prerun options (force, etc.)
  * @returns Exit code from claude process
  */
-export async function prerunClaude(claudeArgs: string[]): Promise<number> {
+export async function prerunClaude(claudeArgs: string[], options: PrerunOptions = {}): Promise<number> {
 	const cache = new UpdateCache();
 
 	try {
-		// STEP 1: Check if we should update (time-based cache)
-		const shouldUpdate = await cache.shouldCheckForUpdates();
+		// STEP 1: Check if we should update (time-based cache, or forced)
+		const shouldUpdate = options.force || await cache.shouldCheckForUpdates();
+
+		if (options.force) {
+			console.log("⟳ Forcing plugin update check...");
+		}
 
 		if (shouldUpdate) {
 			// STEP 2: Refresh all marketplaces (git pull)

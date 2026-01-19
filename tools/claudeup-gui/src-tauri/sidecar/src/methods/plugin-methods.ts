@@ -30,6 +30,14 @@ import {
 type Scope = 'global' | 'project' | 'local';
 
 /**
+ * Write to stdout - always use process.stdout for compatibility
+ */
+function writeOutput(data: string): void {
+  const output = data + '\n';
+  process.stdout.write(output);
+}
+
+/**
  * Emit a progress notification via stdout (JSON-RPC 2.0 notification)
  */
 function emitProgress(operation: string, percent: number, status: string, cancellable = false): void {
@@ -43,7 +51,7 @@ function emitProgress(operation: string, percent: number, status: string, cancel
       cancellable,
     } as ProgressParams,
   };
-  console.log(JSON.stringify(notification));
+  writeOutput(JSON.stringify(notification));
 }
 
 /**
@@ -168,6 +176,20 @@ export const pluginMethods: Record<string, RpcMethodHandler> = {
       } else {
         // Project or local scope: use project-aware function
         plugins = await getAvailablePlugins(projectPath);
+      }
+
+      // Debug: log a sample plugin to see if it has agents/commands/skills
+      const samplePlugin = plugins.find(p => p.name === 'dev' || p.name === 'code-analysis');
+      if (samplePlugin) {
+        console.error('[plugin.list DEBUG] Sample plugin:', JSON.stringify({
+          name: samplePlugin.name,
+          hasAgents: !!samplePlugin.agents?.length,
+          agentCount: samplePlugin.agents?.length,
+          hasCommands: !!samplePlugin.commands?.length,
+          commandCount: samplePlugin.commands?.length,
+          hasSkills: !!samplePlugin.skills?.length,
+          skillCount: samplePlugin.skills?.length,
+        }));
       }
 
       return {

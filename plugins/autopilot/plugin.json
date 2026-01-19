@@ -1,0 +1,85 @@
+{
+  "name": "autopilot",
+  "version": "0.1.0",
+  "description": "Autonomous task execution with Linear integration. Picks tasks from Linear, routes to appropriate agents via tag-to-command mapping, generates proof-of-work artifacts, and handles feedback loops. Phase 1: Core Linear integration and task execution.",
+  "author": {
+    "name": "Jack Rudenko",
+    "email": "i@madappgang.com",
+    "company": "MadAppGang"
+  },
+  "license": "MIT",
+  "keywords": [
+    "autopilot",
+    "autonomous",
+    "linear",
+    "task-execution",
+    "proof-of-work",
+    "webhook",
+    "state-machine",
+    "feedback-loop",
+    "multi-agent"
+  ],
+  "category": "automation",
+  "agents": [
+    "./agents/task-executor.md",
+    "./agents/proof-generator.md",
+    "./agents/feedback-processor.md"
+  ],
+  "commands": [
+    "./commands/create-task.md",
+    "./commands/status.md",
+    "./commands/config.md",
+    "./commands/run.md",
+    "./commands/help.md"
+  ],
+  "skills": [
+    "linear-integration",
+    "tag-command-mapping",
+    "proof-of-work",
+    "state-machine"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "dependencies": {
+    "dev@mag-claude-plugins": "^1.13.0",
+    "orchestration@mag-claude-plugins": "^0.9.0"
+  },
+  "npmDependencies": {
+    "@linear/sdk": "^26.0.0",
+    "playwright": "^1.40.0"
+  },
+  "compatibility": {
+    "claudeCode": ">=0.1.0"
+  },
+  "envVars": {
+    "LINEAR_API_KEY": {
+      "description": "Linear API key for authentication",
+      "required": true,
+      "example": "lin_api_xxxxxxxxxxxxx"
+    },
+    "LINEAR_WEBHOOK_SECRET": {
+      "description": "Secret for webhook signature verification",
+      "required": true,
+      "example": "whsec_xxxxxxxxxxxxx"
+    },
+    "AUTOPILOT_WEBHOOK_PORT": {
+      "description": "Port for webhook server",
+      "required": false,
+      "default": "3001"
+    },
+    "AUTOPILOT_BOT_USER_ID": {
+      "description": "Linear user ID for autopilot bot",
+      "required": true,
+      "example": "user_xxxxxxxxxxxxx"
+    },
+    "AUTOPILOT_MAX_FEEDBACK_ROUNDS": {
+      "description": "Maximum feedback iterations before escalation",
+      "required": false,
+      "default": "5"
+    },
+    "AUTOPILOT_CONFIDENCE_THRESHOLD": {
+      "description": "Minimum confidence for auto-approval (0-100)",
+      "required": false,
+      "default": "95"
+    }
+  }
+}

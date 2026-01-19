@@ -35,11 +35,10 @@ const AppContent: React.FC = () => {
   // Fetch current project first to get the path
   const { data: currentProject, isLoading: currentProjectLoading } = useCurrentProject();
 
-  // Fetch plugins from both scopes and merge them
-  const { data: globalPlugins, isLoading: globalLoading, error: globalError, refetch: refetchGlobal } = usePlugins('global');
+  // Fetch plugins for project scope (backend returns all scope data for each plugin)
   const { data: projectPlugins, isLoading: projectLoading, error: projectError, refetch: refetchProject } = usePlugins('project', currentProject?.path);
 
-  // Merge plugins from both scopes, deduplicating by ID
+  // Transform backend data - no merging needed, just use project plugins
   const backendPlugins = useMemo(() => {
     // Safely extract arrays from potentially wrapped responses
     const toArray = <T,>(data: T[] | { plugins?: T[]; data?: T[] } | undefined | null): T[] => {
@@ -52,20 +51,12 @@ const AppContent: React.FC = () => {
       return [];
     };
 
-    const globalArr = toArray(globalPlugins);
-    const projectArr = toArray(projectPlugins);
+    return toArray(projectPlugins);
+  }, [projectPlugins]);
 
-    // Dedupe by ID, project scope overrides global
-    const pluginMap = new Map<string, NonNullable<typeof globalPlugins>[number]>();
-    globalArr.forEach(p => pluginMap.set(p.id, p));
-    projectArr.forEach(p => pluginMap.set(p.id, p));
-    return Array.from(pluginMap.values());
-  }, [globalPlugins, projectPlugins]);
-
-  const pluginsLoading = globalLoading || projectLoading;
-  const pluginsError = globalError || projectError;
+  const pluginsLoading = projectLoading;
+  const pluginsError = projectError;
   const refetchPlugins = () => {
-    refetchGlobal();
     refetchProject();
   };
   const { data: marketplacesData, isLoading: marketplacesLoading, error: marketplacesError, refetch: refetchMarketplaces } = useMarketplaces();
@@ -177,13 +168,21 @@ const AppContent: React.FC = () => {
   };
 
   const handleAddProject = async () => {
+    console.log('[handleAddProject] Starting folder selection...');
     const path = await selectProjectFolder();
-    if (!path) return; // User cancelled
+    console.log('[handleAddProject] Selected path:', path);
+    if (!path) {
+      console.log('[handleAddProject] User cancelled');
+      return;
+    }
 
     try {
-      await addProjectMutation.mutateAsync({ path });
+      console.log('[handleAddProject] Adding project with path:', path);
+      const result = await addProjectMutation.mutateAsync({ path });
+      console.log('[handleAddProject] Mutation result:', result);
       toast.addToast('Project added successfully', 'success');
     } catch (error) {
+      console.error('[handleAddProject] Error:', error);
       toast.addToast(
         `Failed to add project: ${error instanceof Error ? error.message : String(error)}`,
         'error'
@@ -195,7 +194,6 @@ const AppContent: React.FC = () => {
     try {
       await switchProjectMutation.mutateAsync({ projectId });
       setIsProjectMenuOpen(false);
-      toast.addToast('Switched project successfully', 'success');
     } catch (error) {
       toast.addToast(
         `Failed to switch project: ${error instanceof Error ? error.message : String(error)}`,
@@ -256,6 +254,8 @@ const AppContent: React.FC = () => {
 
   // Loading state
   const isLoading = pluginsLoading || marketplacesLoading || projectsLoading || currentProjectLoading;
+  console.log('[App] Loading states:', { pluginsLoading, marketplacesLoading, projectsLoading, currentProjectLoading, isLoading });
+  console.log('[App] Data:', { currentProject, projectPlugins: projectPlugins?.length, marketplacesData: marketplacesData?.length, projectsData: projectsData?.length });
   if (isLoading) {
     return <LoadingSpinner message="Loading data..." />;
   }
@@ -505,6 +505,7 @@ const AppContent: React.FC = () => {
         <RightSidebar
           plugin={selectedPlugin}
           onUpdatePlugin={handlePluginUpdate}
+          projectPath={currentProject?.path}
         />
 
         {/* Help Button */}

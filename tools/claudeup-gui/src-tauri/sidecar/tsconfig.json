@@ -15,8 +15,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "types": ["node"]
+    "types": ["node"],
+    "noImplicitAny": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../../../../../claudeup-core/dist/**/*"],
   "exclude": ["node_modules", "dist"]
 }

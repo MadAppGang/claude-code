@@ -1,0 +1,4 @@
+packages:
+  - 'claudeup-core'
+  - 'claudeup-gui'
+  - 'claudeup-gui/src-tauri/sidecar'

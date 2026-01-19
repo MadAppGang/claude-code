@@ -1,0 +1,10 @@
+{
+  "instantly": {
+    "url": "https://mcp.instantly.ai/mcp",
+    "transport": "streamable-http",
+    "headers": {
+      "Authorization": "${INSTANTLY_API_KEY}"
+    },
+    "timeout": 30000
+  }
+}

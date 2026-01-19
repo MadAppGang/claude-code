@@ -1,5 +1,6 @@
 import { useTauriQuery, useTauriCommand } from "./useTauriCommand";
 import { useQueryClient } from "@tanstack/react-query";
+import { invoke } from "@tauri-apps/api/core";
 
 export interface Plugin {
   id: string;
@@ -13,14 +14,28 @@ export interface Plugin {
 
 export interface InstallPluginParams {
   name: string;
-  scope: "global" | "project";
+  scope: "global" | "project" | "local";
   marketplace?: string;
+  projectPath?: string;
 }
 
 export interface TogglePluginParams {
   pluginId: string;
   enabled: boolean;
-  scope: "global" | "project";
+  scope: "global" | "project" | "local";
+  projectPath?: string;
+}
+
+export interface UpdatePluginParams {
+  name: string;
+  scope: "global" | "project" | "local";
+  projectPath?: string;
+}
+
+export interface UninstallPluginParams {
+  name: string;
+  scope: "global" | "project" | "local";
+  projectPath?: string;
 }
 
 export function usePlugins(scope?: "global" | "project", projectPath?: string) {
@@ -50,8 +65,36 @@ export function useInstallPlugin() {
   return useTauriCommand<{ success: boolean }, InstallPluginParams>(
     "install_plugin",
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["plugins"] });
+      onSuccess: async (_data, variables) => {
+        try {
+          // Find the active plugins query to get the projectPath
+          const queries = queryClient.getQueryCache().findAll({ queryKey: ["plugins"] });
+
+          // Get projectPath from the first active query or from variables
+          let projectPath = variables.projectPath;
+          for (const query of queries) {
+            const key = query.queryKey as string[];
+            if (key[2] && key[2] !== "") {
+              projectPath = key[2];
+              break;
+            }
+          }
+
+          if (!projectPath) {
+            console.error('[useInstallPlugin] No projectPath found, cannot refetch');
+            return;
+          }
+
+          // Manually fetch fresh data from backend
+          const params = { scope: 'project' as const, projectPath };
+          const freshData = await invoke<Plugin[]>("list_plugins", params);
+
+          // Update the cache with fresh data
+          const queryKey = ["plugins", "project", projectPath];
+          queryClient.setQueryData(queryKey, freshData);
+        } catch (error) {
+          console.error('[useInstallPlugin] Error fetching fresh data:', error);
+        }
       },
     }
   );
@@ -133,6 +176,88 @@ export function useRefreshMarketplaces() {
     {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["plugins"] });
+      },
+    }
+  );
+}
+
+export function useUpdatePlugin() {
+  const queryClient = useQueryClient();
+
+  return useTauriCommand<{ success: boolean }, UpdatePluginParams>(
+    "update_plugin",
+    {
+      onSuccess: async (_data, variables) => {
+        try {
+          // Find the active plugins query to get the projectPath
+          const queries = queryClient.getQueryCache().findAll({ queryKey: ["plugins"] });
+
+          // Get projectPath from the first active query or from variables
+          let projectPath = variables.projectPath;
+          for (const query of queries) {
+            const key = query.queryKey as string[];
+            if (key[2] && key[2] !== "") {
+              projectPath = key[2];
+              break;
+            }
+          }
+
+          if (!projectPath) {
+            console.error('[useUpdatePlugin] No projectPath found, cannot refetch');
+            return;
+          }
+
+          // Manually fetch fresh data from backend
+          const params = { scope: 'project' as const, projectPath };
+          const freshData = await invoke<Plugin[]>("list_plugins", params);
+
+          // Update the cache with fresh data
+          const queryKey = ["plugins", "project", projectPath];
+          queryClient.setQueryData(queryKey, freshData);
+        } catch (error) {
+          console.error('[useUpdatePlugin] Error fetching fresh data:', error);
+        }
+      },
+    }
+  );
+}
+
+export function useUninstallPlugin() {
+  const queryClient = useQueryClient();
+
+  return useTauriCommand<{ success: boolean }, UninstallPluginParams>(
+    "uninstall_plugin",
+    {
+      onSuccess: async (_data, variables) => {
+        try {
+          // Find the active plugins query to get the projectPath
+          const queries = queryClient.getQueryCache().findAll({ queryKey: ["plugins"] });
+
+          // Get projectPath from the first active query or from variables
+          let projectPath = variables.projectPath;
+          for (const query of queries) {
+            const key = query.queryKey as string[];
+            if (key[2] && key[2] !== "") {
+              projectPath = key[2];
+              break;
+            }
+          }
+
+          if (!projectPath) {
+            console.error('[useUninstallPlugin] No projectPath found, cannot refetch');
+            return;
+          }
+
+          // Manually fetch fresh data from backend
+          const params = { scope: 'project' as const, projectPath };
+          const freshData = await invoke<Plugin[]>("list_plugins", params);
+
+          // Update the cache with fresh data
+          const queryKey = ["plugins", "project", projectPath];
+          queryClient.setQueryData(queryKey, freshData);
+        } catch (error) {
+          console.error('[useUninstallPlugin] Error fetching fresh data:', error);
+        }
       },
     }
   );

@@ -26,13 +26,16 @@ export function useAddProject() {
 
   return useMutation<Project, Error, { path: string; name?: string }>({
     mutationFn: async ({ path, name }) => {
-      return ProjectStorage.addProject(path, name);
+      const project = ProjectStorage.addProject(path, name);
+      console.log('[useAddProject] Project added:', project);
+      return project;
     },
-    onSuccess: () => {
-      // Invalidate queries to trigger re-fetch
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["current-project"] });
-      queryClient.invalidateQueries({ queryKey: ["plugins"] }); // Re-fetch plugins for new project
+    onSuccess: (_project) => {
+      console.log('[useAddProject] onSuccess, refetching queries...');
+      // Force immediate refetch (not just invalidate)
+      queryClient.refetchQueries({ queryKey: ["current-project"] });
+      queryClient.refetchQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["plugins"] });
     },
   });
 }

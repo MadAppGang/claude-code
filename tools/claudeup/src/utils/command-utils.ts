@@ -1,5 +1,5 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
 
@@ -10,11 +10,11 @@ const execFileAsync = promisify(execFile);
  * @returns Path to command if found, null otherwise
  */
 export async function which(command: string): Promise<string | null> {
-  try {
-    // Use execFile with argument array to prevent command injection
-    const { stdout } = await execFileAsync('which', [command]);
-    return stdout.trim() || null;
-  } catch {
-    return null;
-  }
+	try {
+		// Use execFile with argument array to prevent command injection
+		const { stdout } = await execFileAsync("which", [command]);
+		return stdout.trim() || null;
+	} catch {
+		return null;
+	}
 }
