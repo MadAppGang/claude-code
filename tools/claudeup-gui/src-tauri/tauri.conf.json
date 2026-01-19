@@ -1,6 +1,6 @@
 {
   "productName": "claudeup",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "identifier": "com.madappgang.claudeup",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -28,7 +28,7 @@
       "minimumSystemVersion": "10.15",
       "signingIdentity": "Developer ID Application: MADAPPGANG PTY. LTD. (E85N35G3YB)",
       "providerShortName": null,
-      "entitlements": null
+      "entitlements": "entitlements.plist"
     },
     "windows": {
       "certificateThumbprint": null,
