@@ -34,9 +34,6 @@
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
-    },
-    "linux": {
-      "targets": ["deb", "rpm"]
     }
   },
   "plugins": {

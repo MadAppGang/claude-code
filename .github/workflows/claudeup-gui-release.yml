@@ -23,15 +23,19 @@ jobs:
           - platform: macos-latest
             target: aarch64-apple-darwin
             sidecar_name: claudeup-sidecar-aarch64-apple-darwin
+            bundles: ""
           - platform: macos-14
             target: x86_64-apple-darwin
             sidecar_name: claudeup-sidecar-x86_64-apple-darwin
+            bundles: ""
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             sidecar_name: claudeup-sidecar-x86_64-unknown-linux-gnu
+            bundles: "deb,rpm"
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
             sidecar_name: claudeup-sidecar-x86_64-pc-windows-msvc.exe
+            bundles: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -132,4 +136,4 @@ jobs:
             This app supports automatic updates. Once installed, you'll receive updates automatically.
           releaseDraft: true
           prerelease: false
-          args: --target ${{ matrix.target }}
+          args: --target ${{ matrix.target }} ${{ matrix.bundles != '' && format('--bundles {0}', matrix.bundles) || '' }}
