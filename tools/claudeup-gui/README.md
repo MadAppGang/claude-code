@@ -1,4 +1,4 @@
-# claudeup-gui
+# claudeup
 
 Cross-platform desktop application for managing Claude Code plugins, MCP servers, and configuration.
 

@@ -127,10 +127,10 @@ jobs:
         with:
           projectPath: tools/claudeup-gui
           tagName: ${{ github.ref_name }}
-          releaseName: 'claudeup-gui v__VERSION__'
+          releaseName: 'claudeup v__VERSION__'
           tauriScript: npx @tauri-apps/cli
           releaseBody: |
-            ## claudeup-gui v__VERSION__
+            ## claudeup v__VERSION__
 
             Cross-platform GUI for managing Claude Code plugins, MCP servers, and configuration.
 
@@ -138,11 +138,11 @@ jobs:
 
             | Platform | Download |
             |----------|----------|
-            | **macOS (Apple Silicon)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___aarch64.dmg) |
-            | **macOS (Intel)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64.dmg) |
-            | **Windows** | [Download Installer](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64-setup.exe) |
-            | **Linux (deb)** | [Download DEB](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___amd64.deb) |
-            | **Linux (rpm)** | [Download RPM](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui-__VERSION__-1.x86_64.rpm) |
+            | **macOS (Apple Silicon)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup___VERSION___aarch64.dmg) |
+            | **macOS (Intel)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup___VERSION___x64.dmg) |
+            | **Windows** | [Download Installer](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup___VERSION___x64-setup.exe) |
+            | **Linux (deb)** | [Download DEB](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup___VERSION___amd64.deb) |
+            | **Linux (rpm)** | [Download RPM](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-__VERSION__-1.x86_64.rpm) |
 
             ### Auto-Updates
             This app supports automatic updates. Once installed, you'll receive updates automatically.

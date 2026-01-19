@@ -1,5 +1,5 @@
 [package]
-name = "claudeup-gui"
+name = "claudeup"
 version = "0.1.0"
 description = "Cross-platform GUI for claudeup plugin manager"
 authors = ["Jack Rudenko <i@madappgang.com>"]

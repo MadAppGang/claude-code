@@ -1,7 +1,7 @@
 {
-  "productName": "claudeup-gui",
+  "productName": "claudeup",
   "version": "0.1.1",
-  "identifier": "com.madappgang.claudeup-gui",
+  "identifier": "com.madappgang.claudeup",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "",
@@ -47,7 +47,7 @@
   "app": {
     "windows": [
       {
-        "title": "claudeup GUI",
+        "title": "claudeup",
         "width": 1200,
         "height": 800,
         "resizable": true,

@@ -32,7 +32,7 @@ export function WelcomeScreen({ onAddProject, isLoading = false }: WelcomeScreen
 
         {/* Title */}
         <h1 className="text-2xl font-semibold text-textMain">
-          Welcome to claudeup GUI
+          Welcome to claudeup
         </h1>
 
         {/* Description */}
