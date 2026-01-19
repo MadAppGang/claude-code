@@ -112,13 +112,11 @@ jobs:
         working-directory: tools/claudeup-gui
         run: npm run build
 
-      # Build Tauri app (skip macOS code signing for now)
+      # Build Tauri app
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Skip macOS code signing (set to "-" to skip, or use actual identity when available)
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
           # Tauri updater signing
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
@@ -126,6 +124,7 @@ jobs:
           projectPath: tools/claudeup-gui
           tagName: ${{ github.ref_name }}
           releaseName: 'claudeup-gui v__VERSION__'
+          tauriScript: npx @tauri-apps/cli
           releaseBody: |
             ## claudeup-gui v__VERSION__
 
