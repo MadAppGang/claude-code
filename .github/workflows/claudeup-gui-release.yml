@@ -126,11 +126,11 @@ jobs:
 
             | Platform | Download |
             |----------|----------|
-            | **macOS (Apple Silicon)** | [claudeup-gui_\_\_VERSION\_\__aarch64.dmg](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___aarch64.dmg) |
-            | **macOS (Intel)** | [claudeup-gui_\_\_VERSION\_\__x64.dmg](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64.dmg) |
-            | **Windows** | [claudeup-gui_\_\_VERSION\_\__x64-setup.exe](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64-setup.exe) |
-            | **Linux (deb)** | [claudeup-gui_\_\_VERSION\_\__amd64.deb](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___amd64.deb) |
-            | **Linux (rpm)** | [claudeup-gui-\_\_VERSION\_\_-1.x86_64.rpm](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___-1.x86_64.rpm) |
+            | **macOS (Apple Silicon)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___aarch64.dmg) |
+            | **macOS (Intel)** | [Download DMG](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64.dmg) |
+            | **Windows** | [Download Installer](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___x64-setup.exe) |
+            | **Linux (deb)** | [Download DEB](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui___VERSION___amd64.deb) |
+            | **Linux (rpm)** | [Download RPM](https://github.com/MadAppGang/claude-code/releases/download/${{ github.ref_name }}/claudeup-gui-__VERSION__-1.x86_64.rpm) |
 
             ### Auto-Updates
             This app supports automatic updates. Once installed, you'll receive updates automatically.
