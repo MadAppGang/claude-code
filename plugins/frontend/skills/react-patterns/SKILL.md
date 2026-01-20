@@ -1,6 +1,8 @@
 ---
 name: react-patterns
-description: React 19 specific patterns including React Compiler optimization, Server Actions, Forms, and new hooks. Use when implementing React 19 features, optimizing components, or choosing between Actions vs TanStack Query for mutations.
+description: Use when implementing React 19 features, optimizing components, or choosing between Actions vs TanStack Query for mutations. Covers React Compiler optimization, Server Actions, Forms, and new hooks.
+updated: 2026-01-20
+keywords: react-19, react-compiler, server-actions, forms, hooks, use-hook, optimistic-updates
 ---
 
 # React 19 Patterns and Best Practices

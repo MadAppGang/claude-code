@@ -5,6 +5,8 @@ version: 0.1.0
 tags: [linear, api, webhook, integration]
 keywords: [linear, api, webhook, issue, comment, state, attachment]
 ---
+plugin: autopilot
+updated: 2026-01-20
 
 # Linear Integration
 

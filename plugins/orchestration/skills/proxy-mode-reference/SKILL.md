@@ -2,6 +2,9 @@
 name: proxy-mode-reference
 version: 1.1.0
 description: Reference guide for using PROXY_MODE with external AI models. Use when running multi-model reviews, understanding which agents support PROXY_MODE, or debugging external model integration issues. Includes routing prefixes for MiniMax, Kimi, GLM direct APIs.
+keywords: [proxy-mode, external-models, multi-model, claudish, routing-prefixes, minimax, kimi, glm, gemini, openai, agent-support]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # PROXY_MODE Reference Guide

@@ -1,8 +1,20 @@
-# Bun.js OpenAPI and Apidog Integration
+---
+name: bunjs-apidog
+version: 1.0.0
+description: Use when creating OpenAPI specs for Bun.js APIs, integrating with Apidog, documenting endpoints with schemas, or automating API specification imports via Apidog REST API. See bunjs for basics.
+keywords:
+  - OpenAPI
+  - Apidog
+  - API documentation
+  - Swagger
+  - API specs
+  - integration
+  - API design
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: bunjs-apidog
-**Plugin**: dev
-**Version**: 1.0.0
+# Bun.js OpenAPI and Apidog Integration
 
 ## Overview
 

@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: performance-correlation
 description: Correlate content attributes with GA4 and GSC metrics to identify performance drivers
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Performance Correlation
 
@@ -39,6 +43,8 @@ GA4: N/A (users don't click)
 **Expected Impact**: +50-100% CTR improvement possible
 
 ---
+plugin: seo
+updated: 2026-01-20
 
 #### Pattern 2: High CTR + Low Engagement
 
@@ -62,6 +68,8 @@ GA4: Bounce ↑ | Time on Page ↓ | Scroll Depth ↓
 **Expected Impact**: -20-30% bounce rate, +50% time on page
 
 ---
+plugin: seo
+updated: 2026-01-20
 
 #### Pattern 3: High Engagement + Low Rankings
 
@@ -85,6 +93,8 @@ GSC: Position ↓ | Impressions ↓
 **Expected Impact**: +5-15 position improvement over 2-3 months
 
 ---
+plugin: seo
+updated: 2026-01-20
 
 #### Pattern 4: Declining Rankings + Stable Traffic
 
@@ -108,6 +118,8 @@ GA4: Traffic → (from brand/direct)
 **Expected Impact**: Prevent further decline, regain positions
 
 ---
+plugin: seo
+updated: 2026-01-20
 
 #### Pattern 5: Good Rankings + Low Impressions
 
@@ -131,6 +143,8 @@ GA4: Traffic ↓
 **Expected Impact**: Capture adjacent search demand
 
 ---
+plugin: seo
+updated: 2026-01-20
 
 #### Pattern 6: Position Volatility
 

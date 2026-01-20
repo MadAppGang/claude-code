@@ -1,3 +1,10 @@
+---
+name: shadcn-ui
+description: Use when implementing UI components with shadcn/ui. Covers component installation, configuration with Vite/TanStack Router, CLI commands, and integration with Tailwind CSS.
+updated: 2026-01-20
+keywords: shadcn, ui-components, tailwind, react, radix-ui, component-library
+---
+
 # shadcn/ui Component Library
 
 > shadcn/ui is a collection of beautifully-designed, accessible components and a code distribution platform. It is built with TypeScript, Tailwind CSS, and Radix UI primitives. It supports multiple frameworks including Next.js, Vite, Remix, Astro, and more. Open Source. Open Code. AI-Ready. It also comes with a command-line tool to install and manage components and a registry system to publish and distribute code.

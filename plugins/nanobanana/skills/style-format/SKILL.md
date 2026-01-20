@@ -2,6 +2,8 @@
 name: style-format
 description: Style template format specification. Single markdown files that describe artistic direction.
 ---
+plugin: nanobanana
+updated: 2026-01-20
 
 # Style Format Specification
 

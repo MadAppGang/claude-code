@@ -5,6 +5,8 @@ version: 0.1.0
 tags: [state-machine, workflow, transitions, gates]
 keywords: [state, transition, gate, validation, workflow, lifecycle]
 ---
+plugin: autopilot
+updated: 2026-01-20
 
 # Task Lifecycle State Machine
 

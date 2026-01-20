@@ -1,6 +1,8 @@
 ---
 name: performance-security
-description: Performance optimization, accessibility, and security best practices for React apps. Covers code-splitting, React Compiler patterns, asset optimization, a11y testing, and security hardening. Use when optimizing performance or reviewing security.
+description: Use when optimizing performance or reviewing security. Covers code-splitting, React Compiler patterns, asset optimization, a11y testing, and security hardening for React apps.
+updated: 2026-01-20
+keywords: performance, security, accessibility, a11y, code-splitting, react-compiler, bundle-optimization
 ---
 
 # Performance, Accessibility & Security

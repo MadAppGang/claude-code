@@ -4,6 +4,8 @@ description: Run multiple AI models in parallel for 3-5x speedup with ENFORCED p
 version: 3.2.0
 tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai, statistics, performance, free-models, minimax, kimi, glm]
 keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter, statistics, performance, quality-score, execution-time, free-models, top-models, minimax, kimi, glm, mmax, zhipu]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Multi-Model Validation

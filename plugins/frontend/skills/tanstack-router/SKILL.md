@@ -1,6 +1,8 @@
 ---
 name: tanstack-router
-description: TanStack Router patterns for type-safe, file-based routing. Covers installation, route configuration, typed params/search, layouts, and navigation. Use when setting up routes, implementing navigation, or configuring route loaders.
+description: Use when setting up routes, implementing navigation, or configuring route loaders. TanStack Router patterns for type-safe, file-based routing. Covers installation, route configuration, typed params/search, layouts, and navigation.
+updated: 2026-01-20
+keywords: tanstack-router, routing, file-based-routing, type-safe, navigation, layouts, params
 ---
 
 # TanStack Router Patterns

@@ -5,6 +5,8 @@ version: 0.1.0
 tags: [proof, validation, screenshots, tests, deployment]
 keywords: [proof, artifact, screenshot, test, deployment, confidence, validation]
 ---
+plugin: autopilot
+updated: 2026-01-20
 
 # Proof-of-Work
 

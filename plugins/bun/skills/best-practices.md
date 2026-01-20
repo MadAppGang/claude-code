@@ -1,3 +1,11 @@
+---
+name: best-practices
+description: Use when implementing production-ready TypeScript backend applications with Bun runtime, including project structure, performance optimization, error handling, testing, and deployment patterns.
+keywords: [bun, typescript, backend, best-practices, hono, prisma, biome, zod, pino, postgresql, redis, docker, aws-ecs, production-ready, performance]
+plugin: bun
+updated: 2026-01-20
+---
+
 # TypeScript Backend Best Practices with Bun (2025 Edition)
 
 This skill provides production-ready best practices for building TypeScript backend applications using Bun runtime. Use this guidance when implementing features, reviewing code, or making architectural decisions. **Updated November 2025** with the latest tool versions and patterns.

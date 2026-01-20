@@ -1,6 +1,8 @@
 ---
 name: architect-detective
-description: "⚡ Architecture analysis skill. Best for: 'what's the architecture', 'system design', 'how are layers organized', 'find design patterns', 'audit structure'. Uses claudemem AST structural analysis with PageRank for efficient architecture mapping."
+description: Use when analyzing architecture and system design. Find design patterns, map layers, identify core abstractions via PageRank. Uses claudemem AST structural analysis for efficient architecture investigation.
+updated: 2026-01-20
+keywords: architecture, design-patterns, system-design, claudemem, pagerank, layers
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 

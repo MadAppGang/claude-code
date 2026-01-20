@@ -4,6 +4,8 @@ description: MANDATORY tracking protocol for multi-model validation. Creates str
 version: 1.0.0
 tags: [orchestration, tracking, multi-model, statistics, mandatory]
 keywords: [tracking, mandatory, pre-launch, statistics, consensus, results, failures]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Model Tracking Protocol

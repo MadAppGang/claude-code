@@ -1,8 +1,21 @@
-# Universal Debugging Strategies
+---
+name: debugging-strategies
+version: 1.0.0
+description: Use when troubleshooting bugs, analyzing stack traces, using debugging tools (breakpoints, loggers), or applying systematic debugging methodology across any technology stack.
+keywords:
+  - debugging
+  - troubleshooting
+  - stack traces
+  - breakpoints
+  - logging
+  - error analysis
+  - bug fixing
+  - debugging tools
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: debugging-strategies
-**Plugin**: dev
-**Version**: 1.0.0
+# Universal Debugging Strategies
 
 ## Overview
 

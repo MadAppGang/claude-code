@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: content-brief
 description: Content brief template and creation methodology for SEO-optimized content. Use when preparing briefs for writers or planning new content pieces.
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Content Brief
 
@@ -42,6 +46,8 @@ description: Content brief template and creation methodology for SEO-optimized c
 
 ```markdown
 ---
+plugin: seo
+updated: 2026-01-20
 type: content-brief
 created_by: {agent_or_command}
 created_at: {timestamp}
@@ -50,6 +56,8 @@ session_id: {session_id}
 session_path: {session_path}
 status: complete
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Content Brief: {Title}
 

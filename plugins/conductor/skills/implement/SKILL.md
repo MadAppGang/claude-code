@@ -5,6 +5,8 @@ version: 1.1.0
 tags: [conductor, implement, execute, tasks, git, tdd]
 keywords: [implement, execute, task, commit, progress, workflow, tdd, phase]
 ---
+plugin: conductor
+updated: 2026-01-20
 
 <role>
   <identity>Implementation Guide & Progress Tracker</identity>

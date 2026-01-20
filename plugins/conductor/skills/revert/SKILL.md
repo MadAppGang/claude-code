@@ -5,6 +5,8 @@ version: 1.0.0
 tags: [conductor, revert, undo, git, rollback]
 keywords: [revert, undo, rollback, git, track, phase, task]
 ---
+plugin: conductor
+updated: 2026-01-20
 
 <role>
   <identity>Safe Revert Specialist</identity>

@@ -1,8 +1,24 @@
-# Authentication Patterns
+---
+name: auth-patterns
+version: 1.0.0
+description: Use when implementing authentication (JWT, sessions, OAuth), authorization (RBAC, ABAC), password hashing, MFA, or security best practices for backend services.
+keywords:
+  - authentication
+  - authorization
+  - JWT
+  - sessions
+  - OAuth
+  - RBAC
+  - ABAC
+  - password hashing
+  - bcrypt
+  - MFA
+  - security
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: auth-patterns
-**Plugin**: dev
-**Version**: 1.0.0
+# Authentication Patterns
 
 ## Overview
 

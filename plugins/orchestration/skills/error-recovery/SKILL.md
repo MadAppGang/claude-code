@@ -4,6 +4,8 @@ description: Handle errors, timeouts, and failures in multi-agent workflows. Use
 version: 0.1.0
 tags: [orchestration, error-handling, retry, fallback, timeout, recovery]
 keywords: [error, failure, timeout, retry, fallback, graceful-degradation, cancellation, recovery, partial-success, resilience]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Error Recovery

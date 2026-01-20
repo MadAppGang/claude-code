@@ -2,6 +2,8 @@
 name: patterns
 description: Common agent patterns and templates for Claude Code. Use when implementing agents to follow proven patterns for proxy mode, TodoWrite integration, and quality checks.
 ---
+plugin: agentdev
+updated: 2026-01-20
 
 # Agent Patterns
 

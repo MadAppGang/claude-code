@@ -102,7 +102,11 @@
     "./skills/design/ui-design-review",
     "./skills/design/design-references",
     "./skills/design/ui-style-format",
-    "./skills/documentation-standards"
+    "./skills/documentation-standards",
+    "./skills/discipline/verification-before-completion",
+    "./skills/discipline/test-driven-development",
+    "./skills/discipline/systematic-debugging",
+    "./skills/discipline/agent-coordination-discipline"
   ],
   "dependencies": {
     "orchestration@mag-claude-plugins": "^0.8.0"

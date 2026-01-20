@@ -4,6 +4,8 @@ description: Implement quality gates, user approval, iteration loops, and test-d
 version: 0.1.0
 tags: [orchestration, quality-gates, approval, iteration, feedback, severity, test-driven, TDD]
 keywords: [approval, validation, iteration, feedback-loop, severity, test-driven, TDD, quality-gate, consensus, user-approval]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Quality Gates

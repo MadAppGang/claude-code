@@ -1,8 +1,22 @@
-# API Design Patterns
+---
+name: api-design
+version: 1.0.0
+description: Use when designing REST or GraphQL APIs, defining endpoints, implementing pagination/filtering, handling API versioning, or establishing API documentation with OpenAPI/Swagger.
+keywords:
+  - REST API
+  - GraphQL
+  - API design
+  - endpoints
+  - pagination
+  - filtering
+  - versioning
+  - OpenAPI
+  - Swagger
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: api-design
-**Plugin**: dev
-**Version**: 1.0.0
+# API Design Patterns
 
 ## Overview
 

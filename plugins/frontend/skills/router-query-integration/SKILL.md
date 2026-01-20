@@ -1,6 +1,8 @@
 ---
 name: router-query-integration
-description: Integrate TanStack Router with TanStack Query for optimal data fetching. Covers route loaders with query prefetching, ensuring instant navigation, and eliminating request waterfalls. Use when setting up route loaders or optimizing navigation performance.
+description: Use when setting up route loaders or optimizing navigation performance. Integrates TanStack Router with TanStack Query for optimal data fetching. Covers route loaders with query prefetching, ensuring instant navigation, and eliminating request waterfalls.
+updated: 2026-01-20
+keywords: tanstack-router, tanstack-query, route-loaders, prefetching, navigation, query-options
 ---
 
 # Router × Query Integration

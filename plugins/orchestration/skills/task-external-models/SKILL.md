@@ -4,6 +4,8 @@ version: 1.1.0
 description: Quick-reference for using external AI models with Task tool. CRITICAL - PROXY_MODE is NOT a Task parameter - it goes in the PROMPT. Use when confused about "Task tool external model", "PROXY_MODE parameter", "how to specify external model", "Task doesn't have model parameter", "only accepts sonnet/opus/haiku", or "minimax/grok/gemini with Task". Trigger keywords - "Task tool parameter", "PROXY_MODE not working", "external model Task", "external LLM", "claudish directly", "claudish with Task", "model parameter missing".
 tags: [task, proxy-mode, external-model, quick-reference, bash, agent-cli]
 keywords: [task tool, proxy_mode, external model, grok, gemini, gpt-5, minimax, claudish, parameter, prompt, external LLM, --agent, cli]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Task Tool + External Models: Quick Reference

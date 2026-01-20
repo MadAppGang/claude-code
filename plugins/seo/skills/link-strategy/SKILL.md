@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: link-strategy
 description: Internal linking strategy and anchor text optimization patterns. Use when planning internal links or optimizing site structure.
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Link Strategy
 

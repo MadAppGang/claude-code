@@ -1,8 +1,23 @@
-# Bun.js Backend Patterns
+---
+name: bunjs
+version: 2.0.0
+description: Use when building Bun.js/Hono applications, implementing HTTP endpoints, setting up Prisma/SQLite, writing Zod validation, or using Bun's test runner. See bunjs-architecture for layered patterns, bunjs-production for deployment.
+keywords:
+  - Bun
+  - Hono
+  - TypeScript
+  - Prisma
+  - Zod
+  - SQLite
+  - PostgreSQL
+  - Bun test
+  - WebSocket
+  - file operations
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: bunjs
-**Plugin**: dev
-**Version**: 2.0.0
+# Bun.js Backend Patterns
 
 ## Overview
 

@@ -1,8 +1,21 @@
-# Vue 3 + TypeScript Patterns
+---
+name: vue-typescript
+version: 1.0.0
+description: Use when building Vue 3 applications with TypeScript, implementing Composition API components, setting up Pinia stores, or working with Vue Router. Covers script setup, composables, and reactive state.
+keywords:
+  - Vue 3
+  - TypeScript
+  - Composition API
+  - Pinia
+  - Vue Router
+  - composables
+  - reactive
+  - script setup
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: vue-typescript
-**Plugin**: dev
-**Version**: 1.0.0
+# Vue 3 + TypeScript Patterns
 
 ## Overview
 

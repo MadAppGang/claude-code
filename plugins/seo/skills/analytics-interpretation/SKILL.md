@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: analytics-interpretation
 description: Interpret GA4 and GSC data with benchmarks, status indicators, and actionable insights
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Analytics Interpretation
 

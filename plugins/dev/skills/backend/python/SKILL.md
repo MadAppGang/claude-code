@@ -1,8 +1,21 @@
-# Python Backend Patterns
+---
+name: python
+version: 1.0.0
+description: Use when building FastAPI applications, implementing async endpoints, setting up Pydantic schemas, working with SQLAlchemy, or writing pytest tests for Python backend services.
+keywords:
+  - Python
+  - FastAPI
+  - Pydantic
+  - SQLAlchemy
+  - async
+  - pytest
+  - backend
+  - API
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: python
-**Plugin**: dev
-**Version**: 1.0.0
+# Python Backend Patterns
 
 ## Overview
 

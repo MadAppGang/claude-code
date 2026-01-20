@@ -5,6 +5,8 @@ version: 1.0.0
 tags: [conductor, help, documentation, guide]
 keywords: [help, guide, usage, commands, reference]
 ---
+plugin: conductor
+updated: 2026-01-20
 
 # Conductor Help
 

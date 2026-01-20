@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: data-extraction-patterns
 description: Common patterns for extracting analytics data from GA4 and GSC with API handling
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Data Extraction Patterns
 

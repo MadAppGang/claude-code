@@ -2,6 +2,8 @@
 name: claudish-usage
 description: CRITICAL - Guide for using Claudish CLI ONLY through sub-agents to run Claude Code with OpenRouter models (Grok, GPT-5, Gemini, MiniMax). NEVER run Claudish directly in main context unless user explicitly requests it. Use when user mentions external AI models, Claudish, OpenRouter, or alternative models. Includes mandatory sub-agent delegation patterns, agent selection guide, file-based instructions, and strict rules to prevent context window pollution.
 ---
+plugin: bun
+updated: 2026-01-20
 
 # Claudish Usage Skill
 

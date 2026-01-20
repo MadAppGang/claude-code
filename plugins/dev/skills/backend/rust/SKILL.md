@@ -1,8 +1,21 @@
-# Rust Backend Patterns
+---
+name: rust
+version: 1.0.0
+description: Use when building Axum applications, implementing type-safe handlers, working with SQLx, setting up error handling with thiserror, or writing Rust backend services.
+keywords:
+  - Rust
+  - Axum
+  - SQLx
+  - tokio
+  - async
+  - type safety
+  - backend
+  - thiserror
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: rust
-**Plugin**: dev
-**Version**: 1.0.0
+# Rust Backend Patterns
 
 ## Overview
 

@@ -1,3 +1,11 @@
+---
+name: quality-gate
+description: Use when implementing automatic agent-to-agent progression with quality thresholds, replacing manual gates with AUTO GATEs for autonomous workflows (~80% autonomy).
+keywords: [quality-gate, auto-gate, user-gate, quality-threshold, e-e-a-t-score, self-correction, retry-protocol, escalation, autonomous-workflow, agent-progression]
+plugin: seo
+updated: 2026-01-20
+---
+
 # Quality Gate Skill
 
 Enables automatic agent-to-agent progression when quality thresholds are met.

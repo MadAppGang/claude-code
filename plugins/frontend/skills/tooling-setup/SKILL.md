@@ -1,6 +1,8 @@
 ---
 name: tooling-setup
-description: Configure Vite, TypeScript, Biome, and Vitest for React 19 projects. Covers build configuration, strict TypeScript setup, linting/formatting, and testing infrastructure. Use when setting up new projects or updating tool configurations.
+description: Use when setting up new projects or updating tool configurations. Configures Vite, TypeScript, Biome, and Vitest for React 19 projects. Covers build configuration, strict TypeScript setup, linting/formatting, and testing infrastructure.
+updated: 2026-01-20
+keywords: vite, typescript, biome, vitest, build-config, tooling, react-compiler, testing
 ---
 
 # Tooling Setup for React 19 Projects

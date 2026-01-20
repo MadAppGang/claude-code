@@ -4,6 +4,8 @@ description: Track progress in multi-phase workflows with TodoWrite. Use when or
 version: 0.1.0
 tags: [orchestration, todowrite, progress, tracking, workflow, multi-phase]
 keywords: [phase-tracking, progress, workflow, multi-step, multi-phase, todo, tracking, status, visibility]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # TodoWrite Orchestration

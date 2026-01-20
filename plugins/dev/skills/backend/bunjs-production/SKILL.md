@@ -1,8 +1,23 @@
-# Bun.js Production Deployment Patterns
+---
+name: bunjs-production
+version: 1.0.0
+description: Use when deploying Bun.js to production, containerizing with Docker, setting up AWS ECS/Fargate, implementing Redis caching, hardening security, or configuring CI/CD pipelines. See bunjs for basics, bunjs-architecture for patterns.
+keywords:
+  - production deployment
+  - Docker
+  - AWS ECS
+  - Redis
+  - caching
+  - security
+  - CI/CD
+  - logging
+  - monitoring
+  - rate limiting
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: bunjs-production
-**Plugin**: dev
-**Version**: 1.0.0
+# Bun.js Production Deployment Patterns
 
 ## Overview
 

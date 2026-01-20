@@ -5,6 +5,8 @@ version: 0.1.0
 tags: [routing, tags, commands, mapping]
 keywords: [tag, command, mapping, routing, classification, precedence]
 ---
+plugin: autopilot
+updated: 2026-01-20
 
 # Tag-to-Command Mapping
 

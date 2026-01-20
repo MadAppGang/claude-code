@@ -4,6 +4,8 @@ description: Coordinate multiple agents in parallel or sequential workflows. Use
 version: 0.1.0
 tags: [orchestration, multi-agent, parallel, sequential, delegation, coordination]
 keywords: [parallel, sequential, delegate, sub-agent, agent-switching, multi-agent, task-decomposition, coordination]
+plugin: orchestration
+updated: 2026-01-20
 ---
 
 # Multi-Agent Coordination

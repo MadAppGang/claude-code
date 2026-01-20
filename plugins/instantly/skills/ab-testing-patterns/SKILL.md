@@ -3,6 +3,8 @@ name: ab-testing-patterns
 version: 1.0.0
 description: A/B testing methodology for cold email optimization
 ---
+plugin: instantly
+updated: 2026-01-20
 
 # A/B Testing Patterns
 

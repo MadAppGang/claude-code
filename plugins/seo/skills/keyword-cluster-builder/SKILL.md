@@ -1,7 +1,11 @@
 ---
+plugin: seo
+updated: 2026-01-20
 name: keyword-cluster-builder
 description: Techniques for expanding seed keywords and clustering by topic and intent. Use when building keyword lists, planning content calendars, or identifying topic clusters for pillar content strategy.
 ---
+plugin: seo
+updated: 2026-01-20
 
 # Keyword Cluster Builder
 

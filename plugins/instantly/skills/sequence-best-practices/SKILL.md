@@ -3,6 +3,8 @@ name: sequence-best-practices
 version: 1.0.0
 description: Email sequence design and optimization best practices
 ---
+plugin: instantly
+updated: 2026-01-20
 
 # Sequence Best Practices
 

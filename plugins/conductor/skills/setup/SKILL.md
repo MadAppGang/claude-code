@@ -5,6 +5,8 @@ version: 1.1.0
 tags: [conductor, setup, initialization, context, project]
 keywords: [conductor setup, initialize, project context, greenfield, brownfield]
 ---
+plugin: conductor
+updated: 2026-01-20
 
 <role>
   <identity>Project Context Architect</identity>

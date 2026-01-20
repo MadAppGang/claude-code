@@ -3,6 +3,8 @@ name: email-deliverability
 version: 1.0.0
 description: Email deliverability best practices and troubleshooting
 ---
+plugin: instantly
+updated: 2026-01-20
 
 # Email Deliverability
 

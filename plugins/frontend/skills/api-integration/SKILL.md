@@ -1,6 +1,8 @@
 ---
 name: api-integration
-description: Integrate Apidog + OpenAPI specifications with your React app. Covers MCP server setup, type generation, and query layer integration. Use when setting up API clients, generating types from OpenAPI, or integrating with Apidog MCP.
+description: Use when integrating Apidog + OpenAPI specifications with your React app. Covers MCP server setup, type generation, and query layer integration. Use when setting up API clients, generating types from OpenAPI, or integrating with Apidog MCP.
+updated: 2026-01-20
+keywords: api, openapi, apidog, mcp, type-generation, http-client, axios, zod
 ---
 
 # API Integration (Apidog + MCP)

@@ -1,8 +1,22 @@
-# Universal Testing Strategies
+---
+name: testing-strategies
+version: 1.0.0
+description: Use when writing tests, setting up test frameworks, implementing mocking strategies, or establishing testing best practices (unit, integration, E2E) across any technology stack.
+keywords:
+  - testing
+  - unit tests
+  - integration tests
+  - E2E testing
+  - mocking
+  - test coverage
+  - test-driven development
+  - TDD
+  - test pyramid
+plugin: dev
+updated: 2026-01-20
+---
 
-**Skill**: testing-strategies
-**Plugin**: dev
-**Version**: 1.0.0
+# Universal Testing Strategies
 
 ## Overview
 

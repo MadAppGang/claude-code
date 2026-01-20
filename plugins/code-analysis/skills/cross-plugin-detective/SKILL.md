@@ -1,6 +1,8 @@
 ---
 name: cross-plugin-detective
-description: Integration guide for using detective skills across plugins. Maps agent roles from frontend, bun, and other plugins to appropriate detective skills. Developer agents should use developer-detective, architect agents should use architect-detective, etc.
+description: Use when integrating detective skills across plugins. Maps agent roles to appropriate detective skills (developer → developer-detective, architect → architect-detective). Reference this to connect agents with claudemem investigation capabilities.
+updated: 2026-01-20
+keywords: cross-plugin, detective, agent-mapping, claudemem, integration
 allowed-tools: Bash, Task, Read, AskUserQuestion
 ---
 

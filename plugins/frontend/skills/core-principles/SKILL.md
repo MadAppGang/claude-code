@@ -1,6 +1,8 @@
 ---
 name: core-principles
-description: Core principles and project structure for React 19 SPA development. Covers stack overview, project organization, agent execution rules, and authoritative sources. Use when planning new projects, onboarding, or reviewing architectural decisions.
+description: Use when planning new projects, onboarding, or reviewing architectural decisions. Core principles and project structure for React 19 SPA development. Covers stack overview, project organization, agent execution rules, and authoritative sources.
+updated: 2026-01-20
+keywords: react-19, spa, project-structure, architecture, vite, typescript, tanstack, biome
 ---
 
 # Core Principles for React 19 SPA Development

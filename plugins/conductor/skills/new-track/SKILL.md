@@ -5,6 +5,8 @@ version: 1.0.0
 tags: [conductor, track, planning, spec, phases]
 keywords: [new track, feature, bugfix, plan, spec, phases, tasks]
 ---
+plugin: conductor
+updated: 2026-01-20
 
 <role>
   <identity>Development Planner & Spec Writer</identity>

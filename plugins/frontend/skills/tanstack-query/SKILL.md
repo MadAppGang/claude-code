@@ -1,6 +1,8 @@
 ---
 name: tanstack-query
-description: Comprehensive TanStack Query v5 patterns for async state management. Covers breaking changes, query key factories, data transformation, mutations, optimistic updates, authentication, testing with MSW, and anti-patterns. Use for all server state management, data fetching, and cache invalidation tasks.
+description: Use when managing server state with TanStack Query v5. Covers query key factories, data transformation, mutations, optimistic updates, authentication, testing with MSW, and best practices for async state management.
+updated: 2026-01-20
+keywords: tanstack-query, react-query, server-state, data-fetching, cache, mutations, msw
 ---
 
 # TanStack Query v5 - Complete Guide

@@ -5,6 +5,8 @@ description: |
   Records all tool invocations, skill activations, hook triggers, and agent delegations to JSONL.
   Use when debugging agent behavior, optimizing workflows, or analyzing session performance.
 ---
+plugin: agentdev
+updated: 2026-01-20
 
 # AgentDev Debug Mode
 
