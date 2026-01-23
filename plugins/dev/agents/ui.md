@@ -5,7 +5,7 @@ model: sonnet
 color: cyan
 tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
 skills:
-  - dev:ui-design-review
+  - dev:ui-analyse
   - dev:design-references
   - dev:ui-style-format
 ---

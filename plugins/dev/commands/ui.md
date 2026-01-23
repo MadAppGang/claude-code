@@ -1,7 +1,7 @@
 ---
 description: UI design review using Gemini multimodal analysis for usability and accessibility
 allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: orchestration:ui-design-review, orchestration:multi-model-validation
+skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
 ---
 
 <role>
@@ -419,6 +419,7 @@ skills: orchestration:ui-design-review, orchestration:multi-model-validation
           Task: ui
 
           SESSION_PATH: ${SESSION_PATH}
+          SKILLS: dev:ui-analyse
 
           Review the design at: {design_reference_path}
 
@@ -426,6 +427,8 @@ skills: orchestration:ui-design-review, orchestration:multi-model-validation
           **Focus Areas**: {user_focus_areas}
           **Model**: {selected_gemini_model}
 
+          Use the dev:ui-analyse skill for visual analysis patterns and severity guidelines.
+          Detect Gemini provider and use for visual analysis.
           Write your review to: ${SESSION_PATH}/reviews/design-review/gemini.md
 
           Return a brief summary (top 3 issues) when complete.
@@ -589,7 +592,10 @@ skills: orchestration:ui-design-review, orchestration:multi-model-validation
 
         <step>Construct ui-engineer delegation prompt:
           ```
+          Task: ui-engineer
+
           SESSION_PATH: ${SESSION_PATH}
+          SKILLS: dev:ui-implement
 
           ## Implementation Task
 
@@ -611,12 +617,15 @@ skills: orchestration:ui-design-review, orchestration:multi-model-validation
 
           ## Instructions
 
+          Use the dev:ui-implement skill for Anti-AI design patterns and implementation workflows.
+
           1. Read the full review document for complete context
-          2. Apply the Anti-AI design rules (no generic grids, add texture/depth)
-          3. Implement ONLY the improvements identified in the review
-          4. Preserve existing functionality
-          5. Use framer-motion for any new animations
-          6. Log implementation to ${SESSION_PATH}/implementation-log.md
+          2. Detect Gemini provider for visual verification (if available)
+          3. Apply the Anti-AI design rules (no generic grids, add texture/depth)
+          4. Implement ONLY the improvements identified in the review
+          5. Preserve existing functionality
+          6. Use framer-motion for any new animations
+          7. Log implementation to ${SESSION_PATH}/implementation-log.md
           ```
         </step>
 

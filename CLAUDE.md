@@ -207,7 +207,7 @@ CODEX_API_KEY=your-codex-key
 - Video Editing Plugin: **v1.0.1** (2026-01-06)
 - Nanobanana Plugin: **v2.2.3** (2026-01-08)
 - Conductor Plugin: **v2.0.1** (2026-01-06)
-- Dev Plugin: **v1.20.0** (2026-01-23)
+- Dev Plugin: **v1.21.0** (2026-01-23)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
 **Latest Changes (Code Analysis v2.15.0):**
@@ -227,7 +227,7 @@ CODEX_API_KEY=your-codex-key
 - Video Editing: `plugins/video-editing/v1.0.1`
 - Nanobanana: `plugins/nanobanana/v2.2.3`
 - Conductor: `plugins/conductor/v2.0.1`
-- Dev: `plugins/dev/v1.20.0`
+- Dev: `plugins/dev/v1.21.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 **⚠️ RELEASE CHECKLIST (ALL 3 REQUIRED):**

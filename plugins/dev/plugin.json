@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.20.0",
-  "description": "Universal development assistant with self-improving learning, documentation, deep research, specification interviews, and DevOps guidance. v1.20.0: /dev:ui implementation mode - review AND implement UI improvements via ui-engineer delegation. v1.19.0: Avant-Garde UI Engineer agent. 35 skills.",
+  "version": "1.21.0",
+  "description": "Universal development assistant with self-improving learning, documentation, deep research, specification interviews, and DevOps guidance. v1.21.0: UI vision - ui-engineer uses Gemini 3 Pro Preview for visual analysis, new dev:ui-analyse and dev:ui-implement skills. 36 skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
@@ -37,7 +37,8 @@
     "ui-design",
     "design-review",
     "gemini",
-    "multimodal"
+    "multimodal",
+    "vision"
   ],
   "category": "development",
   "agents": [
@@ -100,7 +101,8 @@
     "./skills/backend/bunjs-apidog",
     "./skills/backend/python",
     "./skills/backend/rust",
-    "./skills/design/ui-design-review",
+    "./skills/design/ui-analyse",
+    "./skills/design/ui-implement",
     "./skills/design/design-references",
     "./skills/design/ui-style-format",
     "./skills/documentation-standards",
