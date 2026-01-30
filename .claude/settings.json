@@ -2,19 +2,25 @@
   "enabledPlugins": {
     "agentdev@mag-claude-plugins": true,
     "code-analysis@mag-claude-plugins": true,
-    "agent-sdk-dev@claude-code-plugins": true,
-    "commit-commands@claude-code-plugins": true,
-    "explanatory-output-style@claude-code-plugins": true,
-    "learning-output-style@claude-code-plugins": true,
-    "ralph-wiggum@claude-code-plugins": true,
-    "feature-dev@claude-code-plugins": true,
+    "agent-sdk-dev@claude-code-plugins": false,
+    "commit-commands@claude-code-plugins": false,
+    "explanatory-output-style@claude-code-plugins": false,
+    "learning-output-style@claude-code-plugins": false,
+    "ralph-wiggum@claude-code-plugins": false,
+    "feature-dev@claude-code-plugins": false,
     "dev@mag-claude-plugins": true,
     "multimodel@mag-claude-plugins": true,
     "learning-output-style@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "claude-code-setup@claude-plugins-official": true
+    "claude-code-setup@claude-plugins-official": true,
+    "plugin-dev@claude-code-plugins": false,
+    "superpowers@claude-plugins-official": true,
+    "plugin-dev@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true
   },
   "enableAllProjectMcpServers": true,
   "extraKnownMarketplaces": {
@@ -32,18 +38,16 @@
     }
   },
   "installedPluginVersions": {
-    "agent-sdk-dev@claude-code-plugins": "0.0.0",
-    "commit-commands@claude-code-plugins": "1.0.0",
-    "explanatory-output-style@claude-code-plugins": "1.0.0",
-    "learning-output-style@claude-code-plugins": "1.0.0",
-    "plugin-dev@claude-code-plugins": "0.1.0",
-    "ralph-wiggum@claude-code-plugins": "1.0.0",
-    "feature-dev@claude-code-plugins": "1.0.0",
-    "dev@mag-claude-plugins": "1.21.0",
-    "multimodel@mag-claude-plugins": "1.0.0",
+    "dev@mag-claude-plugins": "1.22.0",
+    "multimodel@mag-claude-plugins": "2.0.0",
     "explanatory-output-style@claude-plugins-official": "0.0.0",
     "ralph-loop@claude-plugins-official": "0.0.0",
     "claude-md-management@claude-plugins-official": "0.0.0",
-    "claude-code-setup@claude-plugins-official": "0.0.0"
+    "claude-code-setup@claude-plugins-official": "0.0.0",
+    "superpowers@claude-plugins-official": "0.0.0",
+    "plugin-dev@claude-plugins-official": "0.0.0",
+    "code-simplifier@claude-plugins-official": "0.0.0",
+    "code-review@claude-plugins-official": "0.0.0",
+    "commit-commands@claude-plugins-official": "0.0.0"
   }
 }
