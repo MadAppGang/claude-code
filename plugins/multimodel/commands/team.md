@@ -90,15 +90,18 @@ args:
       <step>Load preferences from .claude/multimodel-team.json if exists</step>
       <step>Parse command arguments (--models, --agent, --threshold, --no-memory)</step>
       <step>If no task provided, ask user for task description</step>
+      <step>Detect task context from keywords (debug/research/coding/review)</step>
       <step>Scan installed agents for PROXY_MODE support</step>
       <step>Run agent recommendation algorithm based on task keywords</step>
     </phase>
 
-    <phase number="2" name="User Confirmation">
-      <step>If first run or no saved preferences, prompt for model selection</step>
+    <phase number="2" name="Model Selection (Learn and Reuse)">
+      <step>Check for override triggers in user message ("change models", "different models")</step>
+      <step>Load contextPreferences[detected_context] from preferences file</step>
+      <step>IF models exist for context AND no override → USE DIRECTLY (skip to phase 3)</step>
+      <step>IF models empty OR override triggered → prompt for model selection</step>
+      <step>Save user's selection to contextPreferences[detected_context] (unless --no-memory)</step>
       <step>Display recommended agent with confidence score</step>
-      <step>Confirm models, agent, and threshold with user</step>
-      <step>Save preferences if user agrees (unless --no-memory)</step>
     </phase>
 
     <phase number="3" name="Parallel Execution">
@@ -134,10 +137,19 @@ args:
 
     ```json
     {
-      "schemaVersion": "1.0.0",
+      "schemaVersion": "2.0.0",
       "lastUpdated": "ISO-8601 timestamp",
       "defaultModels": ["model-id-1", "model-id-2", ...],
       "defaultThreshold": "majority|supermajority|unanimous",
+      "contextPreferences": {
+        "debug": ["models for debugging tasks"],
+        "research": ["models for research tasks"],
+        "coding": ["models for implementation tasks"],
+        "review": ["models for code review tasks"]
+      },
+      "customAliases": {
+        "alias": "full-model-id"
+      },
       "agentPreferences": { "task-type": "agent-id" },
       "history": [
         {
@@ -281,11 +293,30 @@ args:
     |-------|---------------|
     | grok | x-ai/grok-code-fast-1 |
     | gemini | google/gemini-3-pro-preview |
-    | gpt-5 | openai/gpt-5.2 |
+    | gpt-5 | openai/gpt-5.2-codex |
     | deepseek | deepseek/deepseek-v3.2 |
-    | minimax | minimax/minimax-m2.1 |
-    | qwen | qwen/qwen3-coder-plus |
+    | minimax | minimax/minimax-m2.5 |
+    | glm | z-ai/glm-4.7 |
+    | internal | internal (Claude) |
   </model_aliases>
+
+  <context_detection>
+    **Task-to-Context Mapping:**
+
+    | Context | Keywords | Default Models |
+    |---------|----------|----------------|
+    | debug | debug, error, bug, fix, trace, issue | grok, glm, minimax |
+    | research | research, investigate, analyze, explore, find | gemini, gpt-5, glm |
+    | coding | implement, build, create, code, develop, feature | grok, minimax, deepseek |
+    | review | review, audit, check, validate, verify | gemini, gpt-5, glm, grok |
+
+    **Context Detection Algorithm:**
+    1. Parse task description for keywords (case-insensitive)
+    2. Match against context keywords table
+    3. If matched context has saved preferences → use those
+    4. Otherwise → use defaultModels
+    5. Allow --models flag to override any automatic selection
+  </context_detection>
 </knowledge>
 
 <examples>
@@ -423,9 +454,10 @@ args:
     Available models (from `claudish --top-models`):
     [1] x-ai/grok-code-fast-1 (fast, code-focused)
     [2] google/gemini-3-pro-preview (balanced)
-    [3] openai/gpt-5.2 (thorough)
+    [3] openai/gpt-5.2-codex (thorough)
     [4] deepseek/deepseek-v3.2 (cost-effective)
-    [5] minimax/minimax-m2.1 (creative)
+    [5] minimax/minimax-m2.5 (creative)
+    [6] z-ai/glm-4.7 (efficient)
 
     Enter numbers separated by commas (min 2):
   </first_run_welcome>

@@ -1,6 +1,6 @@
 ---
 name: proxy-mode-reference
-version: 1.1.0
+version: 1.2.0
 description: Reference guide for using PROXY_MODE with external AI models. Use when running multi-model reviews, understanding which agents support PROXY_MODE, or debugging external model integration issues. Includes routing prefixes for MiniMax, Kimi, GLM direct APIs.
 keywords: [proxy-mode, external-models, multi-model, claudish, routing-prefixes, minimax, kimi, glm, gemini, openai, agent-support]
 plugin: multimodel
@@ -8,6 +8,21 @@ updated: 2026-01-20
 ---
 
 # PROXY_MODE Reference Guide
+
+## ⚠️ Learn and Reuse Model Preferences
+
+Models are learned per context and reused automatically:
+
+```bash
+cat .claude/multimodel-team.json 2>/dev/null
+```
+
+1. Detect context from task keywords (debug/research/coding/review)
+2. If `contextPreferences[context]` exists → **USE IT** (no asking)
+3. If empty (first time) → ASK user → SAVE for that context
+4. User says "change models" → UPDATE preferences
+
+---
 
 ## What is PROXY_MODE?
 

@@ -1,6 +1,6 @@
 ---
 name: task-external-models
-version: 1.1.0
+version: 1.2.0
 description: Quick-reference for using external AI models with Task tool. CRITICAL - PROXY_MODE is NOT a Task parameter - it goes in the PROMPT. Use when confused about "Task tool external model", "PROXY_MODE parameter", "how to specify external model", "Task doesn't have model parameter", "only accepts sonnet/opus/haiku", or "minimax/grok/gemini with Task". Trigger keywords - "Task tool parameter", "PROXY_MODE not working", "external model Task", "external LLM", "claudish directly", "claudish with Task", "model parameter missing".
 tags: [task, proxy-mode, external-model, quick-reference, bash, agent-cli]
 keywords: [task tool, proxy_mode, external model, grok, gemini, gpt-5, minimax, claudish, parameter, prompt, external LLM, --agent, cli]
@@ -9,6 +9,24 @@ updated: 2026-01-20
 ---
 
 # Task Tool + External Models: Quick Reference
+
+## ⚠️ Learn and Reuse Model Preferences
+
+Models are learned per context and reused automatically:
+
+```bash
+cat .claude/multimodel-team.json 2>/dev/null
+```
+
+**Flow:**
+1. Detect context from task keywords (debug/research/coding/review)
+2. If `contextPreferences[context]` has models → **USE THEM** (no asking)
+3. If empty (first time for context) → ASK user → SAVE to that context
+4. User says "use different models" → ASK and UPDATE
+
+**Override triggers:** "use different models", "change models", "update preferences"
+
+---
 
 ## The Simple Truth
 
@@ -133,10 +151,11 @@ claudish --free          # Free models
 
 # Example model IDs (verify with commands above)
 x-ai/grok-code-fast-1       # Grok (fast coding)
-minimax/minimax-m2.1        # MiniMax
+minimax/minimax-m2.5        # MiniMax M2.5
 google/gemini-3-pro-preview # Gemini Pro
-openai/gpt-5.2              # GPT-5.2
-deepseek/deepseek-chat-v3   # DeepSeek
+openai/gpt-5.2-codex        # GPT-5.2 Codex
+z-ai/glm-4.7                # GLM 4.7
+deepseek/deepseek-v3.2      # DeepSeek v3.2
 qwen/qwen3-coder:free       # Free Qwen coder
 ```
 

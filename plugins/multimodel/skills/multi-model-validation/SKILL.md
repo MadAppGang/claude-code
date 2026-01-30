@@ -1,7 +1,7 @@
 ---
 name: multi-model-validation
 description: Run multiple AI models in parallel for 3-5x speedup with ENFORCED performance statistics tracking. Use when validating with Grok, Gemini, GPT-5, DeepSeek, MiniMax, Kimi, GLM, or Claudish proxy for code review, consensus analysis, or multi-expert validation. NEW in v3.2.0 - Direct API prefixes (mmax/, kimi/, glm/) for cost savings. Includes dynamic model discovery via `claudish --top-models` and `claudish --free`, session-based workspaces, and Pattern 7-8 for tracking model performance. Trigger keywords - "grok", "gemini", "gpt-5", "deepseek", "minimax", "kimi", "glm", "claudish", "multiple models", "parallel review", "external AI", "consensus", "multi-model", "model performance", "statistics", "free models".
-version: 3.2.0
+version: 3.3.0
 tags: [orchestration, claudish, parallel, consensus, multi-model, grok, gemini, external-ai, statistics, performance, free-models, minimax, kimi, glm]
 keywords: [grok, gemini, gpt-5, deepseek, claudish, parallel, consensus, multi-model, external-ai, proxy, openrouter, statistics, performance, quality-score, execution-time, free-models, top-models, minimax, kimi, glm, mmax, zhipu]
 plugin: multimodel
@@ -10,8 +10,8 @@ updated: 2026-01-20
 
 # Multi-Model Validation
 
-**Version:** 3.2.0
-**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy with dynamic model discovery, session-based workspaces, and performance statistics
+**Version:** 3.3.0
+**Purpose:** Patterns for running multiple AI models in parallel via Claudish proxy with **context-aware preferences**, dynamic model discovery, session-based workspaces, and performance statistics
 **Status:** Production Ready
 
 ## Overview
@@ -28,12 +28,86 @@ Multi-model validation is the practice of running multiple AI models (Grok, Gemi
 
 **Key Innovations:**
 
-1. **Dynamic Model Discovery** (NEW v3.0) - Use `claudish --top-models` and `claudish --free` to get current available models with pricing
-2. **Session-Based Workspaces** (NEW v3.0) - Each validation session gets a unique directory to prevent conflicts
-3. **4-Message Pattern** - Ensures true parallel execution by using only Task tool calls in a single message
-4. **Pattern 7-8** - Statistics collection and data-driven model recommendations
+1. **Context-Aware Preferences** (NEW v3.3.0) - Automatically use saved model preferences per task type (debug/research/coding/review) from `.claude/multimodel-team.json`
+2. **Dynamic Model Discovery** (v3.0) - Use `claudish --top-models` and `claudish --free` to get current available models with pricing
+3. **Session-Based Workspaces** (v3.0) - Each validation session gets a unique directory to prevent conflicts
+4. **4-Message Pattern** - Ensures true parallel execution by using only Task tool calls in a single message
+5. **Pattern 7-8** - Statistics collection and data-driven model recommendations
 
 This skill is extracted from the `/review` command and generalized for use in any multi-model workflow.
+
+---
+
+## ⚠️ MANDATORY: Learn and Reuse User Preferences
+
+> **Model preferences are learned per context and reused automatically.**
+>
+> - First time a context is used → ASK user → SAVE to that context
+> - Next time same context → USE saved models automatically (no asking)
+> - User explicitly says "change models" or "different models" → ASK and UPDATE
+
+```bash
+# FIRST STEP - Read preferences file
+cat .claude/multimodel-team.json 2>/dev/null
+```
+
+**Flow:**
+
+```
+1. Detect context from task keywords
+   - "debug", "error", "bug", "fix" → debug
+   - "research", "analyze", "investigate" → research
+   - "implement", "build", "create", "code" → coding
+   - "review", "audit", "check" → review
+
+2. Check if contextPreferences[context] exists and is non-empty
+
+   IF EXISTS (has models saved):
+   → Use those models directly
+   → DO NOT ask user
+   → Proceed with validation
+
+   IF EMPTY/MISSING (first time for this context):
+   → Run: claudish --top-models
+   → Ask user to select models (AskUserQuestion)
+   → Save to contextPreferences[context]
+   → Proceed with validation
+
+3. User override triggers (explicit request to change):
+   - "use different models"
+   - "change models"
+   - "update model preferences"
+   → Ask user to select new models
+   → Update contextPreferences[context]
+```
+
+**Example - Learning Flow:**
+
+```
+# First debug task ever:
+Task: "Debug this authentication error"
+→ Context: debug
+→ contextPreferences.debug is empty
+→ ASK: "Which models for debug tasks?"
+→ User selects: grok, glm, minimax
+→ SAVE to contextPreferences.debug
+→ Run with those models
+
+# Second debug task:
+Task: "Debug the API timeout"
+→ Context: debug
+→ contextPreferences.debug = ["grok", "glm", "minimax"]
+→ USE directly (no asking)
+→ Run with saved models
+
+# User wants to change:
+Task: "Debug this error, use different models"
+→ Detected: "different models" override trigger
+→ ASK: "Which models for debug tasks?"
+→ User selects: gemini, gpt-5-codex
+→ UPDATE contextPreferences.debug
+→ Run with new models
+```
 
 ---
 
@@ -121,10 +195,10 @@ claudish --top-models
 
 # Example output:
 #   google/gemini-3-pro-preview    Google     $7.00/1M   1048K   🔧 🧠 👁️
-#   openai/gpt-5.1-codex           Openai     $5.63/1M   400K    🔧 🧠 👁️
+#   openai/gpt-5.2-codex           Openai     $5.63/1M   400K    🔧 🧠 👁️
 #   x-ai/grok-code-fast-1          X-ai       $0.85/1M   256K    🔧 🧠
-#   minimax/minimax-m2             Minimax    $0.64/1M   262K    🔧 🧠
-#   z-ai/glm-4.6                   Z-ai       $1.07/1M   202K    🔧 🧠
+#   minimax/minimax-m2.5           Minimax    $0.64/1M   262K    🔧 🧠
+#   z-ai/glm-4.7                   Z-ai       $1.07/1M   202K    🔧 🧠
 #   qwen/qwen3-vl-235b-a22b-ins... Qwen       $0.70/1M   262K    🔧    👁️
 
 # Get free models from trusted providers
@@ -146,31 +220,61 @@ claudish --free
 | `mistralai/devstral-2512:free` | Mistral | 262K | Tools ✓ | Dev-focused, excellent for code |
 | `qwen/qwen3-235b-a22b:free` | Qwen | 131K | Tools ✓ Reasoning ✓ | Massive 235B model, reasoning |
 
-**Model Selection Flow:**
+**Model Selection Flow (Learn and Reuse):**
 
 ```
-1. Load Historical Performance (if exists)
-   → Read ai-docs/llm-performance.json
-   → Get avg speed, quality, success rate per model
+1. Read Preferences File
+   → cat .claude/multimodel-team.json
+   → If file NOT exists → create empty one
 
-2. Discover Available Models
-   → Run: claudish --top-models (paid)
-   → Run: claudish --free (free tier)
+2. Detect Task Context
+   → Parse task for keywords (case-insensitive):
+     - "debug", "error", "bug", "fix", "trace", "issue" → debug
+     - "research", "investigate", "analyze", "explore", "find" → research
+     - "implement", "build", "create", "code", "develop", "feature" → coding
+     - "review", "audit", "check", "validate", "verify" → review
+   → If no keywords match → context = "default"
 
-3. Merge with Historical Data
-   → Add performance metrics to model list
-   → Flag: "⚡ Fast", "🎯 High Quality", "⚠️ Slow", "❌ Unreliable"
+3. Check for Override Triggers in User Message
+   → "use different models", "change models", "update preferences"
+   → If found → force_ask = true
 
-4. Present to User (AskUserQuestion)
-   → Show: Model | Provider | Price | Avg Speed | Quality
-   → Suggest internal reviewer (ALWAYS)
-   → Highlight top performers
-   → Include 1-2 free models for comparison
+4. Load or Learn Models
+   → models = contextPreferences[context]
 
-5. User Selects Models
-   → Minimum: 1 internal + 1 external
-   → Recommended: 1 internal + 2-3 external
+   IF models exist AND NOT force_ask:
+     → USE models directly (no asking)
+     → Go to step 6
+
+   IF models empty OR force_ask:
+     → Run: claudish --top-models
+     → AskUserQuestion with multiSelect
+     → Save user selection to contextPreferences[context]
+     → Go to step 6
+
+5. Save Updated Preferences
+   → Write .claude/multimodel-team.json
+   → Update lastUpdated timestamp
+
+6. Execute with Models
+   → Launch parallel validation
+   → No further confirmation needed
 ```
+
+**Context Keywords:**
+
+| Context | Keywords |
+|---------|----------|
+| debug | debug, error, bug, fix, trace, issue |
+| research | research, investigate, analyze, explore, find |
+| coding | implement, build, create, code, develop, feature |
+| review | review, audit, check, validate, verify |
+
+**Override Triggers (force re-selection):**
+- "use different models"
+- "change models"
+- "update model preferences"
+- "select new models"
 
 ### ⚠️ Prefix Collision Awareness
 

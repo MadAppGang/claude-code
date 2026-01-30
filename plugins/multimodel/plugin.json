@@ -1,7 +1,7 @@
 {
   "name": "multimodel",
-  "version": "2.0.0",
-  "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.0.0: Merged orchestration plugin - now includes 14 skills for multi-agent coordination, hooks, routing, performance tracking, and quality gates. Run tasks across multiple AI models in parallel, collect votes, and aggregate results.",
+  "version": "2.1.0",
+  "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.1.0: Context-aware model preferences - learns and reuses your model choices per task type (debug/research/coding/review). Run tasks across multiple AI models in parallel, collect votes, and aggregate results.",
   "author": "MadAppGang",
   "license": "MIT",
   "homepage": "https://github.com/MadAppGang/claude-code",

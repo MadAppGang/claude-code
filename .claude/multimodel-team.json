@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2.0.0",
+  "lastUpdated": "2026-01-30T15:30:00Z",
+  "defaultModels": [
+    "x-ai/grok-code-fast-1",
+    "google/gemini-3-pro-preview"
+  ],
+  "defaultThreshold": "majority",
+  "contextPreferences": {},
+  "customAliases": {
+    "gpt5-codex": "openai/gpt-5.2-codex",
+    "glm": "z-ai/glm-4.7",
+    "m2.5": "minimax/minimax-m2.5"
+  },
+  "agentPreferences": {},
+  "history": []
+}
