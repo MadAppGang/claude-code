@@ -3,7 +3,7 @@ name: image-generator
 description: Generate or edit images using Gemini with style templates and reference images
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills: nanobanana:gemini-api, nanobanana:style-format
 ---
 
@@ -29,7 +29,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track generation workflow:
+      You MUST use Tasks to track generation workflow:
 
       **Before starting**, create todo list:
       1. Parse generation request
@@ -89,7 +89,7 @@ skills: nanobanana:gemini-api, nanobanana:style-format
 
   <workflow>
     <phase number="1" name="Request Analysis">
-      <step>Initialize TodoWrite</step>
+      <step>Initialize Tasks</step>
       <step>Identify operation type:
         - Generate: new image from text
         - Edit: modify existing image (--edit)

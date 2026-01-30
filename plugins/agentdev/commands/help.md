@@ -58,7 +58,7 @@ Present the following help information to the user:
 | Skill | Description |
 |-------|-------------|
 | **xml-standards** | XML tag structure patterns following Anthropic best practices |
-| **patterns** | Common agent patterns: proxy mode, TodoWrite integration, quality checks |
+| **patterns** | Common agent patterns: proxy mode, Tasks integration, quality checks |
 | **schemas** | YAML frontmatter schemas for agent/command files |
 
 ---
@@ -71,7 +71,7 @@ name: my-agent
 description: When to use this agent with examples
 model: sonnet  # or opus, haiku
 color: blue
-tools: TodoWrite, Read, Write, Edit, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash
 ---
 
 # Agent Instructions
@@ -90,12 +90,12 @@ PROXY_MODE: x-ai/grok-code-fast-1
 [actual task here]
 ```
 
-### TodoWrite Integration
+### Tasks Integration
 Agents should track progress:
 ```markdown
-1. Create todo list at start
-2. Mark tasks in_progress when starting
-3. Mark completed immediately when done
+1. Create task list at start with TaskCreate
+2. Mark tasks in_progress when starting with TaskUpdate
+3. Mark completed immediately when done with TaskUpdate
 ```
 
 ### Quality Checks

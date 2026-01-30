@@ -128,7 +128,7 @@ Task: "Debug this error, use different models"
   - Failure documentation format
   - Results presentation template
 - **orchestration:quality-gates** - Approval gates and severity classification
-- **orchestration:todowrite-orchestration** - Progress tracking during execution
+- **orchestration:task-orchestration** - Progress tracking during execution
 - **orchestration:error-recovery** - Handling failures and retries
 
 **Skill Integration:**
@@ -444,7 +444,7 @@ Message 1: Preparation (Bash Only)
   - Validate inputs (check if claudish installed)
   - Write context files (code to review, design reference, etc.)
   - NO Task calls
-  - NO TodoWrite calls
+  - NO Tasks calls
 
 Message 2: Parallel Execution (Task Only)
   - Launch ALL AI models in SINGLE message
@@ -1845,12 +1845,12 @@ Step 4: Consolidation (multi-model-validation)
   Apply consensus analysis
 ```
 
-**multi-model-validation + todowrite-orchestration:**
+**multi-model-validation + task-orchestration:**
 
 ```
 Use Case: Real-time progress tracking during parallel execution
 
-Step 1: Initialize TodoWrite (todowrite-orchestration)
+Step 1: Initialize Tasks (task-orchestration)
   Tasks:
     1. Prepare workspace
     2. Launch Claude review
@@ -1860,7 +1860,7 @@ Step 1: Initialize TodoWrite (todowrite-orchestration)
     6. Consolidate reviews
     7. Present results
 
-Step 2: Update Progress (todowrite-orchestration)
+Step 2: Update Progress (task-orchestration)
   Mark tasks complete as models finish:
     - Claude completes → Mark task 2 complete
     - Grok completes → Mark task 3 complete
@@ -2104,12 +2104,12 @@ Solution: Use ONLY Task calls in Message 2
 ```
 ❌ Wrong:
   Message 2:
-    TodoWrite({...})
+    TaskCreate({...})
     Task({...})
     Task({...})
 
 ✅ Correct:
-  Message 1: TodoWrite({...}) (separate message)
+  Message 1: TaskCreate({...}) (separate message)
   Message 2: Task({...}); Task({...}) (only Task)
 ```
 

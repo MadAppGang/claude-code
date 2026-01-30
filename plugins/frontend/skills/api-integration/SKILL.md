@@ -385,8 +385,8 @@ export function useCreateTodo() {
 }
 
 // 4. Component
-// src/features/todos/TodoList.tsx
-export function TodoList() {
+// src/features/todos/TaskList.tsx
+export function TaskList() {
   const { data: todos } = useQuery(todosQueryOptions())
   const createTodo = useCreateTodo()
 

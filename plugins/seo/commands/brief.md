@@ -1,6 +1,6 @@
 ---
 description: Generate comprehensive content brief from keyword with multi-agent orchestration
-allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:multi-agent-coordination, seo:content-brief
 ---
 
@@ -48,7 +48,7 @@ skills: orchestration:multi-agent-coordination, seo:content-brief
       <steps>
         <step>Generate SESSION_PATH</step>
         <step>Create session directory</step>
-        <step>Initialize TodoWrite</step>
+        <step>Initialize Tasks</step>
       </steps>
     </phase>
 

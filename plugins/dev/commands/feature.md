@@ -1,6 +1,6 @@
 ---
 description: 7-phase feature development with multi-model validation and testing
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model-validation, orchestration:quality-gates, orchestration:model-tracking-protocol
 ---
 
@@ -33,7 +33,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track full 7-phase lifecycle.
+      You MUST use Tasks to track full 7-phase lifecycle.
 
       Before starting, create comprehensive todo list:
       1. PHASE 0: Session initialization
@@ -54,7 +54,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
 
       **You MUST:**
       - Use Task tool to delegate ALL work to agents
-      - Use TodoWrite to track full lifecycle
+      - Use Tasks to track full lifecycle
       - Enforce quality gates between phases
       - Respect iteration limits
       - Use file-based communication
@@ -593,7 +593,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
           - Provide recommendations for future sessions
         </step>
         <step>Present comprehensive summary to user (see completion_message template)</step>
-        <step>Mark ALL TodoWrite tasks as completed</step>
+        <step>Mark ALL task items as completed</step>
       </steps>
       <quality_gate>Report generated successfully</quality_gate>
     </phase>
@@ -606,7 +606,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
     - AskUserQuestion (user input, model selection with multiSelect)
     - Bash (git commands, test execution, quality checks)
     - Read (read files, review outputs)
-    - TodoWrite (progress tracking)
+    - Tasks (progress tracking)
     - Glob (find files)
     - Grep (search patterns)
   </allowed_tools>

@@ -1,7 +1,7 @@
 ---
 name: ui-implementer
 description: Implements UI components from scratch based on design references (Figma, screenshots, mockups) with intelligent validation and adaptive agent switching. Use when user provides a design and wants pixel-perfect UI implementation with design fidelity validation. Triggers automatically when user mentions Figma links, design screenshots, or wants to implement UI from designs.
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 # UI Implementer
@@ -49,7 +49,7 @@ This Skill implements the same workflow as the `/implement-ui` command. Follow t
 Create a global todo list to track progress:
 
 ```
-TodoWrite with:
+TaskCreate:
 - PHASE 1: Gather inputs (design reference, component description, preferences)
 - PHASE 1: Validate inputs and find target location
 - PHASE 2: Launch UI Developer for initial implementation

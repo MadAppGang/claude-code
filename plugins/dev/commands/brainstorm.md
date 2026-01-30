@@ -1,6 +1,6 @@
 ---
 description: Collaborative ideation and planning with multi-model exploration and consensus scoring
-allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:brainstorming, superpowers:using-git-worktrees, superpowers:writing-plans
 ---
 
@@ -39,7 +39,7 @@ skills: dev:brainstorming, superpowers:using-git-worktrees, superpowers:writing-
     </skill_loading>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track brainstorming workflow.
+      You MUST use Tasks to track brainstorming workflow.
 
       Before starting, create todo list with all 6 phases:
       0. Problem Analysis (capture scope, constraints, success criteria)
@@ -89,7 +89,7 @@ skills: dev:brainstorming, superpowers:using-git-worktrees, superpowers:writing-
           ```
         </step>
         <step>
-          Create TodoWrite items for all 6 phases from the skill
+          Create task items for all 6 phases from the skill
         </step>
         <step>
           Follow the brainstorming skill workflow exactly

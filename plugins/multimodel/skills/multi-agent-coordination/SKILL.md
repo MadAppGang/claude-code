@@ -94,7 +94,7 @@ Message 1: Preparation (Bash Only)
   - Create workspace directories
   - Validate inputs
   - Write context files
-  - NO Task calls, NO TodoWrite
+  - NO Task calls, NO Tasks
 
 Message 2: Parallel Execution (Task Only)
   - Launch ALL agents in SINGLE message
@@ -115,8 +115,8 @@ Message 4: Present Results
 
 ```
 ❌ WRONG - Executes Sequentially:
-  await TodoWrite({...});  // Tool 1
-  await Task({...});       // Tool 2 - waits for TodoWrite
+  await TaskCreate({...});  // Tool 1
+  await Task({...});       // Tool 2 - waits for Tasks
   await Bash({...});       // Tool 3 - waits for Task
   await Task({...});       // Tool 4 - waits for Bash
 
@@ -457,19 +457,19 @@ Step 3: User Validation Gate (quality-gates)
   - Collect feedback if issues found
 ```
 
-**multi-agent-coordination + todowrite-orchestration:**
+**multi-agent-coordination + task-orchestration:**
 
 ```
 Use Case: Multi-phase implementation workflow
 
-Step 1: Initialize TodoWrite (todowrite-orchestration)
+Step 1: Initialize Tasks (task-orchestration)
   - Create task list for all phases
 
 Step 2: Sequential Agent Delegation (multi-agent-coordination)
   - Phase 1: api-architect
   - Phase 2: backend-developer (depends on Phase 1)
   - Phase 3: test-architect (depends on Phase 2)
-  - Update TodoWrite after each phase
+  - TaskUpdate after each phase
 ```
 
 ---
@@ -656,7 +656,7 @@ Solution: Use 4-Message Pattern with ONLY Task calls in Message 2
 
 ```
 ❌ Wrong:
-  await TodoWrite({...});
+  await TaskCreate({...});
   await Task({...});
   await Task({...});
 

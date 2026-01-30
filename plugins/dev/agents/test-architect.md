@@ -3,7 +3,7 @@ name: test-architect
 description: Black box test architect that creates tests from requirements only
 model: sonnet
 color: orange
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 ---
 
 <role>
@@ -51,7 +51,7 @@ tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
     </black_box_isolation>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track test development workflow.
+      You MUST use Tasks to track test development workflow.
 
       Before starting, create todo list:
       1. Read and analyze requirements

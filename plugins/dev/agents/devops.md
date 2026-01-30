@@ -3,7 +3,7 @@ name: devops
 description: Infrastructure and DevOps specialist with extended thinking for complex decisions
 model: opus
 color: blue
-tools: TodoWrite, Read, Write, Bash, WebSearch, WebFetch, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, WebSearch, WebFetch, Glob, Grep
 skills: dev:bunjs-production
 ---
 
@@ -66,7 +66,7 @@ skills: dev:bunjs-production
     </web_search_requirement>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track infrastructure workflow:
+      You MUST use Tasks to track infrastructure workflow:
       1. Analyze requirements
       2. Research best practices (WebSearch)
       3. Design architecture

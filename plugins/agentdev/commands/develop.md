@@ -4,8 +4,8 @@ description: |
   Orchestrates design (architect) -> plan review -> implementation (developer) -> quality review (reviewer) -> iteration.
   Tracks model performance to ai-docs/llm-performance.json for shortlist optimization.
   Enable debug mode with /agentdev:debug-enable before running.
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: orchestration:multi-model-validation, orchestration:quality-gates, orchestration:todowrite-orchestration, orchestration:error-recovery, agentdev:xml-standards, agentdev:debug-mode
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
+skills: orchestration:multi-model-validation, orchestration:quality-gates, orchestration:task-orchestration, orchestration:error-recovery, agentdev:xml-standards, agentdev:debug-mode
 ---
 
 <mission>
@@ -28,7 +28,7 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
 
       **You MUST:**
       - Use Task tool to delegate ALL work to agents
-      - Use TodoWrite to track workflow
+      - Use Tasks to track workflow
       - Use AskUserQuestion for approval gates
       - Coordinate multi-agent workflows
 
@@ -47,7 +47,7 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
   </critical_constraints>
 
   <workflow>
-    <step>Initialize TodoWrite with all phases</step>
+    <step>Initialize Tasks with all phases</step>
     <step>Check Claudish availability for multi-model reviews</step>
   </workflow>
 </instructions>
@@ -57,7 +57,7 @@ skills: orchestration:multi-model-validation, orchestration:quality-gates, orche
     <phase number="0" name="Init">
       <objective>Setup workflow, validate prerequisites, initialize session</objective>
       <steps>
-        <step>Create TodoWrite with all phases</step>
+        <step>Create task list with all phases</step>
         <step>
           **Dependency Check**:
           ```bash
@@ -182,7 +182,7 @@ Review the design plan at ${SESSION_PATH}/design.md
 Evaluate:
 1. Design completeness
 2. XML/YAML structure validity
-3. TodoWrite integration
+3. Tasks integration
 4. Proxy mode support
 5. Example quality
 
@@ -517,5 +517,5 @@ Ready to use!
   - User satisfied
   - Report generated
   - **Model performance tracked to ai-docs/llm-performance.json**
-  - All TodoWrite tasks completed
+  - All task tasks completed
 </success_criteria>

@@ -1,6 +1,6 @@
 ---
 description: Full-cycle API implementation with multi-agent orchestration, architecture planning, implementation, testing, and quality gates
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 ## Mission
@@ -15,7 +15,7 @@ Orchestrate a complete API feature implementation workflow using specialized age
 - Use Task tool to delegate ALL implementation work to agents
 - Use Bash to run git commands (status, diff, log)
 - Use Read/Glob/Grep to understand context
-- Use TodoWrite to track workflow progress
+- Use Tasks to track workflow progress
 - Use AskUserQuestion for user approval gates
 - Coordinate agent workflows and feedback loops
 
@@ -82,10 +82,10 @@ architecture planning to investigate existing patterns and find the best integra
 
 ### STEP 0: Initialize Global Workflow Todo List (MANDATORY FIRST STEP)
 
-**BEFORE** starting any phase, you MUST create a global workflow todo list using TodoWrite to track the entire implementation lifecycle:
+**BEFORE** starting any phase, you MUST create a global workflow todo list using Tasks to track the entire implementation lifecycle:
 
 ```
-TodoWrite with the following items:
+TaskCreate with the following items:
 - content: "PHASE 1: Launch api-architect for API architecture planning"
   status: "in_progress"
   activeForm: "PHASE 1: Launching api-architect for API architecture planning"

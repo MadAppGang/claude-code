@@ -3,7 +3,7 @@ name: ui
 description: UI design review, usability analysis, accessibility checks, and Figma implementation help
 model: sonnet
 color: cyan
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills:
   - dev:ui-analyse
   - dev:design-references
@@ -214,7 +214,7 @@ skills:
     </session_path_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track design review workflow:
+      You MUST use Tasks to track design review workflow:
       1. Input Validation and Figma Detection
       2. Design Source Setup
       3. Visual Analysis
@@ -359,7 +359,7 @@ skills:
 
   <workflow>
     <phase number="1" name="Input Validation and Figma Detection">
-      <step>Initialize TodoWrite with review phases</step>
+      <step>Initialize Tasks with review phases</step>
       <step>**NEW**: Scan prompt for Figma URLs using regex pattern</step>
       <step>**NEW**: If Figma URL found, extract fileKey, fileName, nodeId</step>
       <step>**NEW**: Check if Figma MCP tools are available</step>

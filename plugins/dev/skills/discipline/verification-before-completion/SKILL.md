@@ -78,7 +78,7 @@ Test output:
 
 ## Enforcement Mechanism
 
-### TodoWrite Integration
+### Tasks Integration
 
 When marking a todo as `completed`:
 1. **BEFORE** changing status to `completed`, gather fresh evidence

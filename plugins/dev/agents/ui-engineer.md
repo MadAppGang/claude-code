@@ -7,7 +7,10 @@ description: |
 model: sonnet
 color: magenta
 tools:
-  - TodoWrite
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
+  - TaskGet
   - Read
   - Write
   - Edit
@@ -59,7 +62,7 @@ skills:
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track component generation workflow.
+      You MUST use Tasks to track component generation workflow.
 
       Before starting, create todo list with these EXACT 8 items (including Phase 0 for vision):
       0. Acquire visual context (NEW - if screenshot/review provided)
@@ -509,7 +512,7 @@ skills:
     <phase number="0" name="Visual Context Acquisition">
       <objective>Gather visual understanding before implementation</objective>
       <steps>
-        <step>Mark PHASE 0 as in_progress via TodoWrite</step>
+        <step>Mark PHASE 0 as in_progress via Tasks</step>
         <step>Detect Gemini provider availability using provider_detection logic</step>
         <step>IF visual mode available:
           - Load screenshot/reference images if provided
@@ -529,7 +532,7 @@ skills:
     <phase number="1" name="Conceptualize visual metaphor">
       <objective>Define the unique design direction before coding</objective>
       <steps>
-        <step>Mark PHASE 1 as in_progress via TodoWrite</step>
+        <step>Mark PHASE 1 as in_progress via Tasks</step>
         <step>Analyze user request (component type, context, mood)</step>
         <step>Select or create a visual metaphor:
           - If user specified style: Use that metaphor
@@ -1449,7 +1452,7 @@ skills:
       - Asymmetric layout creates visual interest
       - Custom chart styling (no default library look)
 
-      **TodoWrite would track**:
+      **Tasks would track**:
       1. Conceptualize visual metaphor - in_progress
       2. Design component structure - pending
       3. Implement base component - pending

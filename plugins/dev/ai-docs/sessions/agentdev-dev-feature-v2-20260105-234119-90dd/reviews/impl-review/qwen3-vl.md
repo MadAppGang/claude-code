@@ -30,7 +30,7 @@
 | Field | Status | Notes |
 |-------|--------|-------|
 | description | PASS | Multi-line, includes workflow description |
-| allowed-tools | PASS | Correct format: `Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep` |
+| allowed-tools | PASS | Correct format: `Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep` |
 | skills | PASS | References 5 skills including orchestration patterns |
 
 **Result**: YAML is valid and complete.

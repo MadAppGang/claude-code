@@ -142,7 +142,7 @@ Full Coordinator Workflow:
 Step 1: Initialize coordinator context
   Write ai-docs/coordinator-context.md (requirements, criteria, scope)
 
-Step 2: Initialize TodoWrite (all phases visible upfront)
+Step 2: Initialize Tasks (all phases visible upfront)
   [ ] PHASE 1: [Architecture/Planning]
   [ ] CHECKPOINT 1: Validate Phase 1 alignment
   [ ] PHASE 2: [Implementation]
@@ -347,14 +347,14 @@ Total workflow corrections: Maximum 5
 
 ---
 
-## Shared State via TodoWrite
+## Shared State via Tasks
 
 ### Cross-Agent State Management
 
-TodoWrite serves as the coordinator's shared state mechanism. Beyond progress tracking, it carries context between phases:
+Tasks serves as the coordinator's shared state mechanism. Beyond progress tracking, it carries context between phases:
 
 ```
-TodoWrite as Shared State:
+Tasks as Shared State:
 
 Standard progress tracking:
   [ ] PHASE 1: Architecture planning
@@ -373,7 +373,7 @@ Enhanced with coordinator state:
 Use prefixed entries to distinguish state types:
 
 ```
-TodoWrite State Prefixes:
+Tasks State Prefixes:
 
 PHASE:      - Standard phase tracking
 CHECKPOINT: - Coordinator validation point
@@ -381,7 +381,7 @@ CONTEXT:    - Shared context between agents
 DRIFT:      - Drift detection result
 CORRECTION: - Corrective action applied
 
-Example TodoWrite State:
+Example Tasks State:
 
   [x] PHASE 1: Architecture planning
   [x] CHECKPOINT 1: ALIGNED (3/3 criteria met)
@@ -504,7 +504,7 @@ Gate passes when ALL THREE dimensions are satisfied.
 PROCEED:
   All criteria met. Move to next phase.
   Log: "Gate N passed. Proceeding to Phase N+1."
-  Update TodoWrite: Mark CHECKPOINT N as completed.
+  TaskUpdate: Mark CHECKPOINT N as completed.
 
 RETRY:
   One or more criteria not met, but recoverable.
@@ -815,7 +815,7 @@ Write: ai-docs/coordinator-context.md
   IN SCOPE: Pagination, cursor navigation, total count, page size
   OUT OF SCOPE: Sorting, filtering, search, new endpoints
 
-TodoWrite:
+Tasks:
   [ ] PHASE 1: Architecture planning
   [ ] CHECKPOINT 1: Validate architecture alignment
   [ ] PHASE 2: Implementation
@@ -956,7 +956,7 @@ Write: ai-docs/coordinator-context.md
   IN SCOPE: SQL injection in auth module only
   OUT OF SCOPE: XSS, CSRF, other modules, general code quality
 
-TodoWrite:
+Tasks:
   [ ] PHASE 1: Gather auth module context
   [ ] CHECKPOINT 1: Validate context completeness
   [ ] PHASE 2a: Security reviewer (SQL injection focus)
@@ -1035,7 +1035,7 @@ Write: ai-docs/coordinator-context.md
   IN SCOPE: Strategy pattern refactoring of payment providers
   OUT OF SCOPE: New payment providers, API changes, new features
 
-TodoWrite:
+Tasks:
   [ ] PHASE 1: Impact analysis
   [ ] CHECKPOINT 1: Validate analysis completeness
   [ ] PHASE 2: Interface design
@@ -1184,7 +1184,7 @@ The hierarchical coordinator prevents goal drift through:
 - **Drift detection** (ALIGNED, MINOR_DRIFT, MAJOR_DRIFT, OFF_TRACK)
 - **Corrective actions** (specific guidance to fix drift before next phase)
 - **Phase gates** (formal proceed/retry/abort decisions)
-- **Shared state** (TodoWrite + files for cross-agent context)
+- **Shared state** (Tasks + files for cross-agent context)
 - **Escalation limits** (max re-runs and corrections before user intervention)
 
 The overhead is 2-6 minutes per workflow, but prevents 30-60 minutes of rework from undetected drift. Use this pattern for any workflow with 3+ agents where the final output must precisely match the original request.
@@ -1196,4 +1196,4 @@ The overhead is 2-6 minutes per workflow, but prevents 30-60 minutes of rework f
 - `/implement` command multi-phase workflows
 - `/review` command validation patterns
 - quality-gates skill (extended with drift awareness)
-- todowrite-orchestration skill (enhanced with coordinator state)
+- task-orchestration skill (enhanced with coordinator state)

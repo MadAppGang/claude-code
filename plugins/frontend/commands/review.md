@@ -1,6 +1,6 @@
 ---
 description: Multi-model code review orchestrator with parallel execution and consensus analysis
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 <role>
@@ -37,7 +37,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
       - Use Task tool to delegate ALL reviews to senior-code-reviewer agent
       - Use Bash to run git commands (status, diff, log)
       - Use Read/Glob/Grep to understand context
-      - Use TodoWrite to track workflow progress (all 5 phases)
+      - Use Tasks to track workflow progress (all 5 phases)
       - Use AskUserQuestion for user approval gates
       - Execute external reviews in PARALLEL (single message, multiple Task calls)
 
@@ -76,10 +76,10 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
     </parallel_execution_requirement>
 
     <todowrite_requirement>
-      You MUST use the TodoWrite tool to create and maintain a todo list throughout
+      You MUST use the Tasks system to create and maintain a todo list throughout
       your orchestration workflow.
 
-      **Before starting**, create a todo list with all workflow phases:
+      **Before starting**, create a task list with all workflow phases:
       1. PHASE 1: Ask user what to review
       2. PHASE 1: Gather review target
       3. PHASE 2: Present model selection options
@@ -100,7 +100,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
   </critical_constraints>
 
   <workflow>
-    <step number="0">Initialize session and TodoWrite with workflow tasks</step>
+    <step number="0">Initialize session and Tasks with workflow tasks</step>
     <step number="1">PHASE 1: Determine review target and gather context</step>
     <step number="2">PHASE 2: Load saved model preferences and select AI models</step>
     <step number="3">PHASE 3: Execute ALL reviews in parallel</step>
@@ -138,7 +138,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
     - Read (read review files)
     - Glob (expand file patterns)
     - Grep (search for patterns)
-    - TodoWrite (track workflow progress)
+    - Tasks (track workflow progress)
     - AskUserQuestion (user approval gates)
   </allowed_tools>
 
@@ -477,7 +477,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           ```
         </step>
 
-        <step>Initialize TodoWrite with 10 workflow tasks (detailed in todowrite_requirement)</step>
+        <step>Initialize Tasks with 10 workflow tasks (detailed in todowrite_requirement)</step>
       </steps>
 
       <quality_gate>
@@ -753,7 +753,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
       </objective>
 
       <steps>
-        <step>Mark PHASE 1 tasks as in_progress in TodoWrite</step>
+        <step>Mark PHASE 1 tasks as in_progress in task list</step>
         <step>Ask user what to review (3 options: unstaged/files/commits)</step>
         <step>Gather review target based on user selection:
           - Option 1: Run git diff for unstaged changes
@@ -768,8 +768,8 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Full git diff or file contents
           - Review instructions
         </step>
-        <step>Mark PHASE 1 tasks as completed in TodoWrite</step>
-        <step>Mark PHASE 2 tasks as in_progress in TodoWrite</step>
+        <step>Mark PHASE 1 tasks as completed in task list</step>
+        <step>Mark PHASE 2 tasks as in_progress in task list</step>
       </steps>
 
       <quality_gate>
@@ -905,8 +905,8 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Explain cost factors: review depth, model verbosity, code complexity
         </step>
         <step>Get user approval to proceed with costs</step>
-        <step>Mark PHASE 2 tasks as completed in TodoWrite</step>
-        <step>Mark PHASE 3 tasks as in_progress in TodoWrite</step>
+        <step>Mark PHASE 2 tasks as completed in task list</step>
+        <step>Mark PHASE 3 tasks as in_progress in task list</step>
       </steps>
 
       <quality_gate>
@@ -988,8 +988,8 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
           - Calculate `MODEL_DURATION=$((MODEL_END - MODEL_START))`
           - Count issues from review file: `ISSUES=$(grep -c "^### \|^## MAJOR\|^## MEDIUM\|^## MINOR" review.md || echo 0)`
         </step>
-        <step>Mark PHASE 3 tasks as completed in TodoWrite</step>
-        <step>Mark PHASE 4 tasks as in_progress in TodoWrite</step>
+        <step>Mark PHASE 3 tasks as completed in task list</step>
+        <step>Mark PHASE 4 tasks as in_progress in task list</step>
       </steps>
 
       <quality_gate>
@@ -1011,7 +1011,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 
       <steps>
         <step>Read all review files using Read tool (${SESSION_PATH}/reviews/*.md)</step>
-        <step>Mark read task as completed in TodoWrite</step>
+        <step>Mark read task as completed in task list</step>
         <step>Parse issues from each review (critical/medium/low severity)</step>
         <step>Normalize issue descriptions for comparison:
           - Extract category (Security/Performance/Type Safety/etc.)
@@ -1086,8 +1086,8 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
 
           This accumulates historical data across all review sessions in `ai-docs/llm-performance.json`.
         </step>
-        <step>Mark PHASE 4 tasks as completed in TodoWrite</step>
-        <step>Mark PHASE 5 task as in_progress in TodoWrite</step>
+        <step>Mark PHASE 4 tasks as completed in task list</step>
+        <step>Mark PHASE 5 task as in_progress in task list</step>
       </steps>
 
       <quality_gate>
@@ -1190,7 +1190,7 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
         </step>
 
         <step>Present summary to user (under 50 lines excluding stats table)</step>
-        <step>Mark PHASE 5 task as completed in TodoWrite</step>
+        <step>Mark PHASE 5 task as completed in task list</step>
       </steps>
 
       <quality_gate>
@@ -1688,7 +1688,7 @@ for each issue:
   <criterion>✅ Parallel execution achieves 3-5x speedup on external reviews</criterion>
   <criterion>✅ Graceful degradation works (embedded-only path functional)</criterion>
   <criterion>✅ Clear error messages and recovery options for all failure scenarios</criterion>
-  <criterion>✅ TodoWrite tracking shows progress through all 5 phases</criterion>
+  <criterion>✅ task tracking shows progress through all 5 phases</criterion>
   <criterion>✅ Consensus algorithm uses simplified keyword-based approach with confidence levels</criterion>
 </success_criteria>
 

@@ -3,7 +3,7 @@ name: seo-editor
 description: Senior SEO editor and quality gate for content approval with E-E-A-T scoring
 model: opus
 color: cyan
-tools: TodoWrite, Read, Write, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep
 skills: seo:content-optimizer
 ---
 
@@ -211,7 +211,7 @@ skills: seo:content-optimizer
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track review workflow:
+      You MUST use Tasks to track review workflow:
       1. Read content and original brief
       2. Validate SEO technical requirements
       3. Assess E-E-A-T signals

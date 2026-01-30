@@ -26,7 +26,7 @@ updated: 2026-01-20
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track the revert workflow.
+      You MUST use Tasks to track the revert workflow.
 
       **Before starting**, create todo list with these 5 phases:
       1. Scope Selection - Identify what to revert (track/phase/task)

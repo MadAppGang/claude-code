@@ -1,6 +1,6 @@
 ---
 description: Full-cycle feature implementation with multi-agent orchestration and quality gates
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 ## Mission
@@ -15,7 +15,7 @@ Orchestrate a complete feature implementation workflow using specialized agents 
 - Use Task tool to delegate ALL implementation work to agents
 - Use Bash to run git commands (status, diff, log)
 - Use Read/Glob/Grep to understand context
-- Use TodoWrite to track workflow progress
+- Use Tasks to track workflow progress
 - Use AskUserQuestion for user approval gates
 - Coordinate agent workflows and feedback loops
 
@@ -482,10 +482,10 @@ Proceeding to workflow initialization...
 
 ### STEP 0.1: Initialize Global Workflow Todo List (MANDATORY SECOND STEP)
 
-**BEFORE** starting any phase, you MUST create a global workflow todo list using TodoWrite to track the entire implementation lifecycle:
+**BEFORE** starting any phase, you MUST create a global workflow todo list using Tasks to track the entire implementation lifecycle:
 
 ```
-TodoWrite with the following items:
+TaskCreate with the following items:
 - content: "PHASE 1: Launch architect for architecture planning"
   status: "in_progress"
   activeForm: "PHASE 1: Launching architect for architecture planning"
@@ -823,14 +823,14 @@ Call this function at these phase transitions:
 
 9. **After PHASE 6 completes**: `update_session_phase "phase6" "completed"`
 
-**Note**: These calls happen AFTER the TodoWrite updates and BEFORE moving to the next phase.
+**Note**: These calls happen AFTER the Tasks updates and BEFORE moving to the next phase.
 
 ---
 
 ### PHASE 1: Architecture Planning (architect)
 
 1. **Launch Planning Agent**:
-   - **Update TodoWrite**: Ensure "PHASE 1: Launch architect" is marked as in_progress
+   - **TaskUpdate**: Ensure "PHASE 1: Launch architect" is marked as in_progress
    - Use Task tool with `subagent_type: frontend:architect`
    - **CRITICAL**: Do NOT read large input files yourself - pass file paths to agent
    - Provide concise prompt following this template:
@@ -871,7 +871,7 @@ Call this function at these phase transitions:
    - Agent will perform gap analysis and ask clarifying questions
    - Agent will create comprehensive plan in ${SESSION_PATH}/implementation-plan.md
    - Agent will return brief status summary ONLY (not full plan)
-   - **Update TodoWrite**: Mark "PHASE 1: Launch architect" as completed
+   - **TaskUpdate**: Mark "PHASE 1: Launch architect" as completed
 
 2. **Present Plan to User**:
    - Show the brief status summary from agent
@@ -889,7 +889,7 @@ Call this function at these phase transitions:
    ```
 
 3. **User Approval Gate**:
-   - **Update TodoWrite**: Mark "PHASE 1: User approval gate" as in_progress
+   - **TaskUpdate**: Mark "PHASE 1: User approval gate" as in_progress
    - Use AskUserQuestion to ask: "Are you satisfied with this architecture plan?"
    - Options:
      * "Yes, proceed to implementation"
@@ -899,16 +899,16 @@ Call this function at these phase transitions:
 4. **Feedback Loop**:
    - IF user selects "No, I have feedback":
      * Collect specific feedback
-     * **Update TodoWrite**: Add "PHASE 1 - Iteration X: Re-run planner with feedback" task
+     * **TaskUpdate**: Add "PHASE 1 - Iteration X: Re-run planner with feedback" task
      * Re-run architect with feedback
      * Repeat approval gate
    - IF user selects "Get AI review first":
-     * **Update TodoWrite**: Mark "PHASE 1: User approval gate" as completed
+     * **TaskUpdate**: Mark "PHASE 1: User approval gate" as completed
      * **Proceed to Phase 1.5** (multi-model plan review)
      * After PHASE 1.5 completes, continue to PHASE 2
    - IF user selects "Yes, proceed to implementation":
-     * **Update TodoWrite**: Mark "PHASE 1: User approval gate" as completed
-     * **Update TodoWrite**: Mark all PHASE 1.5 tasks as completed with note "(Skipped - user chose direct implementation)"
+     * **TaskUpdate**: Mark "PHASE 1: User approval gate" as completed
+     * **TaskUpdate**: Mark all PHASE 1.5 tasks as completed with note "(Skipped - user chose direct implementation)"
      * **Skip PHASE 1.5** and proceed directly to PHASE 2
    - **DO NOT proceed without user approval**
 
@@ -928,9 +928,9 @@ Call this function at these phase transitions:
 
 **IMPORTANT**: This step is only reached if user selected "Get AI review first" in PHASE 1 approval gate.
 
-**Update TodoWrite**: Mark "PHASE 1.5: Ask user about plan review preference" as completed (already decided in PHASE 1)
+**TaskUpdate**: Mark "PHASE 1.5: Ask user about plan review preference" as completed (already decided in PHASE 1)
 
-**Update TodoWrite**: Mark "PHASE 1.5: Run multi-model plan review" as in_progress
+**TaskUpdate**: Mark "PHASE 1.5: Run multi-model plan review" as in_progress
 
 **1. Load saved preferences from `.claude/settings.json`:**
 
@@ -1178,7 +1178,7 @@ Each reviewer will return a brief verdict. **DO NOT read the review files yourse
 
 #### Step 4: Launch Consolidation Agent
 
-**Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as in_progress
+**TaskUpdate**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as in_progress
 
 **CRITICAL**: The orchestrator does NOT consolidate reviews - a consolidation agent does this work.
 
@@ -1250,13 +1250,13 @@ ${plan_review_models.map(model => `   - ${SESSION_PATH}/reviews/plan-review/${mo
 Please review the consolidated report to see detailed findings and recommendations.
 ```
 
-**Update TodoWrite**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as completed
+**TaskUpdate**: Mark "PHASE 1.5: Consolidate and present multi-model feedback" as completed
 
 ---
 
 #### Step 7: Ask User About Plan Revision
 
-**Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as in_progress
+**TaskUpdate**: Mark "PHASE 1.5: User decision on plan revision" as in_progress
 
 Use **AskUserQuestion**:
 
@@ -1284,7 +1284,7 @@ Options:
 **IF "Yes - Revise the plan":**
 
 1. **Launch architect agent** to revise plan:
-   - **Update TodoWrite**: Add "PHASE 1.5: Architect revising plan based on multi-model feedback"
+   - **TaskUpdate**: Add "PHASE 1.5: Architect revising plan based on multi-model feedback"
    - Use Task tool with `subagent_type: frontend:architect`
    - **CRITICAL**: Do NOT read review files yourself - pass paths to architect
    - Provide concise prompt following this template:
@@ -1346,7 +1346,7 @@ Options:
    - If no, proceed
 
 4. **Once user approves revised plan:**
-   - **Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as completed
+   - **TaskUpdate**: Mark "PHASE 1.5: User decision on plan revision" as completed
    - Proceed to PHASE 2 (Implementation)
 
 **IF "No - Proceed with current plan as-is":**
@@ -1355,7 +1355,7 @@ Options:
 2. **Document acknowledged issues** (for transparency in final report):
    - Which issues were identified but not addressed
    - User's rationale for proceeding anyway (if provided)
-3. **Update TodoWrite**: Mark "PHASE 1.5: User decision on plan revision" as completed
+3. **TaskUpdate**: Mark "PHASE 1.5: User decision on plan revision" as completed
 4. Proceed to PHASE 2 (Implementation)
 
 **IF "Let me review first":**
@@ -1379,7 +1379,7 @@ Options:
 
   Skipping plan review and proceeding to implementation.
   ```
-- **Update TodoWrite**: Mark PHASE 1.5 todos as "Skipped - External AI unavailable"
+- **TaskUpdate**: Mark PHASE 1.5 todos as "Skipped - External AI unavailable"
 - Continue to PHASE 2
 
 **If some models fail but others succeed:**
@@ -1452,7 +1452,7 @@ Similar to code review models in PHASE 3, support configuration in `.claude/sett
 
 #### Step 1: Load Code Review Preferences and Present Selection
 
-**Update TodoWrite**: Mark "PHASE 1.6: Configure external code reviewers" as in_progress
+**TaskUpdate**: Mark "PHASE 1.6: Configure external code reviewers" as in_progress
 
 **1. Load saved preferences from `.claude/settings.json`:**
 
@@ -1640,7 +1640,7 @@ Update PHASE 3 todos:
 - "PHASE 3: Analyze review results"
 ```
 
-**Update TodoWrite**: Mark "PHASE 1.6: Configure external code reviewers" as completed
+**TaskUpdate**: Mark "PHASE 1.6: Configure external code reviewers" as completed
 
 **Log summary**:
 ```
@@ -1659,7 +1659,7 @@ These reviewers will analyze your implementation in PHASE 3 after the developer 
 ### PHASE 2: Implementation (developer)
 
 1. **Launch Implementation Agent**:
-   - **Update TodoWrite**: Mark "PHASE 2: Launch developer" as in_progress
+   - **TaskUpdate**: Mark "PHASE 2: Launch developer" as in_progress
    - Use Task tool with `subagent_type: frontend:developer`
    - Provide:
      * Path to approved plan documentation in ${SESSION_PATH}/
@@ -1671,10 +1671,10 @@ These reviewers will analyze your implementation in PHASE 3 after the developer 
    - Agent implements features following the plan
    - Agent should document decisions and patterns used
    - If agent encounters blocking issues, it should report them and request guidance
-   - **Update TodoWrite**: Mark "PHASE 2: Launch developer" as completed when implementation is done
+   - **TaskUpdate**: Mark "PHASE 2: Launch developer" as completed when implementation is done
 
 3. **Get Manual Testing Instructions** (NEW STEP):
-   - **Update TodoWrite**: Mark "PHASE 2: Get manual testing instructions from implementation agent" as in_progress
+   - **TaskUpdate**: Mark "PHASE 2: Get manual testing instructions from implementation agent" as in_progress
    - **Launch developer agent** using Task tool with:
      * Context: "Implementation is complete. Now prepare manual UI testing instructions."
      * Request: "Create comprehensive, step-by-step manual testing instructions for the implemented features."
@@ -1687,7 +1687,7 @@ These reviewers will analyze your implementation in PHASE 3 after the developer 
        - **Success criteria** (what indicates the feature works correctly)
      * Format: Clear numbered steps that a manual tester can follow without deep page analysis
    - Agent returns structured testing guide
-   - **Update TodoWrite**: Mark "PHASE 2: Get manual testing instructions" as completed
+   - **TaskUpdate**: Mark "PHASE 2: Get manual testing instructions" as completed
    - Save testing instructions for use by tester agent
 
 ### PHASE 2.5: Workflow-Specific Validation (Design Validation OR Test-Driven Loop)
@@ -1728,18 +1728,18 @@ These reviewers will analyze your implementation in PHASE 3 after the developer 
 This phase runs ONLY if Figma design links are detected in the feature request or architecture plan. It ensures pixel-perfect UI implementation before code review.
 
 **1. Detect Figma Design Links**:
-   - **Update TodoWrite**: Mark "PHASE 2.5: Detect Figma design links" as in_progress
+   - **TaskUpdate**: Mark "PHASE 2.5: Detect Figma design links" as in_progress
    - Use Grep to search for Figma URLs in:
      * Original feature request (`$ARGUMENTS`)
      * Architecture plan files (${SESSION_PATH}/*.md)
    - Figma URL pattern: `https://(?:www\.)?figma\.com/(?:file|design)/[a-zA-Z0-9]+/[^\s?]+(?:\?[^\s]*)?(?:node-id=[0-9-]+)?`
-   - **Update TodoWrite**: Mark "PHASE 2.5: Detect Figma design links" as completed
+   - **TaskUpdate**: Mark "PHASE 2.5: Detect Figma design links" as completed
 
 **2. Skip Phase if No Figma Links**:
    - IF no Figma URLs found:
      * Log: "No Figma design references found. Skipping PHASE 2.5 (Design Fidelity Validation)."
-     * **Update TodoWrite**: Mark "PHASE 2.5: Run design fidelity validation" as completed with note "Skipped - no design references"
-     * **Update TodoWrite**: Mark "PHASE 2.5: Quality gate" as completed with note "Skipped - no design references"
+     * **TaskUpdate**: Mark "PHASE 2.5: Run design fidelity validation" as completed with note "Skipped - no design references"
+     * **TaskUpdate**: Mark "PHASE 2.5: Quality gate" as completed with note "Skipped - no design references"
      * Proceed directly to PHASE 3 (Triple Review Loop)
 
 **3. Parse Design References** (if Figma links found):
@@ -1769,7 +1769,7 @@ This phase runs ONLY if Figma design links are detected in the feature request o
    - Store user's choice as `manual_validation_enabled` for use in validation loop
 
 **6. Run Iterative Design Fidelity Validation Loop**:
-   - **Update TodoWrite**: Mark "PHASE 2.5: Run design fidelity validation" as in_progress
+   - **TaskUpdate**: Mark "PHASE 2.5: Run design fidelity validation" as in_progress
    - For EACH component with a Figma design reference:
 
    **Loop (max 3 iterations per component):**
@@ -2049,8 +2049,8 @@ This phase runs ONLY if Figma design links are detected in the feature request o
      * Final assessment (PASS/NEEDS IMPROVEMENT)
 
 **6. Quality Gate - All Components Validated**:
-   - **Update TodoWrite**: Mark "PHASE 2.5: Run design fidelity validation" as completed
-   - **Update TodoWrite**: Mark "PHASE 2.5: Quality gate - ensure UI matches design" as in_progress
+   - **TaskUpdate**: Mark "PHASE 2.5: Run design fidelity validation" as completed
+   - **TaskUpdate**: Mark "PHASE 2.5: Quality gate - ensure UI matches design" as in_progress
    - IF all components passed design validation (PASS assessment):
      * Log: "✅ Automated design validation passed for all components"
      * **DO NOT mark quality gate as completed yet** - proceed to Step 7 for user validation (conditional based on user preference)
@@ -2065,7 +2065,7 @@ This phase runs ONLY if Figma design links are detected in the feature request o
 
 IF `manual_validation_enabled` is FALSE (user chose "Fully automated"):
 - Log: "✅ Automated design validation passed for all components! Skipping manual validation per user preference."
-- **Update TodoWrite**: Mark "PHASE 2.5: Quality gate" as completed
+- **TaskUpdate**: Mark "PHASE 2.5: Quality gate" as completed
 - Proceed to PHASE 3 (Triple Review Loop)
 - Skip the rest of this step
 
@@ -2127,7 +2127,7 @@ Options:
 
 **If user selects "Yes - All components look perfect":**
 - Log: "✅ User approved all UI components! Design implementation verified by human review."
-- **Update TodoWrite**: Mark "PHASE 2.5: Quality gate" as completed
+- **TaskUpdate**: Mark "PHASE 2.5: Quality gate" as completed
 - Proceed to PHASE 3 (Triple Review Loop)
 
 **If user selects "No - I found issues":**
@@ -2232,7 +2232,7 @@ Options:
 
 **End of Step 7 (User Manual Validation Gate)**
 
-   - **Update TodoWrite**: Mark "PHASE 2.5: Quality gate" as completed
+   - **TaskUpdate**: Mark "PHASE 2.5: Quality gate" as completed
 
 **Design Fidelity Validation Summary** (to be included in final report):
 ```markdown
@@ -2288,7 +2288,7 @@ Options:
 
 **1. Launch Test-Architect**
 
-- **Update TodoWrite**: Mark "PHASE 2.5: Launch test-architect" as in_progress
+- **TaskUpdate**: Mark "PHASE 2.5: Launch test-architect" as in_progress
 - Use Task tool with `subagent_type: frontend:test-architect`
 - Provide clear context:
   ```
@@ -2344,7 +2344,7 @@ Test-architect will return one of four categories:
 
 **IF tests revealed implementation issues:**
 
-a. **Update TodoWrite**: Add iteration task:
+a. **TaskUpdate**: Add iteration task:
    ```
    - content: "PHASE 2.5 - Iteration X: Fix implementation based on test failures"
      status: "in_progress"
@@ -2380,7 +2380,7 @@ c. **Re-launch Developer** with test feedback:
 d. **Re-run Tests** after developer fixes:
    - Re-launch test-architect to run tests again
    - Provide: "Re-run existing tests to verify fixes"
-   - **Update TodoWrite**: Mark iteration as completed
+   - **TaskUpdate**: Mark iteration as completed
 
 e. **Loop Until Tests Pass**:
    - IF still failing: Repeat step 3 (add new iteration)
@@ -2389,7 +2389,7 @@ e. **Loop Until Tests Pass**:
 
 **4. Quality Gate: Ensure All Tests Pass**
 
-- **Update TodoWrite**: Mark "PHASE 2.5: Quality gate - ensure all tests pass" as in_progress
+- **TaskUpdate**: Mark "PHASE 2.5: Quality gate - ensure all tests pass" as in_progress
 - Verify test-architect output shows `ALL_TESTS_PASS`
 - Log test summary:
   ```markdown
@@ -2406,7 +2406,7 @@ e. **Loop Until Tests Pass**:
 
   **Next Step**: Proceeding to code review (PHASE 3)
   ```
-- **Update TodoWrite**: Mark "PHASE 2.5: Quality gate" as completed
+- **TaskUpdate**: Mark "PHASE 2.5: Quality gate" as completed
 - **Proceed to PHASE 3**
 
 **Test-Driven Feedback Loop Summary** (to be included in final report):
@@ -2471,7 +2471,7 @@ e. **Loop Until Tests Pass**:
      * This array contains OpenRouter model IDs (e.g., `["x-ai/grok-code-fast-1", "openai/gpt-4o"]`)
      * IF array is empty: Only Claude Sonnet will review (user chose to skip external reviewers)
      * Store as `external_review_models` for consistency in orchestration
-   - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers in parallel" as in_progress
+   - **TaskUpdate**: Mark "PHASE 3: Launch reviewers in parallel" as in_progress
      * If API_FOCUSED: Update todo text to "Launch X code reviewers in parallel (Claude + {external_review_models.length} external models)"
      * If UI_FOCUSED or MIXED: Update todo text to "Launch X reviewers in parallel (Claude + {external_review_models.length} external models + UI tester)"
    - Run `git status` to identify all unstaged changes
@@ -2591,8 +2591,8 @@ e. **Loop Until Tests Pass**:
 3. **Collect and Analyze Review Results** (Workflow-Adaptive):
    - **IF API_FOCUSED**: Wait for (1 + external_review_models.length) code reviewers to complete (Claude Sonnet + external models)
    - **IF UI_FOCUSED or MIXED**: Wait for (1 + external_review_models.length + 1) reviewers to complete (Claude Sonnet + external models + UI tester)
-   - **Update TodoWrite**: Mark "PHASE 3: Launch reviewers" as completed
-   - **Update TodoWrite**: Mark "PHASE 3: Analyze review results" as in_progress
+   - **TaskUpdate**: Mark "PHASE 3: Launch reviewers" as completed
+   - **TaskUpdate**: Mark "PHASE 3: Analyze review results" as in_progress
    - **Claude Sonnet Reviewer Feedback**: Document comprehensive findings and recommendations
    - **For EACH external model** in `external_review_models`:
      * Document that model's findings and recommendations (via OpenRouter)
@@ -2608,17 +2608,17 @@ e. **Loop Until Tests Pass**:
        - Automated analysis findings (patterns, best practices)
        - **IF UI_FOCUSED or MIXED**: UI testing findings (runtime behavior, user experience, console errors)
      * **IF UI_FOCUSED or MIXED**: Cross-reference: UI bugs may reveal code issues, console errors may indicate missing error handling
-   - **Update TodoWrite**: Mark "PHASE 3: Analyze review results" as completed
+   - **TaskUpdate**: Mark "PHASE 3: Analyze review results" as completed
 
 4. **Review Feedback Loop** (Workflow-Adaptive):
-   - **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as in_progress
+   - **TaskUpdate**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as in_progress
    - IF **ANY** reviewer identifies issues:
      * Document all feedback clearly from ALL reviewers (2 or 3 depending on workflow)
      * Categorize and prioritize the combined feedback:
        - **Code issues** (from reviewer and codex)
        - **UI/runtime issues** (from tester)
        - **Console errors** (from tester)
-     * **Update TodoWrite**: Add "PHASE 3 - Iteration X: Fix issues and re-run reviewers" task
+     * **TaskUpdate**: Add "PHASE 3 - Iteration X: Fix issues and re-run reviewers" task
      * **CRITICAL**: Do NOT fix issues yourself - delegate to developer agent
      * **Launch developer agent** using Task tool with:
        - Original plan reference (path to ${SESSION_PATH})
@@ -2639,7 +2639,7 @@ e. **Loop Until Tests Pass**:
    - IF **ALL** reviewers approve (2 or 3 depending on workflow):
      * **IF API_FOCUSED**: Document that dual code review passed (code review + automated analysis)
      * **IF UI_FOCUSED or MIXED**: Document that triple review passed (code review + automated analysis + manual UI testing)
-     * **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as completed
+     * **TaskUpdate**: Mark "PHASE 3: Quality gate - ensure all reviewers approved" as completed
      * Proceed to Phase 4
    - **Track loop iterations** (document how many review cycles occurred and feedback from each reviewer)
 
@@ -2651,8 +2651,8 @@ e. **Loop Until Tests Pass**:
 
 **For API_FOCUSED workflows:**
 - **SKIP THIS PHASE ENTIRELY** - All testing completed in PHASE 2.5-B (Test-Driven Feedback Loop)
-- **Update TodoWrite**: Mark "PHASE 4: Launch test-architect" as completed with note: "Skipped - API_FOCUSED workflow completed testing in PHASE 2.5"
-- **Update TodoWrite**: Mark "PHASE 4: Quality gate - ensure all tests pass" as completed with note: "Already verified in PHASE 2.5"
+- **TaskUpdate**: Mark "PHASE 4: Launch test-architect" as completed with note: "Skipped - API_FOCUSED workflow completed testing in PHASE 2.5"
+- **TaskUpdate**: Mark "PHASE 4: Quality gate - ensure all tests pass" as completed with note: "Already verified in PHASE 2.5"
 - Log: "✅ PHASE 4 skipped - API_FOCUSED workflow. All tests already written, executed, and passing from PHASE 2.5."
 - **Proceed directly to PHASE 5**
 
@@ -2668,7 +2668,7 @@ e. **Loop Until Tests Pass**:
 ---
 
 1. **Launch Testing Agent**:
-   - **Update TodoWrite**: Mark "PHASE 4: Launch test-architect" as in_progress
+   - **TaskUpdate**: Mark "PHASE 4: Launch test-architect" as in_progress
    - Use Task tool with `subagent_type: frontend:test-architect`
    - Provide:
      * Implemented code (reference to files)
@@ -2683,12 +2683,12 @@ e. **Loop Until Tests Pass**:
 2. **Test Results Analysis**:
    - Agent writes tests and executes them
    - Analyzes test results
-   - **Update TodoWrite**: Mark "PHASE 4: Launch test-architect" as completed
-   - **Update TodoWrite**: Mark "PHASE 4: Quality gate - ensure all tests pass" as in_progress
+   - **TaskUpdate**: Mark "PHASE 4: Launch test-architect" as completed
+   - **TaskUpdate**: Mark "PHASE 4: Quality gate - ensure all tests pass" as in_progress
 
 3. **Test Feedback Loop** (Inner Loop):
    - IF tests fail due to implementation bugs:
-     * **Update TodoWrite**: Add "PHASE 4 - Iteration X: Fix implementation bugs and re-test" task
+     * **TaskUpdate**: Add "PHASE 4 - Iteration X: Fix implementation bugs and re-test" task
      * Document the test failures and root cause analysis
      * **CRITICAL**: Do NOT fix bugs yourself - delegate to developer agent
      * **Launch developer agent** using Task tool with:
@@ -2701,11 +2701,11 @@ e. **Loop Until Tests Pass**:
      * After code review approval, re-run test-architect
      * Repeat until all tests pass
    - IF tests fail due to test issues (not implementation):
-     * **Update TodoWrite**: Add "PHASE 4 - Iteration X: Fix test issues" task
+     * **TaskUpdate**: Add "PHASE 4 - Iteration X: Fix test issues" task
      * **Launch test-architect agent** using Task tool to fix the test code
      * Re-run tests after test fixes
    - IF all tests pass:
-     * **Update TodoWrite**: Mark "PHASE 4: Quality gate - ensure all tests pass" as completed
+     * **TaskUpdate**: Mark "PHASE 4: Quality gate - ensure all tests pass" as completed
      * Proceed to Phase 5
    - **Track loop iterations** (document how many test-fix cycles occurred)
 
@@ -2714,7 +2714,7 @@ e. **Loop Until Tests Pass**:
 ### PHASE 5: User Review & Project Cleanup
 
 1. **User Final Review Gate**:
-   - **Update TodoWrite**: Mark "PHASE 5: User approval gate - present implementation for final review" as in_progress
+   - **TaskUpdate**: Mark "PHASE 5: User approval gate - present implementation for final review" as in_progress
    - Present the completed implementation to the user:
      * Summary of what was implemented
      * All code review approvals received (reviewer + codex)
@@ -2730,7 +2730,7 @@ e. **Loop Until Tests Pass**:
 
    - IF user not satisfied:
      * Collect specific feedback on what issues exist
-     * **Update TodoWrite**: Add "PHASE 5 - Validation Iteration X: User reported issues - running debug flow" task
+     * **TaskUpdate**: Add "PHASE 5 - Validation Iteration X: User reported issues - running debug flow" task
      * **Classify issue type**:
        - **UI Issues**: Visual problems, layout issues, design discrepancies, responsive problems
        - **Functional Issues**: Bugs, incorrect behavior, missing functionality, errors, performance problems
@@ -2741,7 +2741,7 @@ e. **Loop Until Tests Pass**:
      **UI Issue Debug Flow** (User reports visual/layout/design problems):
 
      1. **Launch Designer Agent**:
-        - **Update TodoWrite**: Add "UI Debug Flow - Step 1: Designer analysis" task
+        - **TaskUpdate**: Add "UI Debug Flow - Step 1: Designer analysis" task
         - Use Task tool with `subagent_type: frontend:designer`
         - Provide:
           * User's specific UI feedback
@@ -2753,10 +2753,10 @@ e. **Loop Until Tests Pass**:
           * Provide design guidance
           * Use browser-debugger skill if needed
           * Create detailed fix recommendations
-        - **Update TodoWrite**: Mark "UI Debug Flow - Step 1" as completed after designer returns
+        - **TaskUpdate**: Mark "UI Debug Flow - Step 1" as completed after designer returns
 
      2. **Launch UI Developer Agent**:
-        - **Update TodoWrite**: Add "UI Debug Flow - Step 2: UI Developer fixes" task
+        - **TaskUpdate**: Add "UI Debug Flow - Step 2: UI Developer fixes" task
         - Use Task tool with `subagent_type: frontend:ui-developer`
         - Provide:
           * Designer's feedback and recommendations
@@ -2768,10 +2768,10 @@ e. **Loop Until Tests Pass**:
           * Fix CSS/layout issues
           * Ensure responsive behavior
           * Run quality checks
-        - **Update TodoWrite**: Mark "UI Debug Flow - Step 2" as completed
+        - **TaskUpdate**: Mark "UI Debug Flow - Step 2" as completed
 
      3. **Launch UI Developer Codex Agent (Optional)**:
-        - **Update TodoWrite**: Add "UI Debug Flow - Step 3: Codex UI review" task
+        - **TaskUpdate**: Add "UI Debug Flow - Step 3: Codex UI review" task
         - Use Task tool with `subagent_type: frontend:ui-developer-codex`
         - Provide:
           * Implementation after UI Developer fixes
@@ -2781,10 +2781,10 @@ e. **Loop Until Tests Pass**:
           * Review implementation quality
           * Check design fidelity
           * Suggest improvements
-        - **Update TodoWrite**: Mark "UI Debug Flow - Step 3" as completed
+        - **TaskUpdate**: Mark "UI Debug Flow - Step 3" as completed
 
      4. **Launch UI Manual Tester Agent**:
-        - **Update TodoWrite**: Add "UI Debug Flow - Step 4: Browser testing" task
+        - **TaskUpdate**: Add "UI Debug Flow - Step 4: Browser testing" task
         - Use Task tool with `subagent_type: frontend:tester`
         - Provide:
           * Implementation after fixes
@@ -2795,7 +2795,7 @@ e. **Loop Until Tests Pass**:
           * Check responsive behavior
           * Verify visual regression
           * Report any remaining issues
-        - **Update TodoWrite**: Mark "UI Debug Flow - Step 4" as completed
+        - **TaskUpdate**: Mark "UI Debug Flow - Step 4" as completed
 
      5. **Present UI Fix Results to User**:
         - Summary of issues fixed
@@ -2812,12 +2812,12 @@ e. **Loop Until Tests Pass**:
      **Functional Issue Debug Flow** (User reports bugs/errors/incorrect behavior):
 
      1. **Classify Architectural vs Implementation Issue**:
-        - **Update TodoWrite**: Add "Functional Debug Flow - Classify issue type" task
+        - **TaskUpdate**: Add "Functional Debug Flow - Classify issue type" task
         - Determine if this requires architectural changes or just implementation fixes
-        - **Update TodoWrite**: Mark classification task as completed
+        - **TaskUpdate**: Mark classification task as completed
 
      2A. **IF Architectural Problem - Launch Architect Agent**:
-        - **Update TodoWrite**: Add "Functional Debug Flow - Step 1: Architect analysis" task
+        - **TaskUpdate**: Add "Functional Debug Flow - Step 1: Architect analysis" task
         - Use Task tool with `subagent_type: frontend:architect`
         - Provide:
           * User's functional issue description
@@ -2828,15 +2828,15 @@ e. **Loop Until Tests Pass**:
           * Design architectural fix
           * Plan implementation approach
           * Identify affected components
-        - **Update TodoWrite**: Mark "Functional Debug Flow - Step 1" as completed
+        - **TaskUpdate**: Mark "Functional Debug Flow - Step 1" as completed
         - Store architect's plan for next step
 
      2B. **IF Implementation Bug Only - Skip Architect**:
-        - **Update TodoWrite**: Add note "Functional Debug Flow: Implementation-only bug, architect not needed"
+        - **TaskUpdate**: Add note "Functional Debug Flow: Implementation-only bug, architect not needed"
         - Proceed directly to developer
 
      3. **Launch Developer Agent**:
-        - **Update TodoWrite**: Add "Functional Debug Flow - Step 2: Developer implementation" task
+        - **TaskUpdate**: Add "Functional Debug Flow - Step 2: Developer implementation" task
         - Use Task tool with `subagent_type: frontend:developer`
         - Provide:
           * User's functional issue description
@@ -2848,10 +2848,10 @@ e. **Loop Until Tests Pass**:
           * Add/update tests
           * Verify edge cases
           * Run quality checks
-        - **Update TodoWrite**: Mark "Functional Debug Flow - Step 2" as completed
+        - **TaskUpdate**: Mark "Functional Debug Flow - Step 2" as completed
 
      4. **Launch Test Architect Agent**:
-        - **Update TodoWrite**: Add "Functional Debug Flow - Step 3: Test Architect testing" task
+        - **TaskUpdate**: Add "Functional Debug Flow - Step 3: Test Architect testing" task
         - Use Task tool with `subagent_type: frontend:test-architect`
         - Provide:
           * Implementation after fix
@@ -2863,14 +2863,14 @@ e. **Loop Until Tests Pass**:
           * Verify coverage
           * Validate fix approach
         - **IF Tests FAIL**:
-          * **Update TodoWrite**: Add "Functional Debug Flow - Iteration: Tests failed, back to developer" task
+          * **TaskUpdate**: Add "Functional Debug Flow - Iteration: Tests failed, back to developer" task
           * Loop back to step 3 (Developer) with test failures
           * Repeat until tests pass
         - **IF Tests PASS**: Proceed to code review
-        - **Update TodoWrite**: Mark "Functional Debug Flow - Step 3" as completed
+        - **TaskUpdate**: Mark "Functional Debug Flow - Step 3" as completed
 
      5. **Launch Code Reviewers in Parallel**:
-        - **Update TodoWrite**: Add "Functional Debug Flow - Step 4: Dual code review" task
+        - **TaskUpdate**: Add "Functional Debug Flow - Step 4: Dual code review" task
 
         5A. **Launch Senior Code Reviewer**:
            - Use Task tool with `subagent_type: frontend:reviewer`
@@ -2892,12 +2892,12 @@ e. **Loop Until Tests Pass**:
 
         - **Wait for BOTH reviews to complete**
         - **IF Issues Found in Reviews**:
-          * **Update TodoWrite**: Add "Functional Debug Flow - Iteration: Address review feedback" task
+          * **TaskUpdate**: Add "Functional Debug Flow - Iteration: Address review feedback" task
           * Launch Developer agent to address feedback
           * Re-run reviews after fixes
           * Repeat until approved
         - **IF Approved**: Proceed to present results
-        - **Update TodoWrite**: Mark "Functional Debug Flow - Step 4" as completed
+        - **TaskUpdate**: Mark "Functional Debug Flow - Step 4" as completed
 
      6. **Present Functional Fix Results to User**:
         - Summary of bug fixed
@@ -2914,30 +2914,30 @@ e. **Loop Until Tests Pass**:
      **Mixed Issue Debug Flow** (User reports both UI and functional problems):
 
      1. **Separate Concerns**:
-        - **Update TodoWrite**: Add "Mixed Debug Flow - Separate UI and functional issues" task
+        - **TaskUpdate**: Add "Mixed Debug Flow - Separate UI and functional issues" task
         - Clearly identify which issues are UI vs functional
-        - **Update TodoWrite**: Mark separation task as completed
+        - **TaskUpdate**: Mark separation task as completed
 
      2. **Run Functional Debug Flow FIRST**:
-        - **Update TodoWrite**: Add "Mixed Debug Flow - Track 1: Functional fixes" task
+        - **TaskUpdate**: Add "Mixed Debug Flow - Track 1: Functional fixes" task
         - Run complete Functional Issue Debug Flow (steps 1-6 above)
         - Logic must work before polishing UI
-        - **Update TodoWrite**: Mark "Mixed Debug Flow - Track 1" as completed
+        - **TaskUpdate**: Mark "Mixed Debug Flow - Track 1" as completed
 
      3. **Run UI Debug Flow SECOND**:
-        - **Update TodoWrite**: Add "Mixed Debug Flow - Track 2: UI fixes" task
+        - **TaskUpdate**: Add "Mixed Debug Flow - Track 2: UI fixes" task
         - Run complete UI Issue Debug Flow (steps 1-5 above)
         - Polish and design after functionality works
-        - **Update TodoWrite**: Mark "Mixed Debug Flow - Track 2" as completed
+        - **TaskUpdate**: Mark "Mixed Debug Flow - Track 2" as completed
 
      4. **Integration Verification**:
-        - **Update TodoWrite**: Add "Mixed Debug Flow - Integration testing" task
+        - **TaskUpdate**: Add "Mixed Debug Flow - Integration testing" task
         - Use Task tool with `subagent_type: frontend:tester`
         - Provide:
           * Both UI and functional fixes implemented
           * Instruction: "Verify UI and functionality work together end-to-end"
         - Tester will verify complete user flows
-        - **Update TodoWrite**: Mark "Mixed Debug Flow - Integration testing" as completed
+        - **TaskUpdate**: Mark "Mixed Debug Flow - Integration testing" as completed
 
      5. **Present Combined Fix Results to User**:
         - Summary of ALL issues fixed (UI + functional)
@@ -2951,24 +2951,24 @@ e. **Loop Until Tests Pass**:
 
      **After ALL Issues Resolved**:
      - IF user satisfied with ALL fixes:
-       * **Update TodoWrite**: Mark "PHASE 5: User approval gate - present implementation for final review" as completed
-       * **Update TodoWrite**: Add "PHASE 5 - Final: All validation loops completed, user approved" task
+       * **TaskUpdate**: Mark "PHASE 5: User approval gate - present implementation for final review" as completed
+       * **TaskUpdate**: Add "PHASE 5 - Final: All validation loops completed, user approved" task
        * Proceed to cleanup (step 3)
      - IF user has NEW issues:
        * Restart appropriate debug flow(s)
-       * **Update TodoWrite**: Add new iteration task
+       * **TaskUpdate**: Add new iteration task
        * Repeat until user satisfaction
 
      **DO NOT proceed to cleanup without explicit user approval of ALL aspects**
 
    - IF user satisfied on first review (no issues):
-     * **Update TodoWrite**: Mark "PHASE 5: User approval gate - present implementation for final review" as completed
+     * **TaskUpdate**: Mark "PHASE 5: User approval gate - present implementation for final review" as completed
      * Proceed to cleanup (step 3)
 
    **REMINDER**: You are orchestrating ONLY. You do NOT implement fixes yourself. Always use Task to delegate to specialized agents based on issue type.
 
 3. **Launch Project Cleanup**:
-   - **Update TodoWrite**: Mark "PHASE 5: Launch cleaner to clean up temporary artifacts" as in_progress
+   - **TaskUpdate**: Mark "PHASE 5: Launch cleaner to clean up temporary artifacts" as in_progress
    - Use Task tool with `subagent_type: frontend:cleaner`
    - Provide context:
      * The implementation is complete and user-approved
@@ -2985,13 +2985,13 @@ e. **Loop Until Tests Pass**:
 
 4. **Cleanup Completion**:
    - Agent removes temporary files and provides cleanup summary
-   - **Update TodoWrite**: Mark "PHASE 5: Launch cleaner to clean up temporary artifacts" as completed
+   - **TaskUpdate**: Mark "PHASE 5: Launch cleaner to clean up temporary artifacts" as completed
    - Proceed to Phase 6 for final summary
 
 ### PHASE 6: Final Summary & Completion
 
 1. **Generate Comprehensive Summary**:
-   - **Update TodoWrite**: Mark "PHASE 6: Generate comprehensive final summary" as in_progress
+   - **TaskUpdate**: Mark "PHASE 6: Generate comprehensive final summary" as in_progress
    Create a detailed summary including:
 
    **Implementation Summary:**
@@ -3069,14 +3069,14 @@ e. **Loop Until Tests Pass**:
    - Lines added/removed: [from git diff --stat]
    - Files cleaned up by cleaner: [number]
 
-   - **Update TodoWrite**: Mark "PHASE 6: Generate comprehensive final summary" as completed
+   - **TaskUpdate**: Mark "PHASE 6: Generate comprehensive final summary" as completed
 
 2. **User Handoff**:
-   - **Update TodoWrite**: Mark "PHASE 6: Present summary and complete user handoff" as in_progress
+   - **TaskUpdate**: Mark "PHASE 6: Present summary and complete user handoff" as in_progress
    - Present summary clearly
    - Provide next steps or recommendations
    - Offer to address any remaining concerns
-   - **Update TodoWrite**: Mark "PHASE 6: Present summary and complete user handoff" as completed
+   - **TaskUpdate**: Mark "PHASE 6: Present summary and complete user handoff" as completed
    - **Congratulations! All workflow phases completed successfully!**
 
 ## Orchestration Rules
@@ -3295,7 +3295,7 @@ CORRECT BEHAVIOR:
 - Run git commands to understand changes
 - Read planning docs to gather context
 - Launch agents with Task tool
-- Track progress with TodoWrite
+- Track progress with Tasks
 - Manage quality gates with AskUserQuestion
 - Present summaries and results to user
 

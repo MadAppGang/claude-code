@@ -133,7 +133,7 @@ function TodoForm() {
 ```typescript
 import { useOptimistic } from 'react'
 
-function TodoList({ initialTodos }: { initialTodos: Todo[] }) {
+function TaskList({ initialTodos }: { initialTodos: Todo[] }) {
   const [optimisticTodos, addOptimisticTodo] = useOptimistic(
     initialTodos,
     (state, newTodo: string) => [

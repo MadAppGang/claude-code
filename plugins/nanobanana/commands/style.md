@@ -1,6 +1,6 @@
 ---
 description: Manage image generation style templates (create, list, show, delete, update)
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: nanobanana:style-format
 ---
 
@@ -17,7 +17,7 @@ skills: nanobanana:style-format
 </user_request>
 
 <orchestration>
-  <allowed_tools>Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep</allowed_tools>
+  <allowed_tools>Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <delegation_rules>

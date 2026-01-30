@@ -3,7 +3,7 @@ name: video-processor
 description: Process video/audio files using FFmpeg (trim, concat, convert, extract)
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills: video-editing:ffmpeg-core
 ---
 
@@ -28,7 +28,7 @@ skills: video-editing:ffmpeg-core
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track processing workflow:
+      You MUST use Tasks to track processing workflow:
 
       **Before starting**, create todo list:
       1. Validate input files exist and are valid
@@ -81,7 +81,7 @@ skills: video-editing:ffmpeg-core
 
   <workflow>
     <phase number="1" name="Input Analysis">
-      <step>Initialize TodoWrite with all processing tasks</step>
+      <step>Initialize Tasks with all processing tasks</step>
       <step>Mark "Validate input files" as in_progress</step>
       <step>Check input files exist using Bash</step>
       <step>Run ffprobe to get media properties</step>

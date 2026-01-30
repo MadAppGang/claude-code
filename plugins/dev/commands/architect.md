@@ -1,6 +1,6 @@
 ---
 description: Universal architecture planning for any stack with trade-off analysis
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:universal-patterns, orchestration:quality-gates
 ---
 
@@ -25,7 +25,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:quality-gat
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track architecture workflow.
+      You MUST use Tasks to track architecture workflow.
 
       Before starting, create todo list with all 7 phases:
       0. Initialize (detect stack)

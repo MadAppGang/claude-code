@@ -1,6 +1,6 @@
 ---
 description: Initialize a new Bun + TypeScript backend project with best practices setup (Hono, Prisma, Biome, testing, Docker)
-allowed-tools: Bash, Write, AskUserQuestion, TodoWrite, Read
+allowed-tools: Bash, Write, AskUserQuestion, TaskCreate, TaskUpdate, TaskList, TaskGet, Read
 ---
 
 ## Mission
@@ -18,7 +18,7 @@ $ARGUMENTS
 Create a todo list to track the setup process:
 
 ```
-TodoWrite with the following items:
+TaskCreate with the following items:
 - content: "Gather project requirements and configuration preferences"
   status: "in_progress"
   activeForm: "Gathering project requirements"

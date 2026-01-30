@@ -3,7 +3,7 @@ name: transcriber
 description: Transcribe audio/video with Whisper to SRT, VTT, JSON, or TXT
 model: sonnet
 color: orange
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills: video-editing:transcription, video-editing:ffmpeg-core
 ---
 
@@ -28,7 +28,7 @@ skills: video-editing:transcription, video-editing:ffmpeg-core
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track transcription workflow:
+      You MUST use Tasks to track transcription workflow:
 
       **Before starting**, create todo list:
       1. Check Whisper installation
@@ -79,7 +79,7 @@ skills: video-editing:transcription, video-editing:ffmpeg-core
 
   <workflow>
     <phase number="1" name="Setup Verification">
-      <step>Initialize TodoWrite with transcription tasks</step>
+      <step>Initialize Tasks with transcription tasks</step>
       <step>Mark "Check Whisper installation" as in_progress</step>
       <step>Verify Whisper is installed: whisper --help</step>
       <step>Check available models: whisper --list-models (if supported)</step>

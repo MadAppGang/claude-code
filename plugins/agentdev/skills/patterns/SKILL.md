@@ -1,6 +1,6 @@
 ---
 name: patterns
-description: Common agent patterns and templates for Claude Code. Use when implementing agents to follow proven patterns for proxy mode, TodoWrite integration, and quality checks.
+description: Common agent patterns and templates for Claude Code. Use when implementing agents to follow proven patterns for proxy mode, Tasks integration, and quality checks.
 ---
 plugin: agentdev
 updated: 2026-01-20
@@ -59,16 +59,16 @@ Enable agents to delegate to external AI models via Claudish.
 
 ---
 
-## TodoWrite Integration Pattern
+## Tasks Integration Pattern
 
 Every agent must track workflow progress.
 
 ```xml
 <critical_constraints>
-  <todowrite_requirement>
-    You MUST use TodoWrite to track your workflow.
+  <tasks_requirement>
+    You MUST use Tasks to track your workflow.
 
-    **Before starting**, create todo list:
+    **Before starting**, create task list:
     1. Phase 1 description
     2. Phase 2 description
     3. Phase 3 description
@@ -77,12 +77,12 @@ Every agent must track workflow progress.
     - Mark "in_progress" when starting
     - Mark "completed" immediately after finishing
     - Keep only ONE task "in_progress" at a time
-  </todowrite_requirement>
+  </tasks_requirement>
 </critical_constraints>
 
 <workflow>
   <phase number="1" name="Phase Name">
-    <step>Initialize TodoWrite with all phases</step>
+    <step>Initialize Tasks with all phases</step>
     <step>Mark PHASE 1 as in_progress</step>
     <step>... perform work ...</step>
     <step>Mark PHASE 1 as completed</step>
@@ -195,7 +195,7 @@ Every agent must track workflow progress.
     <objective>Clear statement of what this phase achieves</objective>
 
     <steps>
-      <step>Mark PHASE 1 as in_progress in TodoWrite</step>
+      <step>Mark PHASE 1 as in_progress in task list</step>
       <step>Detailed action step</step>
       <step>Detailed action step</step>
       <step>Mark PHASE 1 as completed</step>
@@ -227,7 +227,7 @@ description: |
   Examples: (1) "Design X" (2) "Plan Y" (3) "Architect Z"
 model: sonnet
 color: purple
-tools: TodoWrite, Read, Write, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
 ---
 ```
 
@@ -240,7 +240,7 @@ description: |
   Examples: (1) "Create X" (2) "Build Y" (3) "Implement Z"
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 ---
 ```
 
@@ -253,7 +253,7 @@ description: |
   Examples: (1) "Review X" (2) "Validate Y" (3) "Check Z"
 model: sonnet
 color: cyan
-tools: TodoWrite, Read, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Glob, Grep, Bash
 ---
 ```
 
@@ -263,6 +263,6 @@ tools: TodoWrite, Read, Glob, Grep, Bash
 description: |
   Orchestrates {workflow} with multi-agent coordination.
   Workflow: PHASE 1 → PHASE 2 → PHASE 3
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 ```

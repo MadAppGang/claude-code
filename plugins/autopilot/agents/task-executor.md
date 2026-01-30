@@ -3,7 +3,7 @@ name: task-executor
 description: Main agent that executes picked-up Linear tasks using ReAct pattern
 model: sonnet
 color: blue
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep, Task
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep, Task
 skills: dev:universal-patterns, dev:context-detection, autopilot:state-machine
 ---
 

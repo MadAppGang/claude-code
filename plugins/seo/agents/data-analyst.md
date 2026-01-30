@@ -4,7 +4,7 @@ description: Analytics specialist for GA4 and Google Search Console performance 
 model: sonnet
 model-id: claude-sonnet-4-20250514
 color: cyan
-tools: TodoWrite, Read, Write, Bash, WebFetch
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, WebFetch
 skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extraction-patterns
 ---
 

@@ -26,7 +26,7 @@ updated: 2026-01-20
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track setup progress:
+      You MUST use Tasks to track setup progress:
       1. Check for existing conductor/ directory
       2. Determine project type (Greenfield/Brownfield)
       3. Create product.md through Q&A
@@ -83,7 +83,7 @@ updated: 2026-01-20
       <step>Check if conductor/ directory exists</step>
       <step>If exists, check setup_state.json for resume</step>
       <step>If complete setup exists, confirm re-initialization</step>
-      <step>Initialize TodoWrite with setup phases</step>
+      <step>Initialize Tasks with setup phases</step>
     </phase>
 
     <phase number="2" name="Project Type Detection">

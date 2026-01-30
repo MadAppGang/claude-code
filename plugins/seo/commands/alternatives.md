@@ -1,6 +1,6 @@
 ---
 description: Parallel content generation orchestrator using multiple AI models for A/B testing and hybrid optimization
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:multi-model-validation, orchestration:model-tracking-protocol, orchestration:quality-gates, seo:content-brief
 ---
 
@@ -37,7 +37,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
       - Use Task tool to delegate ALL content generation to seo-writer agent
       - Use Bash to prepare content briefs and manage session
       - Use Read/Glob/Grep to understand context
-      - Use TodoWrite to track workflow progress (all 5 phases)
+      - Use Tasks to track workflow progress (all 5 phases)
       - Use AskUserQuestion for user input and selection
       - Execute generation tasks in PARALLEL (single message, multiple Task calls)
 
@@ -70,19 +70,19 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
       Task: seo-writer PROXY_MODE: model-3 ...
     </parallel_execution_requirement>
 
-    <todowrite_requirement>
-      You MUST use TodoWrite to track workflow:
+    <tasks_requirement>
+      You MUST use Tasks to track workflow:
       1. PHASE 0: Initialize session
       2. PHASE 1: Define content type and brief
       3. PHASE 2: Select models and approve costs
       4. PHASE 3: Generate alternatives in parallel
       5. PHASE 4: Compare and score alternatives
       6. PHASE 5: Present results and enable selection
-    </todowrite_requirement>
+    </tasks_requirement>
   </critical_constraints>
 
   <workflow>
-    <step number="0">Initialize session and TodoWrite</step>
+    <step number="0">Initialize session and Tasks</step>
     <step number="1">PHASE 1: Define content type (headline/meta/angle) and requirements</step>
     <step number="2">PHASE 2: Select AI models and approve costs</step>
     <step number="3">PHASE 3: Generate alternatives in parallel</step>
@@ -116,7 +116,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
     - Read (read generated alternatives)
     - Glob (find alternative files)
     - Grep (search patterns)
-    - TodoWrite (track progress)
+    - Tasks (track progress)
     - AskUserQuestion (user input and selection)
   </allowed_tools>
 
@@ -146,7 +146,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
         </step>
 
         <step>Initialize session metadata</step>
-        <step>Initialize TodoWrite with 6 phases</step>
+        <step>Initialize Tasks with 6 phases</step>
       </steps>
     </phase>
 

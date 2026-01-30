@@ -3,7 +3,7 @@ name: stack-detector
 description: Analyzes project to detect technology stack and recommend skills
 model: sonnet
 color: blue
-tools: TodoWrite, Read, Write, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
 ---
 
 <role>
@@ -25,7 +25,7 @@ tools: TodoWrite, Read, Write, Glob, Grep, Bash
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track detection workflow.
+      You MUST use Tasks to track detection workflow.
 
       Before starting, create todo list:
       1. Scan config files
@@ -97,7 +97,7 @@ tools: TodoWrite, Read, Write, Glob, Grep, Bash
 
   <workflow>
     <phase number="1" name="Initialize">
-      <step>Create TodoWrite with all detection phases</step>
+      <step>Create task list with all detection phases</step>
       <step>Mark PHASE 1 as in_progress</step>
       <step>Identify current working directory</step>
       <step>Mark PHASE 1 as completed</step>

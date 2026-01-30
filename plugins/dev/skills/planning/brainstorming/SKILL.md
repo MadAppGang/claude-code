@@ -15,7 +15,10 @@ dependencies:
     - superpowers:writing-plans
   tools:
     - Task
-    - TodoWrite
+    - TaskCreate
+    - TaskUpdate
+    - TaskList
+    - TaskGet
     - Read
     - Write
     - Edit
@@ -69,7 +72,7 @@ Turn ideas into validated designs through collaborative AI dialogue with resilie
 This skill improves upon v1.0 by addressing critical reliability gaps:
 
 **Key v2.0 Improvements:**
-- **No AskUserQuestion dependency**: Uses Task + TodoWrite for structured interaction
+- **No AskUserQuestion dependency**: Uses Task + Tasks for structured interaction
 - **Fallback chains**: 3+ models per role ensures completion even if some fail
 - **Explicit parallelism**: Documented Task call patterns for parallel execution
 - **Defined algorithms**: Consensus matrix and confidence scoring are mathematically specified
@@ -124,7 +127,7 @@ export OPENROUTER_API_KEY=your-key
 **How to Ask Users (Without AskUserQuestion)**:
 
 ```typescript
-// Pattern: Use TodoWrite to track questions, Read/Write for presentation
+// Pattern: Use Tasks to track questions, Read/Write for presentation
 
 // 1. Write question to temp file
 await Write({

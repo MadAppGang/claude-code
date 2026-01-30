@@ -42,7 +42,7 @@ skills:
       The orchestrator (/dev:doc) owns the todo list exclusively.
       Report your progress via your return message only.
 
-      Your internal workflow (not tracked in TodoWrite):
+      Your internal workflow (not tracked in task list):
       1. Read context and requirements
       2. Select appropriate template
       3. Generate documentation

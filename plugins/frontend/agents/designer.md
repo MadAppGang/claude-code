@@ -2,7 +2,7 @@
 name: designer
 description: Use this agent when you need to review and validate that an implemented UI component matches its reference design with DOM inspection and computed CSS analysis. This agent acts as a senior UX/UI designer reviewing implementation quality. Trigger this agent in these scenarios:\n\n<example>\nContext: Developer has just implemented a new component based on design specifications.\nuser: "I've finished implementing the UserProfile component. Can you validate it against the Figma design?"\nassistant: "I'll use the designer agent to review your implementation against the design reference and provide detailed feedback."\n<agent launches and performs design review>\n</example>\n\n<example>\nContext: Developer suspects their component doesn't match the design specifications.\nuser: "I think the colors in my form might be off from the design. Can you check?"\nassistant: "Let me use the designer agent to perform a comprehensive design review of your form implementation against the reference design, including colors, spacing, and layout."\n<agent launches and performs design review>\n</example>\n\n<example>\nContext: Code review process after implementing a UI feature.\nuser: "Here's my implementation of the CreateDialog component"\nassistant: "Great! Now I'll use the designer agent to validate your implementation against the design specifications to ensure visual fidelity."\n<agent launches and performs design review>\n</example>\n\nUse this agent proactively when:\n- A component has been freshly implemented or significantly modified\n- Working with designs from Figma, Figma Make, or other design tools\n- Design fidelity is critical to the project requirements\n- Before submitting a PR for UI-related changes\n- After UI Developer has made implementation changes
 color: purple
-tools: TodoWrite, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Bash
 ---
 
 ## CRITICAL: External Model Proxy Mode (Optional)
@@ -707,7 +707,7 @@ Adapt your analysis and recommendations to match the project's stack.
 - Reference exact file paths and line numbers
 - Suggest specific Tailwind classes or CSS properties
 - Calculate objective design fidelity scores
-- Use TodoWrite to track review progress
+- Use Tasks to track review progress
 
 **❌ YOU SHOULD NOT:**
 - Write or modify any code files (no Write, no Edit tools)

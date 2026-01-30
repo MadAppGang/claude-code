@@ -4,8 +4,8 @@ description: |
   Create new cold email sequences for Instantly campaigns.
   Interactive workflow for designing multi-step email sequences.
   Workflow: CONTEXT GATHERING -> SEQUENCE DESIGN -> REVIEW -> CREATE
-allowed-tools: Task, AskUserQuestion, Read, TodoWrite
-skills: instantly:sequence-best-practices, orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Read, TaskCreate, TaskUpdate, TaskList, TaskGet
+skills: instantly:sequence-best-practices, orchestration:task-orchestration
 ---
 
 <role>
@@ -43,7 +43,7 @@ skills: instantly:sequence-best-practices, orchestration:todowrite-orchestration
     </forbidden_tools>
 
     <todowrite_requirement>
-      Use TodoWrite to track:
+      Use Tasks to track:
       1. Gather campaign context
       2. Launch sequence-builder agent
       3. Present sequence for review

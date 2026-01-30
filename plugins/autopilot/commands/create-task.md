@@ -1,6 +1,6 @@
 ---
 description: Create a Linear task from CLI and assign to autopilot for execution
-allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite
+allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 skills: autopilot:linear-integration, autopilot:tag-command-mapping
 ---
 
@@ -25,7 +25,7 @@ skills: autopilot:linear-integration, autopilot:tag-command-mapping
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track task creation workflow:
+      You MUST use Tasks to track task creation workflow:
       1. Parse user request
       2. Classify task type
       3. Generate acceptance criteria

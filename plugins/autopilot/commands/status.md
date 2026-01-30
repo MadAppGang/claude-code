@@ -1,6 +1,6 @@
 ---
 description: Check autopilot status, queue, and task progress
-allowed-tools: Bash, Read, AskUserQuestion, TodoWrite
+allowed-tools: Bash, Read, AskUserQuestion, TaskCreate, TaskUpdate, TaskList, TaskGet
 skills: autopilot:linear-integration, autopilot:state-machine
 ---
 

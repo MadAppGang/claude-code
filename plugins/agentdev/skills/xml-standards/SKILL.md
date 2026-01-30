@@ -36,7 +36,7 @@ Defines behavior constraints and workflow.
       Description of critical rule that must be followed
     </constraint_name>
     <todowrite_requirement>
-      You MUST use TodoWrite to track workflow progress.
+      You MUST use Tasks to track workflow progress.
     </todowrite_requirement>
   </critical_constraints>
 
@@ -110,7 +110,7 @@ Communication style and output format.
 
 ```xml
 <orchestration>
-  <allowed_tools>Task, Bash, Read, TodoWrite, AskUserQuestion</allowed_tools>
+  <allowed_tools>Task, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <delegation_rules>

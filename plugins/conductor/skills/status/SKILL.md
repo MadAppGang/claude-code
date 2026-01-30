@@ -24,11 +24,11 @@ updated: 2026-01-20
 
 <instructions>
   <critical_constraints>
-    <no_todowrite>
+    <no_tasks>
       This is a read-only skill that only displays status.
-      TodoWrite is NOT required because there are no implementation phases.
+      Tasks are NOT required because there are no implementation phases.
       The skill performs a single atomic operation: read and present status.
-    </no_todowrite>
+    </no_tasks>
 
     <read_only>
       This skill ONLY reads files.

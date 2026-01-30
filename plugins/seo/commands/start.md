@@ -1,7 +1,7 @@
 ---
 description: Interactive SEO workflow entry point that routes to appropriate commands or agents
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite
-skills: orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet
+skills: orchestration:task-orchestration
 ---
 
 <role>
@@ -41,7 +41,7 @@ skills: orchestration:todowrite-orchestration
     </orchestrator_role>
 
     <todowrite_requirement>
-      Use TodoWrite to track workflow:
+      Use Tasks to track workflow:
       1. Understand user goal
       2. Route to appropriate command or workflow
       3. Monitor execution (if multi-step)
@@ -67,7 +67,7 @@ skills: orchestration:todowrite-orchestration
       <objective>Understand what the user wants to accomplish</objective>
 
       <steps>
-        <step>Initialize TodoWrite with workflow phases</step>
+        <step>Initialize Tasks with workflow phases</step>
         <step>Mark PHASE 1 as in_progress</step>
         <step>Check if user provided arguments with clear intent</step>
         <step>If clear intent: Skip to routing (Phase 2)</step>
@@ -408,7 +408,7 @@ skills: orchestration:todowrite-orchestration
 
     <correct_approach>
       **Phase 1: Goal Discovery**
-      1. Initialize TodoWrite with 5 phases
+      1. Initialize Tasks with 5 phases
       2. Mark PHASE 1 as in_progress
       3. Ask: "What would you like to accomplish today?"
       4. User selects: "Create new content"
@@ -466,7 +466,7 @@ skills: orchestration:todowrite-orchestration
 
     <correct_approach>
       **Phase 1: Goal Discovery**
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Mark PHASE 1 as in_progress
       3. Parse arguments: "improve" detected -> Improve existing content
       4. Mark PHASE 1 as completed
@@ -527,7 +527,7 @@ skills: orchestration:todowrite-orchestration
 
     <correct_approach>
       **Phase 1: Goal Discovery**
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Mark PHASE 1 as in_progress
       3. Parse arguments: "performance" + URL detected -> Direct route
       4. Mark PHASE 1 as completed
@@ -589,7 +589,7 @@ skills: orchestration:todowrite-orchestration
 
     <correct_approach>
       **Phase 1: Goal Discovery**
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Mark PHASE 1 as in_progress
       3. Parse arguments: "track" + "performance" detected -> Check performance goal
       4. Mark PHASE 1 as completed

@@ -1,6 +1,6 @@
 ---
 description: Documentation command - generate, analyze, fix, or validate docs. Use for README, API docs, tutorials, changelogs.
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:documentation-standards, orchestration:quality-gates
 ---
 
@@ -27,7 +27,7 @@ skills: dev:documentation-standards, orchestration:quality-gates
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track documentation workflow.
+      You MUST use Tasks to track documentation workflow.
 
       Before starting, create todo list based on action:
       - GENERATE: Detect type, gather context, generate, validate
@@ -35,9 +35,9 @@ skills: dev:documentation-standards, orchestration:quality-gates
       - FIX: Analyze issues, apply fixes, validate improvements
       - VALIDATE: Check against best practices, generate report
 
-      **TodoWrite Ownership Rules:**
-      - You (the orchestrator) OWN the TodoWrite list exclusively
-      - Sub-agents (doc-writer, doc-analyzer, doc-fixer) MUST NOT modify TodoWrite
+      **Tasks Ownership Rules:**
+      - You (the orchestrator) OWN the Tasks list exclusively
+      - Sub-agents (doc-writer, doc-analyzer, doc-fixer) MUST NOT modify Tasks
       - Sub-agents report progress via their return messages only
       - Use 1-based phase numbering (Phase 1, 2, 3...)
       - Maintain exactly ONE todo in_progress at any time
@@ -192,7 +192,7 @@ skills: dev:documentation-standards, orchestration:quality-gates
                    Write documentation to {output_path}
                    Return brief summary
 
-                   IMPORTANT: Do NOT use TodoWrite - report progress via return message only."
+                   IMPORTANT: Do NOT use Tasks - report progress via return message only."
         </step>
         <step>
           **If ANALYZE:**
@@ -211,7 +211,7 @@ skills: dev:documentation-standards, orchestration:quality-gates
                    Write report to ${SESSION_PATH}/analysis-report.md
                    Return brief summary with score
 
-                   IMPORTANT: Do NOT use TodoWrite - report progress via return message only."
+                   IMPORTANT: Do NOT use Tasks - report progress via return message only."
         </step>
         <step>
           **If FIX:**
@@ -234,7 +234,7 @@ skills: dev:documentation-standards, orchestration:quality-gates
 
                    Return brief summary of changes
 
-                   IMPORTANT: Do NOT use TodoWrite - report progress via return message only."
+                   IMPORTANT: Do NOT use Tasks - report progress via return message only."
         </step>
         <step>
           **If VALIDATE:**
@@ -253,7 +253,7 @@ skills: dev:documentation-standards, orchestration:quality-gates
                    Write validation report to ${SESSION_PATH}/validation-report.md
                    Return PASS/FAIL with summary
 
-                   IMPORTANT: Do NOT use TodoWrite - report progress via return message only."
+                   IMPORTANT: Do NOT use Tasks - report progress via return message only."
         </step>
         <step>Mark PHASE 4 as completed</step>
       </steps>

@@ -1,6 +1,6 @@
 ---
 description: Implement UI components from scratch with design reference, intelligent validation, and adaptive agent switching
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 ## Mission
@@ -15,7 +15,7 @@ Implement new UI components from scratch based on a design reference (Figma, scr
 - Use Task tool to delegate ALL work to agents
 - Use Bash to run git commands (status, diff)
 - Use Read/Glob/Grep to understand context
-- Use TodoWrite to track workflow progress
+- Use Tasks to track workflow progress
 - Use AskUserQuestion to gather inputs and preferences
 - Coordinate agent workflows with smart switching logic
 
@@ -81,10 +81,10 @@ styling patterns, and the best location for the new component.
 
 ### PHASE 0: Initialize Workflow Todo List (MANDATORY FIRST STEP)
 
-**BEFORE** starting, create a global workflow todo list using TodoWrite:
+**BEFORE** starting, create a global workflow todo list using Tasks:
 
 ```
-TodoWrite with the following items:
+TaskCreate with the following items:
 - content: "PHASE 1: Gather user inputs (design reference, component description, preferences)"
   status: "in_progress"
   activeForm: "PHASE 1: Gathering user inputs"
@@ -220,8 +220,8 @@ Store the user's choice as `manual_validation_enabled` (boolean).
 
 **Step 7: Validate Inputs**
 
-- **Update TodoWrite**: Mark "PHASE 1: Gather user inputs" as completed
-- **Update TodoWrite**: Mark "PHASE 1: Validate inputs" as in_progress
+- **TaskUpdate**: Mark "PHASE 1: Gather user inputs" as completed
+- **TaskUpdate**: Mark "PHASE 1: Validate inputs" as in_progress
 
 **Validate Design Reference:**
 - If contains "figma.com" → Figma design
@@ -244,7 +244,7 @@ Store the user's choice as `manual_validation_enabled` (boolean).
 
 If any validation fails, re-ask for that specific input.
 
-- **Update TodoWrite**: Mark "PHASE 1: Validate inputs" as completed
+- **TaskUpdate**: Mark "PHASE 1: Validate inputs" as completed
 
 ### PHASE 1.5: Task Analysis & Decomposition
 
@@ -252,7 +252,7 @@ If any validation fails, re-ask for that specific input.
 
 **Step 1: Launch Architect for Task Analysis**
 
-- **Update TodoWrite**: Mark "PHASE 1.5: Analyze and decompose implementation tasks" as in_progress
+- **TaskUpdate**: Mark "PHASE 1.5: Analyze and decompose implementation tasks" as in_progress
 
 Use Task tool with `subagent_type: frontend:architect`:
 
@@ -410,13 +410,13 @@ If user says "Yes":
 - Store task plan for execution
 - Proceed to PHASE 2
 
-- **Update TodoWrite**: Mark "PHASE 1.5: Analyze and decompose implementation tasks" as completed
+- **TaskUpdate**: Mark "PHASE 1.5: Analyze and decompose implementation tasks" as completed
 
 ### PHASE 2: Multi-Task Parallel Implementation
 
 **CRITICAL: Execute tasks in rounds based on dependencies. Tasks in same round run IN PARALLEL.**
 
-- **Update TodoWrite**: Mark "PHASE 2: Multi-task parallel implementation" as in_progress
+- **TaskUpdate**: Mark "PHASE 2: Multi-task parallel implementation" as in_progress
 
 **Execution Strategy:**
 
@@ -533,13 +533,13 @@ All three execute in parallel, each working on different files.
 - If more rounds exist, repeat Step 1 for next round
 - If all rounds complete, proceed to PHASE 3
 
-- **Update TodoWrite**: Mark "PHASE 2: Multi-task parallel implementation" as completed
+- **TaskUpdate**: Mark "PHASE 2: Multi-task parallel implementation" as completed
 
 ### PHASE 3: Per-Task Validation Loops
 
 **CRITICAL: Each task gets its own isolated validation loop. Changes to Task 1 won't break Task 2.**
 
-- **Update TodoWrite**: Mark "PHASE 3: Per-task validation and fixing loops" as in_progress
+- **TaskUpdate**: Mark "PHASE 3: Per-task validation and fixing loops" as in_progress
 
 **For EACH task from the decomposition plan (in execution order):**
 
@@ -879,7 +879,7 @@ Set `current_issues_count` = total consolidated issue count.
 IF designer assessment is "PASS":
 - Set `design_fidelity_achieved = true`
 - Log: "✅ Automated design fidelity validation passed! Component appears to match design reference."
-- **Update TodoWrite**: Mark "PHASE 3: Quality gate - ensure design fidelity achieved" as completed
+- **TaskUpdate**: Mark "PHASE 3: Quality gate - ensure design fidelity achieved" as completed
 - **DO NOT exit loop yet** - proceed to Step 3.3.5 for user validation (conditional based on user preference)
 
 **Step 3.3.5: User Manual Validation Gate** (Conditional based on user preference)
@@ -1275,13 +1275,13 @@ IF `iteration_count < max_iterations` AND NOT `design_fidelity_achieved`:
 
 **End of Loop**
 
-- **Update TodoWrite**: Mark "PHASE 3: Start validation and iterative fixing loop" as completed
+- **TaskUpdate**: Mark "PHASE 3: Start validation and iterative fixing loop" as completed
 
 ### PHASE 4: Final Report & Completion
 
 **Step 1: Generate Comprehensive Implementation Report**
 
-- **Update TodoWrite**: Mark "PHASE 4: Generate final implementation report" as in_progress
+- **TaskUpdate**: Mark "PHASE 4: Generate final implementation report" as in_progress
 
 Create a detailed summary including:
 
@@ -1394,11 +1394,11 @@ npm run dev
 [Any suggestions for improvement, enhancement, or next steps]
 ```
 
-- **Update TodoWrite**: Mark "PHASE 4: Generate final implementation report" as completed
+- **TaskUpdate**: Mark "PHASE 4: Generate final implementation report" as completed
 
 **Step 2: Present Results to User**
 
-- **Update TodoWrite**: Mark "PHASE 4: Present results and complete handoff" as in_progress
+- **TaskUpdate**: Mark "PHASE 4: Present results and complete handoff" as in_progress
 
 Present the summary clearly and offer next actions:
 
@@ -1429,7 +1429,7 @@ Would you like to:
 4. Review specific issues
 ```
 
-- **Update TodoWrite**: Mark "PHASE 4: Present results and complete handoff" as completed
+- **TaskUpdate**: Mark "PHASE 4: Present results and complete handoff" as completed
 
 **Congratulations! UI implementation workflow completed successfully!**
 

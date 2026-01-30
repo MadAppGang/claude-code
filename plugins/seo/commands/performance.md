@@ -1,6 +1,6 @@
 ---
 description: Content performance analysis combining GA4 and GSC data for optimization recommendations
-allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite, WebFetch
+allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, WebFetch
 skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extraction-patterns, orchestration:multi-agent-coordination
 ---
 
@@ -77,7 +77,7 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
         <step>Generate SESSION_PATH with timestamp and URL slug</step>
         <step>Create session directory</step>
         <step>Check analytics environment variables</step>
-        <step>Initialize TodoWrite with 5 phases</step>
+        <step>Initialize Tasks with 5 phases</step>
       </steps>
 
       <configuration_check>

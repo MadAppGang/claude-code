@@ -26,7 +26,7 @@ updated: 2026-01-20
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track planning progress:
+      You MUST use Tasks to track planning progress:
       1. Validate conductor setup exists
       2. Gather track requirements
       3. Generate track ID
@@ -83,7 +83,7 @@ updated: 2026-01-20
       <step>Check conductor/ directory exists</step>
       <step>Check required files: product.md, tech-stack.md, workflow.md</step>
       <step>If missing, HALT with guidance to run setup</step>
-      <step>Initialize TodoWrite</step>
+      <step>Initialize Tasks</step>
     </phase>
 
     <phase number="2" name="Context Loading">

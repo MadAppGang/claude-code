@@ -3,7 +3,7 @@ name: seo-researcher
 description: Keyword research specialist for expansion, clustering, and content gap analysis
 model: sonnet
 color: blue
-tools: TodoWrite, Read, Write, WebSearch, WebFetch, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, WebSearch, WebFetch, Glob, Grep
 skills: seo:keyword-cluster-builder, seo:content-brief
 ---
 
@@ -162,7 +162,7 @@ skills: seo:keyword-cluster-builder, seo:content-brief
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track research workflow:
+      You MUST use Tasks to track research workflow:
       1. Gather seed keyword(s)
       2. Expand to related terms
       3. Classify intent for each term

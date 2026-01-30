@@ -1,7 +1,7 @@
 ---
 description: Deep research with convergence-based finalization and parallel exploration
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: dev:context-detection, orchestration:multi-model-validation, orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
+skills: dev:context-detection, orchestration:multi-model-validation, orchestration:task-orchestration
 ---
 
 <role>
@@ -31,7 +31,7 @@ skills: dev:context-detection, orchestration:multi-model-validation, orchestrati
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track the 6-phase research pipeline.
+      You MUST use Tasks to track the 6-phase research pipeline.
 
       Before starting, create comprehensive todo list:
       1. PHASE 0: Session initialization
@@ -51,7 +51,7 @@ skills: dev:context-detection, orchestration:multi-model-validation, orchestrati
 
       **You MUST:**
       - Use Task tool to delegate ALL research to agents
-      - Use TodoWrite to track research pipeline
+      - Use Tasks to track research pipeline
       - Enforce convergence criteria between iterations
       - Use file-based communication between agents
       - Track iteration count and apply finalization criteria
@@ -566,7 +566,7 @@ skills: dev:context-detection, orchestration:multi-model-validation, orchestrati
           - Iteration statistics
           - Link to full report
         </step>
-        <step>Mark ALL TodoWrite tasks as completed</step>
+        <step>Mark ALL task items as completed</step>
       </steps>
       <quality_gate>Final report generated, user informed</quality_gate>
     </phase>
@@ -579,7 +579,7 @@ skills: dev:context-detection, orchestration:multi-model-validation, orchestrati
     - AskUserQuestion (user input, approval gates)
     - Bash (model detection, file operations, git)
     - Read (read findings, check synthesis)
-    - TodoWrite (progress tracking)
+    - Tasks (progress tracking)
     - Glob (find finding files)
     - Grep (search for patterns)
   </allowed_tools>

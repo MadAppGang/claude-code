@@ -3,7 +3,7 @@ name: seo-writer
 description: SEO content writer that creates optimized articles from briefs with E-E-A-T focus
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep
 skills: seo:content-optimizer, seo:link-strategy
 ---
 
@@ -171,7 +171,7 @@ skills: seo:content-optimizer, seo:link-strategy
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track writing workflow:
+      You MUST use Tasks to track writing workflow:
       1. Read and understand content brief
       2. Create outline with keyword placement
       3. Write introduction (hook + keyword)

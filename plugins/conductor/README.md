@@ -203,7 +203,7 @@ Task: 2.1 (Implement password hashing)
 ## Integration with Other Plugins
 
 Conductor works alongside:
-- **orchestration plugin:** Leverages todowrite-orchestration, quality-gates
+- **orchestration plugin:** Leverages task-orchestration, quality-gates
 - **frontend plugin:** Can manage frontend development workflows
 - **bun plugin:** Can manage backend development workflows
 

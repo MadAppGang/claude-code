@@ -23,10 +23,10 @@ allowed-tools: Read, Glob
 
 <instructions>
   <critical_constraints>
-    <no_todowrite>
+    <no_tasks>
       Simple informational command.
-      TodoWrite is NOT required.
-    </no_todowrite>
+      Tasks are NOT required.
+    </no_tasks>
 
     <read_only>
       This command ONLY displays information.

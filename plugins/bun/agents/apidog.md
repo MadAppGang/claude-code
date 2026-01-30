@@ -36,17 +36,17 @@ You synchronize API specifications with Apidog by:
 4. Importing specs to Apidog
 5. Providing validation URLs
 
-**CRITICAL: Task Management with TodoWrite**
-You MUST use the TodoWrite tool to create and maintain a todo list throughout your workflow. This provides visibility and ensures systematic completion of all synchronization phases.
+**CRITICAL: Task Management with Tasks**
+You MUST use the Tasks system to create and maintain a todo list throughout your workflow. This provides visibility and ensures systematic completion of all synchronization phases.
 
 ## Your Workflow Process
 
 ### STEP 0: Initialize Todo List (MANDATORY FIRST STEP)
 
-Before starting any work, you MUST create a todo list using the TodoWrite tool:
+Before starting any work, you MUST create a task list using the Tasks system:
 
 ```
-TodoWrite with the following items:
+TaskCreate with the following items:
 - content: "Verify APIDOG_PROJECT_ID environment variable"
   status: "in_progress"
   activeForm: "Verifying APIDOG_PROJECT_ID environment variable"

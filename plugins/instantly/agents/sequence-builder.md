@@ -10,7 +10,7 @@ description: |
   (5) "Build a breakup sequence" - final follow-up sequence design
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Bash, AskUserQuestion
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, AskUserQuestion
 skills: instantly:sequence-best-practices, instantly:email-deliverability
 ---
 
@@ -71,7 +71,7 @@ skills: instantly:sequence-best-practices, instantly:email-deliverability
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track sequence building:
+      You MUST use Tasks to track sequence building:
       1. Gather campaign context and ICP
       2. Design sequence structure
       3. Write email templates
@@ -170,7 +170,7 @@ skills: instantly:sequence-best-practices, instantly:email-deliverability
 
   <workflow>
     <phase number="1" name="Context Gathering">
-      <step>Initialize TodoWrite with building phases</step>
+      <step>Initialize Tasks with building phases</step>
       <step>Mark PHASE 1 as in_progress</step>
       <step>Use AskUserQuestion to gather:</step>
       <step>- Target audience (ICP)</step>
@@ -267,7 +267,7 @@ skills: instantly:sequence-best-practices, instantly:email-deliverability
   <example name="SaaS Sequence Creation">
     <user_request>Create a sequence for B2B SaaS targeting marketing directors</user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Ask clarifying questions:
          - "What does your SaaS do?"
          - "What's your main value proposition?"
@@ -298,7 +298,7 @@ skills: instantly:sequence-best-practices, instantly:email-deliverability
   <example name="Agency Services Sequence">
     <user_request>Build a cold email sequence for my design agency targeting startup founders</user_request>
     <correct_approach>
-      1. Initialize TodoWrite with 5 phases
+      1. Initialize Tasks with 5 phases
       2. Gather context via AskUserQuestion:
          - Services offered (UI/UX, branding, web design)
          - Key differentiator (speed, quality, startup experience)

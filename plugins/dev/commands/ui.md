@@ -1,6 +1,6 @@
 ---
 description: UI design review using Gemini multimodal analysis for usability and accessibility
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
 ---
 
@@ -35,7 +35,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
       - Use Task tool to delegate ALL design reviews to ui agent
       - Use Bash to check API keys and run Claudish
       - Use Read/Glob to find design references
-      - Use TodoWrite to track workflow progress
+      - Use Tasks to track workflow progress
       - Use AskUserQuestion for user input gates
 
       **You MUST NOT:**
@@ -45,8 +45,8 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
     </orchestrator_role>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track orchestration workflow.
-      Initialize TodoWrite AFTER Phase 0.5 (Intent Detection) determines INTENT_MODE.
+      You MUST use Tasks to track orchestration workflow.
+      Initialize Tasks AFTER Phase 0.5 (Intent Detection) determines INTENT_MODE.
 
       **If INTENT_MODE === "REVIEW_AND_IMPLEMENT":**
       1. Session Initialization
@@ -171,7 +171,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
     - Read (read design files, documentation)
     - Glob (find design references)
     - Grep (search for patterns)
-    - TodoWrite (track workflow progress)
+    - Tasks (track workflow progress)
     - AskUserQuestion (user input gates)
   </allowed_tools>
 
@@ -187,7 +187,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
       <steps>
         <step>Generate session ID and create directories</step>
         <step>Initialize session-meta.json</step>
-        <step>Initialize TodoWrite with all workflow phases</step>
+        <step>Initialize Tasks with all workflow phases</step>
       </steps>
 
       <quality_gate>Session directory created</quality_gate>
@@ -225,7 +225,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
 
         <step>Store result: INTENT_MODE = "REVIEW_ONLY" | "REVIEW_AND_IMPLEMENT"</step>
 
-        <step>Initialize TodoWrite dynamically based on INTENT_MODE:
+        <step>Initialize Tasks dynamically based on INTENT_MODE:
 
           If INTENT_MODE === "REVIEW_AND_IMPLEMENT":
           ```
@@ -253,7 +253,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
         </step>
       </steps>
 
-      <quality_gate>INTENT_MODE determined, TodoWrite initialized with appropriate phases</quality_gate>
+      <quality_gate>INTENT_MODE determined, Tasks initialized with appropriate phases</quality_gate>
     </phase>
 
     <phase number="1" name="Design Reference Input">
@@ -498,7 +498,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
           - If INTENT_MODE === "REVIEW_AND_IMPLEMENT": Mark as "review_complete" (pending implementation)
         </step>
 
-        <step>Update TodoWrite: Mark "Present Results" as completed</step>
+        <step>TaskUpdate: Mark "Present Results" as completed</step>
       </steps>
 
       <quality_gate>User received actionable summary with link to full report</quality_gate>
@@ -515,7 +515,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
       </prerequisite_gate>
 
       <steps>
-        <step>Mark "Implementation Approval" as in_progress via TodoWrite</step>
+        <step>Mark "Implementation Approval" as in_progress via Tasks</step>
 
         <step>Extract planned changes from review:
           - Top 3-5 actionable issues
@@ -562,7 +562,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
             "Implementation skipped. Review document saved at: ${SESSION_PATH}/reviews/design-review/gemini.md"
         </step>
 
-        <step>Mark "Implementation Approval" as completed via TodoWrite</step>
+        <step>Mark "Implementation Approval" as completed via Tasks</step>
       </steps>
 
       <quality_gate>User explicitly approved, declined, or chose review-only</quality_gate>
@@ -579,7 +579,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
       </prerequisite_gate>
 
       <steps>
-        <step>Mark "Execute Implementation" as in_progress via TodoWrite</step>
+        <step>Mark "Execute Implementation" as in_progress via Tasks</step>
 
         <step>Read review findings from ${SESSION_PATH}/reviews/design-review/gemini.md</step>
 
@@ -672,7 +672,7 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
 
         <step>Update session-meta.json with status "completed"</step>
 
-        <step>Mark "Execute Implementation" as completed via TodoWrite</step>
+        <step>Mark "Execute Implementation" as completed via Tasks</step>
       </steps>
 
       <quality_gate>

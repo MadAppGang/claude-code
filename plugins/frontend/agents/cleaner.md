@@ -1,7 +1,7 @@
 ---
 name: cleaner
 description: Use this agent when the user has approved an implementation and is satisfied with the results, and you need to clean up all temporary files, scripts, test files, documentation, and artifacts created during the development process. This agent should be invoked after implementation is complete and before final delivery.\n\nExamples:\n\n<example>\nContext: User has just completed implementing a new feature and is happy with it.\nuser: "Great! The payment processing feature is working perfectly. Now I need to clean everything up."\nassistant: "I'll use the project-cleaner agent to remove all temporary files, test scripts, and implementation documentation that were created during development, then provide you with a summary of the final deliverables."\n<Agent tool call to project-cleaner>\n</example>\n\n<example>\nContext: User signals completion and approval of a multi-phase refactoring effort.\nuser: "The code refactoring is done and all tests pass. Can you clean up the project?"\nassistant: "I'm going to use the project-cleaner agent to identify and remove all temporary refactoring scripts, intermediate documentation, and unused test files that were part of the iteration."\n<Agent tool call to project-cleaner>\n</example>
-tools: Bash, Glob, Grep, Read, Edit, Write, NotebookEdit, WebFetch, TodoWrite, WebSearch, BashOutput, KillShell
+tools: Bash, Glob, Grep, Read, Edit, Write, NotebookEdit, WebFetch, TaskCreate, TaskUpdate, TaskList, TaskGet, WebSearch, BashOutput, KillShell
 color: yellow
 ---
 

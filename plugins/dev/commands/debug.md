@@ -1,6 +1,6 @@
 ---
 description: Universal debugging command that adapts to any technology stack
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:debugging-strategies, orchestration:error-recovery
 ---
 
@@ -26,7 +26,7 @@ skills: dev:context-detection, dev:debugging-strategies, orchestration:error-rec
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track debugging workflow.
+      You MUST use Tasks to track debugging workflow.
 
       Before starting, create todo list with all 6 phases:
       0. Initialize (understand issue)
@@ -44,7 +44,7 @@ skills: dev:context-detection, dev:debugging-strategies, orchestration:error-rec
 
       **You MUST:**
       - Use Task tool to delegate ALL debugging work
-      - Use TodoWrite to track investigation steps
+      - Use Tasks to track investigation steps
       - Document findings systematically
       - Trace root cause before fixing
 

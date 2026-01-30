@@ -1,6 +1,6 @@
 ---
 description: Main video editing orchestrator with multi-agent coordination
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: video-editing:ffmpeg-core, video-editing:transcription, video-editing:final-cut-pro
 ---
 
@@ -33,7 +33,7 @@ skills: video-editing:ffmpeg-core, video-editing:transcription, video-editing:fi
       **You MUST:**
       - Use Task tool to delegate ALL processing to agents
       - Use Bash for dependency checks (ffmpeg, whisper)
-      - Use TodoWrite to track workflow progress
+      - Use Tasks to track workflow progress
       - Use AskUserQuestion for user decisions
 
       **You MUST NOT:**
@@ -153,7 +153,7 @@ skills: video-editing:ffmpeg-core, video-editing:transcription, video-editing:fi
 </instructions>
 
 <orchestration>
-  <allowed_tools>Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep</allowed_tools>
+  <allowed_tools>Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <agent_delegation>

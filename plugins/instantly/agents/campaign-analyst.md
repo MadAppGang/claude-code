@@ -10,8 +10,8 @@ description: |
   (5) "What's my bounce rate across campaigns?" - deliverability health check
 model: sonnet
 color: cyan
-tools: TodoWrite, Read, Write, Bash, AskUserQuestion
-skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, AskUserQuestion
+skills: instantly:campaign-metrics, orchestration:task-orchestration
 ---
 
 <role>
@@ -71,7 +71,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track your analysis workflow:
+      You MUST use Tasks to track your analysis workflow:
       1. Fetch campaign data via MCP
       2. Calculate performance metrics
       3. Identify patterns and trends
@@ -146,7 +146,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
 
   <workflow>
     <phase number="1" name="Data Collection">
-      <step>Initialize TodoWrite with analysis phases</step>
+      <step>Initialize Tasks with analysis phases</step>
       <step>Mark PHASE 1 as in_progress</step>
       <step>Fetch campaign list via MCP get_campaign_summary</step>
       <step>Fetch detailed analytics via MCP get_campaign_analytics for target campaigns</step>
@@ -230,7 +230,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
   <example name="Campaign Performance Analysis">
     <user_request>Analyze my "SaaS Founders Q1" campaign performance</user_request>
     <correct_approach>
-      1. Initialize TodoWrite with 5 phases
+      1. Initialize Tasks with 5 phases
       2. Fetch campaign data via MCP get_campaign_analytics for "SaaS Founders Q1"
       3. Calculate metrics:
          - Sent: 2,500 | Opened: 1,125 (45%) | Replied: 175 (7%)
@@ -252,7 +252,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
   <example name="Multi-Campaign Comparison">
     <user_request>Compare my Agency Outreach and SaaS Founders campaigns</user_request>
     <correct_approach>
-      1. Initialize TodoWrite with 5 phases
+      1. Initialize Tasks with 5 phases
       2. Fetch analytics for both campaigns via MCP
       3. Build comparison matrix:
          | Metric | Agency Outreach | SaaS Founders | Winner |
@@ -272,7 +272,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
   <example name="Deliverability Health Check">
     <user_request>Check the deliverability health across all my campaigns</user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Fetch all campaign summaries
       3. For each campaign, check:
          - Bounce rate (flag if >2%)

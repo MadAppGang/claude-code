@@ -4,8 +4,8 @@ description: |
   Interactive entry point for Instantly cold outreach workflows.
   Routes users to appropriate commands based on their goals.
   Workflow: GOAL DISCOVERY -> REFINEMENT -> ROUTING -> EXECUTION
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite
-skills: orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet
+skills: orchestration:task-orchestration
 ---
 
 <role>
@@ -51,7 +51,7 @@ skills: orchestration:todowrite-orchestration
     </forbidden_tools>
 
     <todowrite_requirement>
-      Use TodoWrite to track workflow:
+      Use Tasks to track workflow:
       1. Understand user goal
       2. Route to appropriate command or workflow
       3. Monitor execution (if multi-step)
@@ -90,7 +90,7 @@ skills: orchestration:todowrite-orchestration
       <objective>Understand what the user wants to accomplish</objective>
 
       <steps>
-        <step>Initialize TodoWrite with workflow phases</step>
+        <step>Initialize Tasks with workflow phases</step>
         <step>Mark PHASE 1 as in_progress</step>
         <step>Check if user provided arguments with clear intent</step>
         <step>If clear intent: Skip to routing (Phase 2)</step>

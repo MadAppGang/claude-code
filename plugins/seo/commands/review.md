@@ -1,6 +1,6 @@
 ---
 description: Multi-model content review orchestrator with parallel E-E-A-T validation and consensus analysis
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:multi-model-validation, orchestration:model-tracking-protocol, orchestration:quality-gates, seo:content-optimizer
 ---
 
@@ -38,7 +38,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
       - Use Task tool to delegate ALL reviews to seo-editor agent
       - Use Bash to prepare review context and manage session
       - Use Read/Glob/Grep to understand content
-      - Use TodoWrite to track workflow progress (all 5 phases)
+      - Use Tasks to track workflow progress (all 5 phases)
       - Use AskUserQuestion for user approval gates
       - Execute external reviews in PARALLEL (single message, multiple Task calls)
 
@@ -76,11 +76,11 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
       vs 15-30 min). See Key Design Innovation section in knowledge base.
     </parallel_execution_requirement>
 
-    <todowrite_requirement>
-      You MUST use the TodoWrite tool to create and maintain a todo list throughout
+    <tasks_requirement>
+      You MUST use the Tasks system to create and maintain a todo list throughout
       your orchestration workflow.
 
-      **Before starting**, create a todo list with all workflow phases:
+      **Before starting**, create a task list with all workflow phases:
       1. PHASE 0: Initialize session
       2. PHASE 1: Gather content to review
       3. PHASE 2: Model selection and cost approval
@@ -93,11 +93,11 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
       - Mark tasks as "completed" immediately after finishing
       - Add new tasks if additional work discovered
       - Keep only ONE task as "in_progress" at a time
-    </todowrite_requirement>
+    </tasks_requirement>
   </critical_constraints>
 
   <workflow>
-    <step number="0">Initialize session and TodoWrite with workflow tasks</step>
+    <step number="0">Initialize session and Tasks with workflow tasks</step>
     <step number="1">PHASE 1: Gather content to review and create review context</step>
     <step number="2">PHASE 2: Select AI models for review and get cost approval</step>
     <step number="3">PHASE 3: Execute ALL reviews in parallel</step>
@@ -134,7 +134,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
     - Read (read content and review files)
     - Glob (expand file patterns)
     - Grep (search for patterns)
-    - TodoWrite (track workflow progress)
+    - Tasks (track workflow progress)
     - AskUserQuestion (user approval gates)
   </allowed_tools>
 
@@ -206,7 +206,7 @@ skills: orchestration:multi-model-validation, orchestration:model-tracking-proto
           ```
         </step>
 
-        <step>Initialize TodoWrite with 6 workflow tasks:
+        <step>Initialize Tasks with 6 workflow tasks:
           1. Initialize session
           2. Gather content to review
           3. Select models and get approval

@@ -1,6 +1,6 @@
 ---
 description: Create Final Cut Pro FCPXML projects with timelines and markers
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
 ---
 
@@ -36,7 +36,7 @@ skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
     </validation_requirement>
 
     <todowrite_requirement>
-      Track workflow with TodoWrite:
+      Track workflow with Tasks:
       1. Analyze input clips
       2. Configure project settings
       3. Delegate to timeline-builder
@@ -133,7 +133,7 @@ skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
 </instructions>
 
 <orchestration>
-  <allowed_tools>Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep</allowed_tools>
+  <allowed_tools>Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <agent_delegation>

@@ -1,7 +1,7 @@
 ---
 description: Universal implementation command that adapts to any technology stack
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: dev:context-detection, dev:universal-patterns, orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
+skills: dev:context-detection, dev:universal-patterns, orchestration:task-orchestration
 ---
 
 <role>
@@ -25,7 +25,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:todowrite-o
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track workflow.
+      You MUST use Tasks to track workflow.
 
       Before starting, create todo list with all 6 phases:
       0. Initialize (detect stack)
@@ -43,7 +43,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:todowrite-o
 
       **You MUST:**
       - Use Task tool to delegate ALL work to agents
-      - Use TodoWrite to track workflow
+      - Use Tasks to track workflow
       - Use AskUserQuestion for approval gates
       - Detect stack before implementation
 
@@ -301,7 +301,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:todowrite-o
 <formatting>
   <communication_style>
     - Be clear about detected stack and mode
-    - Show progress through phases using TodoWrite
+    - Show progress through phases using Tasks
     - Provide actionable summaries
     - Report quality check results clearly
     - Ask for user approval at key decision points

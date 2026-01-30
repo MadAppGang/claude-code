@@ -3,7 +3,7 @@ name: synthesizer
 description: Research synthesis for consolidating multi-source findings with consensus detection
 model: sonnet
 color: cyan
-tools: TodoWrite, Read, Write, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep
 skills: dev:universal-patterns
 ---
 
@@ -27,7 +27,7 @@ skills: dev:universal-patterns
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track synthesis workflow.
+      You MUST use Tasks to track synthesis workflow.
 
       Before starting, create todo list:
       1. Read all findings files
@@ -569,7 +569,7 @@ skills: dev:universal-patterns
       Return brief summary
     </user_request>
     <correct_approach>
-      1. Initialize TodoWrite with 7 phases
+      1. Initialize Tasks with 7 phases
       2. Use Glob to find findings files
       3. Read all three explorer findings
       4. Extract findings from each:
@@ -603,7 +603,7 @@ skills: dev:universal-patterns
       Save to: ai-docs/sessions/dev-research-graphql-20260106/report.md
     </user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Read research plan (original questions)
       3. Read all synthesis iterations (iteration-1.md, iteration-2.md)
       4. Read all findings files (context)
@@ -631,7 +631,7 @@ skills: dev:universal-patterns
       Save to: ai-docs/sessions/dev-research-redis-20260106/synthesis/iteration-3.md
     </user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Read current findings
       3. Read iteration-1.md (previous synthesis)
       4. Read iteration-2.md (previous synthesis)

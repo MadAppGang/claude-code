@@ -1,6 +1,6 @@
 ---
 description: Generate images from text prompts with optional styles and aspect ratios
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: nanobanana:gemini-api
 ---
 
@@ -17,7 +17,7 @@ skills: nanobanana:gemini-api
 </user_request>
 
 <orchestration>
-  <allowed_tools>Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep</allowed_tools>
+  <allowed_tools>Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <delegation_rules>

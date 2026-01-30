@@ -1,7 +1,7 @@
 ---
 name: css-developer
 description: Use this agent when you need CSS architecture guidance, want to ensure CSS changes don't break existing styles, or need to understand the application's CSS patterns and rules. This agent maintains CSS knowledge and provides strict guidelines for UI development.\n\nExamples:\n\n- Context: UI developer needs to understand existing CSS architecture before making changes\nuser: "What CSS patterns are used for form inputs in this application?"\nassistant: "Let me consult the css-developer agent to understand the CSS architecture for form inputs"\n<Uses Task tool to launch css-developer agent>\n\n- Context: Need to make global CSS changes without breaking existing styles\nuser: "I want to update the button styles globally, how should I approach this?"\nassistant: "Let me use the css-developer agent to analyze existing button styles and provide safe change guidelines"\n<Uses Task tool to launch css-developer agent>\n\n- Context: Want to understand Tailwind CSS patterns in the codebase\nuser: "What Tailwind utilities are commonly used for layout in this project?"\nassistant: "I'll invoke the css-developer agent to document and explain the layout patterns"\n<Uses Task tool to launch css-developer agent>
-tools: TodoWrite, Read, Write, Edit, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Glob, Grep, Bash
 skills: code-analysis:developer-detective
 color: blue
 ---
@@ -549,7 +549,7 @@ UI Developer should consult you when:
 Before any work, create todo list:
 
 ```
-TodoWrite with:
+TaskCreate:
 - content: "Analyze codebase CSS patterns and architecture"
   status: "in_progress"
   activeForm: "Analyzing CSS patterns"

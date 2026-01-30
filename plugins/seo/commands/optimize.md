@@ -1,6 +1,6 @@
 ---
 description: Optimize existing content for SEO with keyword density, meta tags, headings, and optional multi-model validation
-allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:quality-gates, orchestration:multi-model-validation, seo:content-optimizer
 ---
 
@@ -75,7 +75,7 @@ skills: orchestration:quality-gates, orchestration:multi-model-validation, seo:c
       <steps>
         <step>Generate SESSION_PATH with timestamp and keyword</step>
         <step>Create session directory</step>
-        <step>Initialize TodoWrite</step>
+        <step>Initialize Tasks</step>
       </steps>
     </phase>
 

@@ -3,7 +3,7 @@ name: developer
 description: Expert agent implementer for Claude Code agents and commands. Use when you have an approved design plan and need to create the actual agent/command file. Examples: (1) "Implement agent from ai-docs/agent-design-graphql-reviewer.md" - creates the agent file. (2) "Create the /deploy command from design" - implements orchestrator. (3) "Fix backend-developer based on review" - applies fixes.
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Glob, Grep, Bash
 skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestration:multi-model-validation
 ---
 
@@ -98,8 +98,8 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
       **If NO SESSION_PATH**: Use legacy paths (ai-docs/)
     </session_path_support>
 
-    <todowrite_requirement>
-      You MUST use TodoWrite to track implementation:
+    <tasks_requirement>
+      You MUST use Tasks to track implementation:
       1. Read and analyze design plan
       2. Implement frontmatter YAML
       3. Implement core XML sections
@@ -107,7 +107,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
       5. Validate YAML and XML
       6. Write file
       7. Present results
-    </todowrite_requirement>
+    </tasks_requirement>
 
     <design_plan_requirement>
       You MUST receive a design plan before implementation.
@@ -151,7 +151,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
 
   <workflow>
     <phase number="1" name="Preparation">
-      <step>Initialize TodoWrite with implementation phases</step>
+      <step>Initialize Tasks with implementation phases</step>
       <step>Read design plan file</step>
       <step>Extract target file path</step>
       <step>Determine agent/command type</step>
@@ -169,7 +169,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
       <step>Implement `<role>` (identity, expertise, mission)</step>
       <step>Implement `<instructions>` (constraints, principles, workflow)</step>
       <step>Add proxy mode support if specified</step>
-      <step>Add TodoWrite requirement</step>
+      <step>Add Tasks requirement</step>
       <step>Implement `<knowledge>`</step>
       <step>Implement `<examples>` (2-4 scenarios)</step>
       <step>Implement `<formatting>`</step>
@@ -187,7 +187,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
       <step>Check all XML tags closed and nested</step>
       <step>Verify all design sections included</step>
       <step>Check code blocks properly formatted</step>
-      <step>Verify TodoWrite integration present</step>
+      <step>Verify Tasks integration present</step>
     </phase>
 
     <phase number="6" name="File Creation">
@@ -217,8 +217,8 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     <check order="3" name="Code Blocks">
       Opening ``` with language, proper indentation, closing ```
     </check>
-    <check order="4" name="TodoWrite">
-      todowrite_requirement in constraints, workflow mentions it
+    <check order="4" name="Tasks">
+      tasks_requirement in constraints, workflow mentions it
     </check>
     <check order="5" name="Completeness">
       All design sections implemented, no placeholders
@@ -231,7 +231,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     <design_plan>ai-docs/agent-design-graphql-reviewer.md</design_plan>
     <target_path>.claude/agents/graphql-reviewer.md</target_path>
     <approach>
-      1. TodoWrite: Create implementation phases
+      1. TaskCreate: Create implementation phases
       2. Read design plan
       3. Frontmatter: name, description (3 examples), model: sonnet, color: cyan
       4. Implement `<role>` with GraphQL expertise
@@ -246,7 +246,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     <review_file>ai-docs/implementation-review-consolidated.md</review_file>
     <target_file>plugins/bun/agents/backend-developer.md</target_file>
     <approach>
-      1. TodoWrite: Create fix phases
+      1. TaskCreate: Create fix phases
       2. Read review feedback
       3. Read current agent file
       4. Identify changes needed
@@ -284,7 +284,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
 **Validation**:
 - [x] YAML syntax valid
 - [x] XML structure correct
-- [x] TodoWrite integrated
+- [x] Tasks integrated
 
 **Next Steps**:
 1. Review file

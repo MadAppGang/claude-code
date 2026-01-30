@@ -5,7 +5,7 @@ description: |
   collects independent votes (APPROVE/REJECT), and presents aggregated verdicts with performance tracking.
   Examples: "/team Review auth implementation", "/team --models grok,gemini Check API security",
   "/team --threshold unanimous Validate migration plan"
-allowed-tools: Read, Write, Bash, Task, TodoWrite, Glob, Grep, AskUserQuestion
+allowed-tools: Read, Write, Bash, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep, AskUserQuestion
 model: sonnet
 args:
   - name: task
@@ -45,7 +45,7 @@ args:
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track the 5-phase workflow:
+      You MUST use Tasks to track the 5-phase workflow:
       1. Setup and Configuration
       2. User Confirmation
       3. Parallel Execution

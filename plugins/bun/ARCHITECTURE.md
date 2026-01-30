@@ -177,7 +177,7 @@ INPUT: Architecture plan (from ai-docs/)
   ├─> PHASE 1: Analysis
   │     • Reads existing patterns
   │     • Identifies required layers
-  │     • Creates TodoWrite task list
+  │     • Creates task list
   │
   ├─> PHASE 2: Database layer
   │     • Updates Prisma schema
@@ -388,7 +388,7 @@ USER: /implement-api Create user management API
   │     • Detect frontend plugin (for code review)
   │     • Inform user of benefits
   │
-  ├─> STEP 0: Initialize TodoWrite
+  ├─> STEP 0: Initialize Tasks
   │     • PHASE 1: Architecture planning
   │     • PHASE 1: User approval gate
   │     • PHASE 2: Implementation
@@ -1268,9 +1268,9 @@ For implementation only (plan exists):
   @backend-developer
 ```
 
-### 2. Always Use TodoWrite
+### 2. Always Use Tasks
 
-All agents and commands use TodoWrite. You'll see:
+All agents and commands use Tasks. You'll see:
 - Task lists during execution
 - Progress tracking
 - Clear completion status

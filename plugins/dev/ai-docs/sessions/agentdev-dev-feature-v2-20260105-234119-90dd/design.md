@@ -31,7 +31,7 @@ description: |
   Complete feature development lifecycle with multi-agent orchestration.
   Workflow: DETECT -> ARCHITECT -> IMPLEMENT -> TEST -> REVIEW -> DEPLOY
   Universal support for any technology stack with quality gates at each phase.
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model-validation, orchestration:quality-gates
 ---
 ```
@@ -65,7 +65,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track full lifecycle.
+      You MUST use Tasks to track full lifecycle.
 
       Before starting, create comprehensive todo list with all 7 phases:
       0. Initialize (detect stack, check dependencies)
@@ -85,7 +85,7 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:multi-model
 
       **You MUST:**
       - Use Task tool to delegate ALL work to agents
-      - Use TodoWrite to track full lifecycle
+      - Use Tasks to track full lifecycle
       - Enforce quality gates between phases
       - Support multi-model validation
 

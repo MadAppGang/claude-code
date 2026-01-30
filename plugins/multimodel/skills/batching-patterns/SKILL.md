@@ -52,7 +52,7 @@ Same tool type in one message = PARALLEL
   Task(A) + Task(B) + Task(C)  →  All run simultaneously
 
 Different tool types in one message = SEQUENTIAL (often)
-  TodoWrite(...) + Task(A) + Bash(...)  →  May run one at a time
+  TaskCreate(...) + Task(A) + Bash(...)  →  May run one at a time
 
 Separate messages = ALWAYS SEQUENTIAL
   Message 1: Task(A)  →  completes first
@@ -118,20 +118,19 @@ Agents are independent when they: read same input but don't modify it, write to 
   Rule: Different files = safe to batch. Same file = must be sequential.
 ```
 
-### TodoWrite Batching
+### Tasks Batching
 
 ```
 ❌ Individual Calls (5 round-trips):
-  TodoWrite([{ id: "1", content: "Step 1", status: "pending" }])
-  TodoWrite([{ id: "2", content: "Step 2", status: "pending" }])
+  TaskCreate({ id: "1", title: "Step 1", status: "pending" })
+  TaskCreate({ id: "2", title: "Step 2", status: "pending" })
   ...
 
 ✅ Single Call (1 round-trip):
-  TodoWrite([
-    { id: "1", content: "Step 1", status: "pending" },
-    { id: "2", content: "Step 2", status: "pending" },
-    { id: "3", content: "Step 3", status: "pending" }
-  ])
+  TaskCreate({ id: "1", title: "Step 1", status: "pending" })
+  TaskCreate({ id: "2", title: "Step 2", status: "pending" })
+  TaskCreate({ id: "3", title: "Step 3", status: "pending" })
+  # All in same message = parallel execution
 ```
 
 ### Bash Batching
@@ -158,7 +157,7 @@ The canonical batching template from multi-agent-coordination:
 ```
 Message 1: Preparation (Bash/Write only)
   - Create directories, write context files, validate inputs
-  - NO Task calls, NO TodoWrite
+  - NO Task calls, NO Tasks
 
 Message 2: Parallel Execution (Task only)
   - ALL agents in SINGLE message, ONLY Task calls
@@ -193,21 +192,21 @@ Message 4: Present Results
 
 ```
 ❌ Mixed Tools (sequential):
-  TodoWrite([...])              // Tool type A
+  TaskCreate({...})             // Tool type A
   Task(security-reviewer)       // Tool type B
   Bash("echo 'starting'")      // Tool type C
   Task(perf-reviewer)           // Tool type B
 
 ✅ Separated (parallel execution):
-  Message 1: TodoWrite([...]) + Bash("echo 'starting'")   // Preparation
+  Message 1: TaskCreate({...}) + Bash("echo 'starting'")   // Preparation
   Message 2: Task(security-reviewer) + Task(perf-reviewer) // Execution (parallel)
 ```
 
-### Anti-Pattern 3: Individual TodoWrite Calls
+### Anti-Pattern 3: Individual Tasks Calls
 
 ```
-❌ 5 separate TodoWrite calls = 5 round-trips
-✅ 1 TodoWrite call with all items = 1 round-trip
+❌ 5 separate TaskCreate calls across messages = 5 round-trips
+✅ 5 TaskCreate calls in 1 message = 1 round-trip (parallel)
 ```
 
 ### Anti-Pattern 4: Sequential File Reads
@@ -291,7 +290,7 @@ Speedup    = approximately N (for identical operations)
 - ✅ Launch ALL independent agents in a single message (biggest speedup)
 - ✅ Read all needed files in one message before processing
 - ✅ Run all independent searches (Grep + Glob) in parallel
-- ✅ Create all TodoWrite items in a single call
+- ✅ Create all task items in a single message
 - ✅ Use the same tool type for parallel operations
 - ✅ Check the dependency checklist before splitting across messages
 - ✅ Follow the 4-Message Pattern for multi-agent workflows
@@ -301,7 +300,7 @@ Speedup    = approximately N (for identical operations)
 - ❌ Launch agents in separate messages (forces sequential)
 - ❌ Mix tool types in execution messages (breaks parallelism)
 - ❌ Read files one at a time across separate messages
-- ❌ Create individual TodoWrite calls for each item
+- ❌ Create individual TaskCreate calls across separate messages
 - ❌ Batch operations that write to the same file
 - ❌ Batch operations where B needs A's output
 - ❌ Assume all operations can be batched (check dependencies)

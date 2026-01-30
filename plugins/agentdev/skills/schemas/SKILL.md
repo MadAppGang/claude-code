@@ -19,7 +19,7 @@ description: |                 # Required: detailed with examples
   (3) "Task description" - launches agent for Z
 model: sonnet                  # Required: sonnet | opus | haiku
 color: purple                  # Optional: purple | cyan | green | orange | blue | red
-tools: TodoWrite, Read, Write  # Required: comma-separated, space after comma
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write  # Required: comma-separated, space after comma
 skills: skill1, skill2         # Optional: referenced skills
 ---
 ```
@@ -49,20 +49,20 @@ skills: skill1, skill2         # Optional: referenced skills
 ### Tool Patterns by Agent Type
 
 **Orchestrators (Commands):**
-- Must have: `Task`, `TodoWrite`, `Read`, `Bash`
+- Must have: `Task`, `TaskCreate, TaskUpdate, TaskList, TaskGet`, `Read`, `Bash`
 - Often: `AskUserQuestion`, `Glob`, `Grep`
 - Never: `Write`, `Edit`
 
 **Planners:**
-- Must have: `TodoWrite`, `Read`, `Write` (for docs)
+- Must have: `TaskCreate, TaskUpdate, TaskList, TaskGet`, `Read`, `Write` (for docs)
 - Often: `Glob`, `Grep`, `Bash`
 
 **Implementers:**
-- Must have: `TodoWrite`, `Read`, `Write`, `Edit`
+- Must have: `TaskCreate, TaskUpdate, TaskList, TaskGet`, `Read`, `Write`, `Edit`
 - Often: `Bash`, `Glob`, `Grep`
 
 **Reviewers:**
-- Must have: `TodoWrite`, `Read`
+- Must have: `TaskCreate, TaskUpdate, TaskList, TaskGet`, `Read`
 - Often: `Glob`, `Grep`, `Bash`
 - Never: `Write`, `Edit`
 
@@ -104,7 +104,7 @@ skills: skill1, skill2         # Optional: referenced skills
 ### Command Frontmatter
 - [ ] Opening `---` present
 - [ ] `description` explains workflow
-- [ ] `allowed-tools` includes Task for orchestrators
+- [ ] `allowed-tools` includes Task, TaskCreate, TaskUpdate, TaskList, TaskGet for orchestrators
 - [ ] Closing `---` present
 - [ ] No YAML syntax errors
 
@@ -124,10 +124,10 @@ name: agent-name
 ### Incorrect Tool Format
 ```yaml
 # WRONG - no spaces after commas
-tools: TodoWrite,Read,Write
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet,Read,Write
 
 # CORRECT
-tools: TodoWrite, Read, Write
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write
 ```
 
 ### Missing Examples

@@ -3,7 +3,7 @@ name: debugger
 description: Language-agnostic debugging for error analysis and root cause investigation
 model: sonnet
 color: orange
-tools: TodoWrite, Read, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Glob, Grep, Bash
 skills: dev:debugging-strategies
 ---
 
@@ -25,7 +25,7 @@ skills: dev:debugging-strategies
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track debugging workflow.
+      You MUST use Tasks to track debugging workflow.
 
       Before starting, create todo list:
       1. Parse error message

@@ -2,7 +2,7 @@
 name: ui-developer
 description: Use this agent when you need to implement or fix UI components based on design references or designer feedback. This agent is a senior UI/UX developer specializing in pixel-perfect implementation with React, TypeScript, and Tailwind CSS. Trigger this agent in these scenarios:\n\n<example>\nContext: Designer has reviewed implementation and found visual discrepancies.\nuser: "The designer found several color and spacing issues in the UserProfile component"\nassistant: "I'll use the ui-developer agent to fix all the design discrepancies identified by the designer."\n<agent launches and applies fixes>\n</example>\n\n<example>\nContext: Need to implement a new component from Figma design.\nuser: "Can you implement this Figma design for the ProductCard component?"\nassistant: "I'll use the ui-developer agent to create a pixel-perfect implementation of the ProductCard from the Figma design."\n<agent launches and implements component>\n</example>\n\n<example>\nContext: Component needs responsive design improvements.\nuser: "The navigation menu doesn't work well on mobile devices"\nassistant: "Let me use the ui-developer agent to implement proper responsive behavior for the navigation menu across all breakpoints."\n<agent launches and fixes responsive issues>\n</example>\n\nUse this agent proactively when:\n- Designer has identified visual/UX discrepancies that need fixing\n- New UI components need to be implemented from design references\n- Existing components need responsive design improvements\n- Accessibility issues need to be addressed (ARIA, keyboard navigation, etc.)\n- Design system components need to be created or refactored
 color: blue
-tools: TodoWrite, Write, Edit, Read, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Write, Edit, Read, Bash
 ---
 
 ## CRITICAL: External Model Proxy Mode (Optional)
@@ -558,7 +558,7 @@ export function UserCard({ user }: UserCardProps) {
 
 **STEP 1: Create Todo List**
 
-Use TodoWrite to track your implementation:
+Use Tasks to track your implementation:
 ```
 - content: "Read and analyze designer feedback or design reference"
   status: "in_progress"

@@ -3,7 +3,7 @@ name: developer
 description: Language-agnostic implementation agent that adapts to any technology stack
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills: dev:universal-patterns
 ---
 
@@ -25,7 +25,7 @@ skills: dev:universal-patterns
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track implementation workflow.
+      You MUST use Tasks to track implementation workflow.
 
       Before starting, create todo list:
       1. Load and analyze skills
@@ -309,7 +309,7 @@ skills: dev:universal-patterns
 <formatting>
   <communication_style>
     - Be precise about files created/modified
-    - Show progress through TodoWrite
+    - Show progress through Tasks
     - Report quality check results clearly
     - Explain any deviations from skills (with reason)
     - Provide file paths and line counts

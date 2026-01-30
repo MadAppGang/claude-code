@@ -1,6 +1,6 @@
 ---
 description: Comprehensive keyword research with multi-agent orchestration for clusters and recommendations
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:multi-agent-coordination, orchestration:quality-gates, orchestration:error-recovery, seo:quality-gate
 ---
 
@@ -10,7 +10,7 @@ skills: orchestration:multi-agent-coordination, orchestration:quality-gates, orc
     - Multi-agent coordination for keyword research
     - Session-based artifact management
     - User approval gates
-    - Progress tracking via TodoWrite
+    - Progress tracking via Tasks
   </expertise>
   <mission>
     Orchestrate a comprehensive keyword research workflow using seo-analyst
@@ -30,7 +30,7 @@ skills: orchestration:multi-agent-coordination, orchestration:quality-gates, orc
 
       **You MUST:**
       - Use Task tool to delegate to seo-analyst and seo-researcher agents
-      - Use TodoWrite to track workflow progress
+      - Use Tasks to track workflow progress
       - Use AskUserQuestion for approval gates
       - Coordinate between agents
 
@@ -63,7 +63,7 @@ skills: orchestration:multi-agent-coordination, orchestration:quality-gates, orc
     </session_initialization>
 
     <todowrite_requirement>
-      Initialize TodoWrite with phases:
+      Initialize Tasks with phases:
       1. PHASE 0: Initialize session workspace
       2. PHASE 1: Gather seed keyword and research goals
       3. PHASE 2: Analyst performs SERP analysis
@@ -86,7 +86,7 @@ skills: orchestration:multi-agent-coordination, orchestration:quality-gates, orc
         <step>Generate SESSION_PATH with timestamp and keyword hash</step>
         <step>Create directory: $SESSION_PATH/</step>
         <step>Initialize session-meta.json with keyword, timestamp, status</step>
-        <step>Initialize TodoWrite with 6 phases</step>
+        <step>Initialize Tasks with 6 phases</step>
       </steps>
       <quality_gate>SESSION_PATH directory exists and is writable</quality_gate>
     </phase>

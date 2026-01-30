@@ -1,7 +1,7 @@
 ---
 description: Comprehensive specification interview with intelligent requirements elicitation
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
-skills: dev:context-detection, dev:universal-patterns, dev:api-design, dev:design-references, orchestration:quality-gates, orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
+skills: dev:context-detection, dev:universal-patterns, dev:api-design, dev:design-references, orchestration:quality-gates, orchestration:task-orchestration
 ---
 
 <role>
@@ -37,7 +37,7 @@ skills: dev:context-detection, dev:universal-patterns, dev:api-design, dev:desig
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track the 6-phase interview workflow.
+      You MUST use Tasks to track the 6-phase interview workflow.
 
       Before starting, create comprehensive todo list:
       1. PHASE 0: Session initialization (or resume)

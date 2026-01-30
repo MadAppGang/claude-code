@@ -30,8 +30,8 @@ updated: 2026-01-20
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      Use TodoWrite to mirror plan.md tasks.
-      Keep TodoWrite and plan.md in sync.
+      Use Tasks to mirror plan.md tasks.
+      Keep Tasks and plan.md in sync.
       Mark tasks in BOTH when status changes.
     </todowrite_requirement>
 
@@ -154,13 +154,13 @@ updated: 2026-01-20
       <step>Ask which track to work on (if multiple active)</step>
       <step>Load track's spec.md and plan.md</step>
       <step>Load conductor/workflow.md for procedures</step>
-      <step>Initialize TodoWrite from plan.md tasks</step>
+      <step>Initialize Tasks from plan.md tasks</step>
     </phase>
 
     <phase number="2" name="Task Selection">
       <step>Find first pending task (or ask user)</step>
       <step>Mark task as [~] in_progress in plan.md</step>
-      <step>Update TodoWrite to match</step>
+      <step>TaskUpdate to match</step>
       <step>Read task requirements and context</step>
     </phase>
 
@@ -183,7 +183,7 @@ updated: 2026-01-20
       <step>Mark task as [x] complete in plan.md</step>
       <step>Commit plan.md update separately</step>
       <step>Update metadata.json with commit info</step>
-      <step>Update TodoWrite to match</step>
+      <step>TaskUpdate to match</step>
     </phase>
 
     <phase number="5" name="Phase Transition Check">
@@ -330,7 +330,7 @@ Why: {business reason for this change}
       1. Load feature_auth_20260105 track
       2. Read plan.md - find first pending task: 1.1 Create user table
       3. Mark 1.1 as [~] in plan.md
-      4. Initialize TodoWrite with plan tasks
+      4. Initialize Tasks with plan tasks
 
       **Red Phase:**
       5. Create test file: tests/user-table.test.ts

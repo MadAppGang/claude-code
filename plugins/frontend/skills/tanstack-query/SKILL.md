@@ -345,7 +345,7 @@ const { data } = usePost(42, { staleTime: 10_000 })
 **Layer 1: Component-Level** - Specific user feedback:
 
 ```typescript
-function TodoList() {
+function TaskList() {
   const { data, error, isError, isLoading } = useQuery({
     queryKey: ['todos'],
     queryFn: fetchTodos,
@@ -388,7 +388,7 @@ import { ErrorBoundary } from 'react-error-boundary'
         </div>
       )}
     >
-      <TodoList />
+      <TaskList />
     </ErrorBoundary>
   )}
 </QueryErrorResetBoundary>
@@ -401,7 +401,7 @@ import { ErrorBoundary } from 'react-error-boundary'
 ```typescript
 import { useSuspenseQuery } from '@tanstack/react-query'
 
-function TodoList() {
+function TaskList() {
   // data is NEVER undefined (type-safe)
   const { data } = useSuspenseQuery({
     queryKey: ['todos'],
@@ -415,7 +415,7 @@ function TodoList() {
 function App() {
   return (
     <Suspense fallback={<Spinner />}>
-      <TodoList />
+      <TaskList />
     </Suspense>
   )
 }
@@ -815,7 +815,7 @@ import { renderWithClient } from '@/test/utils'
 import { screen } from '@testing-library/react'
 
 test('displays todos', async () => {
-  renderWithClient(<TodoList />)
+  renderWithClient(<TaskList />)
 
   // Wait for data to load
   expect(await screen.findByText('Test todo')).toBeInTheDocument()
@@ -832,7 +832,7 @@ test('shows error state', async () => {
     })
   )
 
-  renderWithClient(<TodoList />)
+  renderWithClient(<TaskList />)
 
   expect(await screen.findByText(/failed/i)).toBeInTheDocument()
 })

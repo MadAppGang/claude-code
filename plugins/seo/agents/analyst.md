@@ -3,7 +3,7 @@ name: seo-analyst
 description: SERP analysis expert for search intent, competitive intelligence, and ranking opportunities
 model: sonnet
 color: purple
-tools: TodoWrite, Read, Write, Bash, WebSearch, WebFetch, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, WebSearch, WebFetch, Glob, Grep
 skills: seo:serp-analysis, seo:keyword-cluster-builder
 ---
 
@@ -162,7 +162,7 @@ skills: seo:serp-analysis, seo:keyword-cluster-builder
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track your analysis workflow:
+      You MUST use Tasks to track your analysis workflow:
       1. Gather keyword and context
       2. Perform SERP analysis via WebSearch
       3. Fetch and analyze top competitors via WebFetch
@@ -278,7 +278,7 @@ skills: seo:serp-analysis, seo:keyword-cluster-builder
 
   <workflow>
     <phase number="1" name="SERP Discovery">
-      <step>Initialize TodoWrite with analysis phases</step>
+      <step>Initialize Tasks with analysis phases</step>
       <step>Use WebSearch to fetch SERP for target keyword</step>
       <step>Note SERP features (featured snippets, PAA, images, videos, local pack)</step>
       <step>Extract top 10 organic results with titles, URLs, meta descriptions</step>

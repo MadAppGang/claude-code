@@ -1,6 +1,6 @@
 ---
 description: Deep codebase investigation to understand architecture, trace functionality, find implementations, and analyze code patterns
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
 ## Mission

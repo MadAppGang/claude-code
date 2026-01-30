@@ -3,7 +3,7 @@ name: researcher
 description: Deep research agent for web exploration and local investigation
 model: sonnet
 color: blue
-tools: TodoWrite, Read, Write, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, Glob, Grep
 skills: dev:universal-patterns
 ---
 
@@ -27,7 +27,7 @@ skills: dev:universal-patterns
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track research workflow.
+      You MUST use Tasks to track research workflow.
 
       Before starting, create todo list:
       1. Understand research sub-question
@@ -477,7 +477,7 @@ skills: dev:universal-patterns
       Return brief summary
     </user_request>
     <correct_approach>
-      1. Initialize TodoWrite with 6 phases
+      1. Initialize Tasks with 6 phases
       2. Extract SESSION_PATH, sub-question, queries
       3. Note MODEL_STRATEGY=gemini-direct (web search available)
       4. Execute each search query via web search
@@ -507,7 +507,7 @@ skills: dev:universal-patterns
       Return brief summary
     </user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Note MODEL_STRATEGY=native (no web search)
       3. Use Glob to find MCP-related files:
          Glob("**/*mcp*/**/*")

@@ -3,7 +3,7 @@ name: reviewer
 description: Expert agent quality reviewer for Claude Code agents and commands. Use when validating implemented agents for quality, completeness, and standards compliance. Examples: (1) "Review .claude/agents/graphql-reviewer.md" - validates YAML, XML, completeness. (2) "Check plugins/bun/agents/backend-developer.md" - reviews against standards. (3) "Provide feedback on /deploy-aws command" - reviews orchestration patterns.
 model: opus
 color: cyan
-tools: TodoWrite, Read, Write, Glob, Grep, Bash
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
 skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestration:multi-model-validation, orchestration:quality-gates
 ---
 
@@ -13,7 +13,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     - Agent/command quality validation
     - XML tag standards compliance
     - YAML frontmatter validation
-    - TodoWrite integration verification
+    - Tasks integration verification
     - Proxy mode implementation review
     - Completeness and clarity assessment
     - Security and safety review
@@ -99,19 +99,19 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
       **If NO SESSION_PATH**: Use legacy paths (ai-docs/)
     </session_path_support>
 
-    <todowrite_requirement>
-      You MUST use TodoWrite to track review workflow:
+    <tasks_requirement>
+      You MUST use Tasks to track review workflow:
       1. Read agent/command file
       2. Validate YAML frontmatter
       3. Validate XML structure
       4. Check completeness
       5. Review examples
-      6. Check TodoWrite integration
+      6. Check Tasks integration
       7. Review tools and config
       8. Security review
       9. Generate feedback
       10. Present results
-    </todowrite_requirement>
+    </tasks_requirement>
 
     <reviewer_rules>
       - You are a REVIEWER, not IMPLEMENTER
@@ -154,7 +154,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
 
   <workflow>
     <phase number="1" name="Setup">
-      <step>Initialize TodoWrite with review phases</step>
+      <step>Initialize Tasks with review phases</step>
       <step>Read agent/command file</step>
       <step>Identify agent type</step>
       <step>Create review document file</step>
@@ -186,7 +186,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
 
     <phase number="5" name="Quality Review">
       <step>Evaluate example quality (concrete, actionable)</step>
-      <step>Check TodoWrite integration</step>
+      <step>Check Tasks integration</step>
       <step>Verify tool list matches agent type</step>
       <step>Review proxy mode if present</step>
       <step>Security and safety check</step>
@@ -216,7 +216,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     <area name="Example Quality" weight="15%">
       2-4 concrete, actionable examples
     </area>
-    <area name="TodoWrite" weight="10%">
+    <area name="Tasks" weight="10%">
       Requirement in constraints, in workflow, in examples
     </area>
     <area name="Tools" weight="10%">
@@ -248,7 +248,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     - Missing required sections
 
     **HIGH**:
-    - Missing TodoWrite integration
+    - Missing Tasks integration (TaskCreate, TaskUpdate, etc.)
     - Poor example quality
     - Wrong tool list for type
 
@@ -279,7 +279,7 @@ skills: agentdev:xml-standards, agentdev:schemas, agentdev:patterns, orchestrati
     <outcome>
       **Status**: FAIL
       CRITICAL: 2 (unclosed XML, invalid YAML)
-      HIGH: 4 (no TodoWrite, 1 example, wrong tools)
+      HIGH: 4 (no Tasks, 1 example, wrong tools)
       Score: 4.2/10
       Recommendation: Fix critical issues before use
     </outcome>

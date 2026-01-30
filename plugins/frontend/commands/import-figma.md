@@ -1,6 +1,6 @@
 ---
 description: Intelligently clean up temporary artifacts and development files from the project
-allowed-tools: Task, TodoWrite, Read, Write, Edit, Glob, Bash, AskUserQuestion, mcp__figma__get_design_context
+allowed-tools: Task, TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Glob, Bash, AskUserQuestion, mcp__figma__get_design_context
 ---
 
 # Import Figma Make Component
@@ -133,10 +133,10 @@ const MAX_ITERATIONS = 5
 
 ### STEP 1: Initialize Todo Tracking
 
-Use TodoWrite to create a comprehensive task list for tracking progress:
+Use Tasks to create a comprehensive task list for tracking progress:
 
 ```typescript
-TodoWrite({
+TaskCreate({
   todos: [
     { content: 'Discover project structure', status: 'completed', activeForm: 'Discovering project structure' },
     { content: 'Read CLAUDE.md and extract Figma URL', status: 'in_progress', activeForm: 'Reading CLAUDE.md and extracting Figma URL' },
@@ -809,7 +809,7 @@ Check if project uses path alias (@/ or ~/) by reading tsconfig.json or vite.con
 - **All file paths must be absolute** when using tools (construct using projectRoot + relativePath)
 - **Use package manager from project** - detect pnpm/npm/yarn by checking lock files
 - Apply Biome formatting after all file creation/edits
-- Keep user informed via TodoWrite updates throughout
+- Keep user informed via task updates throughout
 - Use Task tool only for tester agent (no other agents)
 - Maximum 5 validation iterations before asking user
 - Always provide clear, actionable error messages

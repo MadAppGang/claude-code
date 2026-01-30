@@ -4,8 +4,8 @@ description: |
   A/B testing workflow for email optimization.
   Design, run, and analyze A/B tests on subject lines, copy, and timing.
   Workflow: ANALYZE -> DESIGN TEST -> APPROVE -> IMPLEMENT -> MONITOR
-allowed-tools: Task, AskUserQuestion, Read, TodoWrite
-skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration:todowrite-orchestration
+allowed-tools: Task, AskUserQuestion, Read, TaskCreate, TaskUpdate, TaskList, TaskGet
+skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration:task-orchestration
 ---
 
 <role>
@@ -39,7 +39,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
     </forbidden_tools>
 
     <todowrite_requirement>
-      Use TodoWrite to track:
+      Use Tasks to track:
       1. Identify optimization opportunity
       2. Design A/B test
       3. Get user approval

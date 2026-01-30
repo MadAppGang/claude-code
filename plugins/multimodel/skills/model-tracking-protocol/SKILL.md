@@ -933,17 +933,17 @@ fi
 verify_output_complete "$OUTPUT" || exit 1
 ```
 
-### With `todowrite-orchestration`
+### With `task-orchestration`
 
 Track progress through multi-model phases:
 
 ```
-TodoWrite:
-1. Pre-launch setup (tracking protocol)
-2. Launch models (validation patterns)
-3. Collect results (tracking updates)
-4. Consensus analysis (protocol requirement)
-5. Present results (protocol template)
+Tasks:
+1. [~] Pre-launch setup (tracking protocol)
+2. [ ] Launch models (validation patterns)
+3. [ ] Collect results (tracking updates)
+4. [ ] Consensus analysis (protocol requirement)
+5. [ ] Present results (protocol template)
 ```
 
 ---

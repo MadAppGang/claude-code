@@ -3,7 +3,7 @@ description: |
   Interactive wizard to create and update project design style guides.
   Supports reference image capture, style updates, and visual reference management.
   Actions: create, update, capture, add-reference, remove-reference, list-references
-allowed-tools: AskUserQuestion, Bash, Read, Write, TodoWrite, Glob, Grep
+allowed-tools: AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills:
   - dev:design-references
   - dev:ui-style-format
@@ -41,7 +41,7 @@ skills:
       - Use AskUserQuestion for all user input gates
       - Use Write to create .claude/design-style.md
       - Use Read to check for existing style file
-      - Use TodoWrite to track wizard progress
+      - Use Tasks to track wizard progress
       - Use Bash for file operations in `.claude/` directory
 
       **You MUST NOT:**
@@ -100,7 +100,7 @@ skills:
       <objective>Check for existing style and initialize wizard</objective>
 
       <steps>
-        <step>Initialize TodoWrite with wizard phases</step>
+        <step>Initialize Tasks with wizard phases</step>
         <step>Use Read tool to check if .claude/design-style.md exists</step>
         <step>If exists, ask: Update existing or create new?</step>
         <step>If updating, read existing file as base</step>

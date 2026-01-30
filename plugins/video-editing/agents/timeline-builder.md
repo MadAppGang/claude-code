@@ -3,7 +3,7 @@ name: timeline-builder
 description: Create Final Cut Pro projects, timelines, and multicam sequences
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep
 skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
 ---
 
@@ -28,7 +28,7 @@ skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track timeline building workflow:
+      You MUST use Tasks to track timeline building workflow:
 
       **Before starting**, create todo list:
       1. Analyze source media files
@@ -79,7 +79,7 @@ skills: video-editing:final-cut-pro, video-editing:ffmpeg-core
 
   <workflow>
     <phase number="1" name="Media Analysis">
-      <step>Initialize TodoWrite with timeline building tasks</step>
+      <step>Initialize Tasks with timeline building tasks</step>
       <step>Mark "Analyze source media" as in_progress</step>
       <step>List all input media files</step>
       <step>For each file, extract with ffprobe: duration, resolution, frame rate, codec</step>

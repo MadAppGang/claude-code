@@ -1,6 +1,6 @@
 ---
 description: Manually trigger execution of a specific Linear task
-allowed-tools: Task, Bash, Read, Write, TodoWrite, AskUserQuestion
+allowed-tools: Task, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion
 skills: autopilot:linear-integration, autopilot:tag-command-mapping, autopilot:state-machine, autopilot:proof-of-work
 ---
 
@@ -30,7 +30,7 @@ skills: autopilot:linear-integration, autopilot:tag-command-mapping, autopilot:s
 
       **You MUST:**
       - Use Task tool to delegate to task-executor agent
-      - Track progress via TodoWrite
+      - Track progress via Tasks
       - Enforce state transitions
       - Generate proof artifacts
 
@@ -191,7 +191,7 @@ skills: autopilot:linear-integration, autopilot:tag-command-mapping, autopilot:s
     <phase number="6" name="Complete">
       <steps>
         <step>Present execution summary</step>
-        <step>Mark all TodoWrite tasks completed</step>
+        <step>Mark all task items completed</step>
       </steps>
     </phase>
   </workflow>

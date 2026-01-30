@@ -1,6 +1,6 @@
 ---
 description: Transcribe audio/video to SRT, VTT, JSON, or TXT formats
-allowed-tools: Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep
+allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: video-editing:transcription
 ---
 
@@ -36,7 +36,7 @@ skills: video-editing:transcription
     </dependency_check>
 
     <todowrite_requirement>
-      Track workflow with TodoWrite:
+      Track workflow with Tasks:
       1. Check Whisper installation
       2. Validate input files
       3. Determine quality settings
@@ -139,7 +139,7 @@ skills: video-editing:transcription
 </instructions>
 
 <orchestration>
-  <allowed_tools>Task, AskUserQuestion, Bash, Read, TodoWrite, Glob, Grep</allowed_tools>
+  <allowed_tools>Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep</allowed_tools>
   <forbidden_tools>Write, Edit</forbidden_tools>
 
   <agent_delegation>

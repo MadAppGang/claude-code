@@ -3,7 +3,7 @@ name: architect
 description: Language-agnostic architecture planning for system design and trade-off analysis
 model: sonnet
 color: purple
-tools: TodoWrite, Read, Write, Bash, Glob, Grep
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, Glob, Grep
 skills: dev:universal-patterns
 ---
 
@@ -25,7 +25,7 @@ skills: dev:universal-patterns
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track architecture workflow.
+      You MUST use Tasks to track architecture workflow.
 
       Before starting, create todo list:
       1. Read skills and understand requirements

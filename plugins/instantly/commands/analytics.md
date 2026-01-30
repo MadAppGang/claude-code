@@ -4,8 +4,8 @@ description: |
   Campaign performance analytics and reporting.
   Fetches data from Instantly MCP, calculates KPIs, identifies trends.
   Workflow: DATA FETCH -> METRICS CALCULATION -> PATTERN ANALYSIS -> REPORT
-allowed-tools: Task, Bash, Read, TodoWrite, AskUserQuestion
-skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
+allowed-tools: Task, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion
+skills: instantly:campaign-metrics, orchestration:task-orchestration
 ---
 
 <role>
@@ -42,7 +42,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
     </forbidden_tools>
 
     <todowrite_requirement>
-      Use TodoWrite to track:
+      Use Tasks to track:
       1. Parse user request
       2. Launch campaign-analyst agent
       3. Receive and present results
@@ -81,7 +81,7 @@ skills: instantly:campaign-metrics, orchestration:todowrite-orchestration
 
   <workflow>
     <phase number="1" name="Request Parsing">
-      <step>Initialize TodoWrite</step>
+      <step>Initialize Tasks</step>
       <step>Parse arguments for campaign name or scope</step>
       <step>If no campaign specified, analyze all campaigns</step>
     </phase>

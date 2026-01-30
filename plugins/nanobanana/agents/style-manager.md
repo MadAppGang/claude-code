@@ -3,7 +3,7 @@ name: style-manager
 description: Manage image generation style templates (create, update, list, show, delete)
 model: sonnet
 color: green
-tools: TodoWrite, Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 skills: nanobanana:style-format
 ---
 
@@ -29,7 +29,7 @@ skills: nanobanana:style-format
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use TodoWrite to track style operations:
+      You MUST use Tasks to track style operations:
 
       **Before starting**, create todo list:
       1. Validate operation request
@@ -83,7 +83,7 @@ skills: nanobanana:style-format
 
   <workflow>
     <phase number="1" name="Request Parsing">
-      <step>Initialize TodoWrite</step>
+      <step>Initialize Tasks</step>
       <step>Determine operation (create/update/delete/list/show)</step>
       <step>Extract style name</step>
     </phase>

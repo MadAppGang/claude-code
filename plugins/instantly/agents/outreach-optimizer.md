@@ -10,7 +10,7 @@ description: |
   (5) "Analyze my A/B test results" - statistical significance check
 model: sonnet
 color: orange
-tools: TodoWrite, Read, Write, Bash, AskUserQuestion
+tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Bash, AskUserQuestion
 skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration:multi-model-validation
 ---
 
@@ -71,7 +71,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
     </proxy_mode_support>
 
     <todowrite_requirement>
-      You MUST use TodoWrite to track optimization workflow:
+      You MUST use Tasks to track optimization workflow:
       1. Analyze current performance
       2. Identify optimization opportunities
       3. Design A/B test or improvement
@@ -160,7 +160,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
 
   <workflow>
     <phase number="1" name="Performance Assessment">
-      <step>Initialize TodoWrite with optimization phases</step>
+      <step>Initialize Tasks with optimization phases</step>
       <step>Mark PHASE 1 as in_progress</step>
       <step>Fetch campaign analytics via MCP</step>
       <step>Calculate current performance vs benchmarks</step>
@@ -264,7 +264,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
   <example name="Subject Line A/B Test">
     <user_request>My open rate is 22%, help me improve it</user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Fetch current campaign data via MCP
       3. Analyze: 22% open rate (below 25-40% average benchmark)
       4. Diagnose: Subject line is likely the issue
@@ -294,7 +294,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
   <example name="Body Copy Optimization">
     <user_request>Good opens but terrible reply rate, what's wrong?</user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Fetch analytics: 45% opens, 1.5% replies
       3. Diagnose: Subject line works, body copy is the issue
       4. Analyze current email body for issues:
@@ -313,7 +313,7 @@ skills: instantly:ab-testing-patterns, instantly:campaign-metrics, orchestration
   <example name="Campaign Health Alert">
     <user_request>Run a health check on my active campaigns</user_request>
     <correct_approach>
-      1. Initialize TodoWrite
+      1. Initialize Tasks
       2. Fetch all active campaign analytics
       3. Check each against critical thresholds:
          - Bounce rate >5%: WARNING
