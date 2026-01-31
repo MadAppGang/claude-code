@@ -38,8 +38,8 @@
     }
   },
   "installedPluginVersions": {
-    "dev@mag-claude-plugins": "1.23.0",
-    "multimodel@mag-claude-plugins": "2.1.0",
+    "dev@mag-claude-plugins": "1.24.0",
+    "multimodel@mag-claude-plugins": "2.2.0",
     "explanatory-output-style@claude-plugins-official": "0.0.0",
     "ralph-loop@claude-plugins-official": "0.0.0",
     "claude-md-management@claude-plugins-official": "0.0.0",

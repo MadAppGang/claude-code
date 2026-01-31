@@ -222,9 +222,12 @@ export async function addMarketplace(
 	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
 	settings.extraKnownMarketplaces[marketplace.name] = {
 		source: marketplace.source,
-		autoUpdate: true, // Enable auto-update by default for new marketplaces
 	};
 	await writeSettings(settings, projectPath);
+
+	// Also enable auto-update in known_marketplaces.json if entry exists
+	// (Claude Code creates the entry when it syncs the marketplace)
+	await setMarketplaceAutoUpdate(marketplace.name, true);
 }
 
 export async function removeMarketplace(
@@ -444,9 +447,12 @@ export async function addGlobalMarketplace(
 	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
 	settings.extraKnownMarketplaces[marketplace.name] = {
 		source: marketplace.source,
-		autoUpdate: true, // Enable auto-update by default for new marketplaces
 	};
 	await writeGlobalSettings(settings);
+
+	// Also enable auto-update in known_marketplaces.json if entry exists
+	// (Claude Code creates the entry when it syncs the marketplace)
+	await setMarketplaceAutoUpdate(marketplace.name, true);
 }
 
 export async function removeGlobalMarketplace(name: string): Promise<void> {
@@ -609,9 +615,47 @@ interface KnownMarketplaceEntry {
 	source: { source: string; path?: string; repo?: string };
 	installLocation: string;
 	lastUpdated: string;
+	autoUpdate?: boolean;
 }
 
 type KnownMarketplaces = Record<string, KnownMarketplaceEntry>;
+
+/**
+ * Write known_marketplaces.json
+ */
+async function writeKnownMarketplaces(
+	marketplaces: KnownMarketplaces,
+): Promise<void> {
+	await fs.ensureDir(path.dirname(KNOWN_MARKETPLACES_FILE));
+	await fs.writeJson(KNOWN_MARKETPLACES_FILE, marketplaces, { spaces: 2 });
+}
+
+/**
+ * Set autoUpdate flag for a marketplace in known_marketplaces.json
+ * This is where Claude Code actually reads the autoUpdate setting
+ */
+export async function setMarketplaceAutoUpdate(
+	marketplaceName: string,
+	autoUpdate: boolean,
+): Promise<boolean> {
+	const known = await readKnownMarketplaces();
+	if (known[marketplaceName]) {
+		known[marketplaceName].autoUpdate = autoUpdate;
+		await writeKnownMarketplaces(known);
+		return true;
+	}
+	return false; // Marketplace not yet installed by Claude Code
+}
+
+/**
+ * Get autoUpdate status for a marketplace
+ */
+export async function getMarketplaceAutoUpdate(
+	marketplaceName: string,
+): Promise<boolean | undefined> {
+	const known = await readKnownMarketplaces();
+	return known[marketplaceName]?.autoUpdate;
+}
 
 /**
  * Read known_marketplaces.json to get marketplace source info
