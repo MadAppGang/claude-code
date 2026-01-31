@@ -205,7 +205,7 @@ describe('mcp-discovery integration', () => {
       const varPattern = /^\$\{(\w+)\}$/;
       const extractedVars: string[] = [];
 
-      for (const [key, value] of Object.entries(envVars!)) {
+      for (const [_key, value] of Object.entries(envVars!)) {
         const match = value.match(varPattern);
         if (match) {
           extractedVars.push(match[1]);
