@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useStdout } from "ink";
+import { useRenderer, useOnResize } from "@opentui/react";
 
 interface Dimensions {
 	/** Terminal width */
@@ -74,13 +74,13 @@ export function DimensionsProvider({
 	showProgress = false,
 	showDebug = false,
 	showUpdateBanner = false,
-}: DimensionsProviderProps): React.ReactElement {
-	const { stdout } = useStdout();
+}: DimensionsProviderProps) {
+	const renderer = useRenderer();
 
 	const [dimensions, setDimensions] = useState<Dimensions>(() =>
 		calculateDimensions(
-			stdout?.columns ?? 80,
-			stdout?.rows ?? 24,
+			renderer.width,
+			renderer.height,
 			showProgress,
 			showDebug,
 			showUpdateBanner,
@@ -88,39 +88,32 @@ export function DimensionsProvider({
 	);
 
 	// Handle terminal resize
-	useEffect(() => {
-		const handleResize = () => {
-			setDimensions(
-				calculateDimensions(
-					stdout?.columns ?? 80,
-					stdout?.rows ?? 24,
-					showProgress,
-					showDebug,
-					showUpdateBanner,
-				),
-			);
-		};
-
-		stdout?.on("resize", handleResize);
-		return () => {
-			stdout?.off("resize", handleResize);
-		};
-	}, [stdout, showProgress, showDebug, showUpdateBanner]);
+	useOnResize((width, height) => {
+		setDimensions(
+			calculateDimensions(
+				width,
+				height,
+				showProgress,
+				showDebug,
+				showUpdateBanner,
+			),
+		);
+	});
 
 	// Update when showProgress/showDebug/showUpdateBanner changes
 	useEffect(() => {
 		setDimensions(
 			calculateDimensions(
-				stdout?.columns ?? 80,
-				stdout?.rows ?? 24,
+				renderer.width,
+				renderer.height,
 				showProgress,
 				showDebug,
 				showUpdateBanner,
 			),
 		);
 	}, [
-		stdout?.columns,
-		stdout?.rows,
+		renderer.width,
+		renderer.height,
 		showProgress,
 		showDebug,
 		showUpdateBanner,

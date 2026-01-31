@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useMemo } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp, useModal, useNavigation } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import {
@@ -23,7 +23,7 @@ interface ListItem {
 	isCategory?: boolean;
 }
 
-export function McpScreen(): React.ReactElement {
+export function McpScreen() {
 	const { state, dispatch } = useApp();
 	const { mcp } = state;
 	const modal = useModal();
@@ -113,25 +113,25 @@ export function McpScreen(): React.ReactElement {
 	const listItems = allListItems;
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		if (state.isSearching || state.modal) return;
 
 		// Start search - navigate to registry with search mode active
-		if (input === "/") {
+		if (event.name === "/") {
 			dispatch({ type: "SET_SEARCHING", isSearching: true });
 			navigateToScreen("mcp-registry");
 			return;
 		}
 
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, mcp.selectedIndex - 1);
 			dispatch({ type: "MCP_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(listItems.length - 1, mcp.selectedIndex + 1);
 			dispatch({ type: "MCP_SELECT", index: newIndex });
-		} else if (input === "r") {
+		} else if (event.name === "r") {
 			navigateToScreen("mcp-registry");
-		} else if (key.return) {
+		} else if (event.name === "enter") {
 			handleSelect();
 		}
 	});
@@ -246,19 +246,19 @@ export function McpScreen(): React.ReactElement {
 
 	const renderDetail = () => {
 		if (mcp.servers.status === "loading") {
-			return <Text color="gray">Loading MCP servers...</Text>;
+			return <text fg="gray">Loading MCP servers...</text>;
 		}
 
 		if (!selectedItem || selectedItem.isCategory || !selectedItem.server) {
 			return (
-				<Box
+				<box
 					flexDirection="column"
 					alignItems="center"
 					justifyContent="center"
 					flexGrow={1}
 				>
-					<Text color="gray">Select a server to see details</Text>
-				</Box>
+					<text fg="gray">Select a server to see details</text>
+				</box>
 			);
 		}
 
@@ -267,74 +267,66 @@ export function McpScreen(): React.ReactElement {
 		const isEnabled = mcp.installedServers[server.name] === true;
 
 		return (
-			<Box flexDirection="column">
-				<Box marginBottom={1}>
-					<Text bold color="cyan">
-						⚡ {server.name}
-					</Text>
-					{server.requiresConfig && <Text color="yellow"> ⚙</Text>}
-				</Box>
+			<box flexDirection="column">
+				<box marginBottom={1}>
+					<text fg="cyan"><strong>⚡ {server.name}</strong></text>
+					{server.requiresConfig && <text fg="yellow"> ⚙</text>}
+				</box>
 
-				<Text color="gray">{server.description}</Text>
+				<text fg="gray">{server.description}</text>
 
-				<Box marginTop={1} flexDirection="column">
-					<Box>
-						<Text color="gray">Status </Text>
+				<box marginTop={1} flexDirection="column">
+					<box>
+						<text fg="gray">Status </text>
 						{isInstalled && isEnabled ? (
-							<Text color="green">● Installed</Text>
+							<text fg="green">● Installed</text>
 						) : isInstalled ? (
-							<Text color="yellow">● Disabled</Text>
+							<text fg="yellow">● Disabled</text>
 						) : (
-							<Text color="gray">○ Not installed</Text>
+							<text fg="gray">○ Not installed</text>
 						)}
-					</Box>
-					<Box>
-						<Text color="gray">Type </Text>
-						<Text color="white">
+					</box>
+					<box>
+						<text fg="gray">Type </text>
+						<text fg="white">
 							{server.type === "http" ? "HTTP" : "Command"}
-						</Text>
-					</Box>
+						</text>
+					</box>
 					{server.type === "http" ? (
-						<Box>
-							<Text color="gray">URL </Text>
-							<Text color="blue">{server.url}</Text>
-						</Box>
+						<box>
+							<text fg="gray">URL </text>
+							<text fg="blue">{server.url}</text>
+						</box>
 					) : (
-						<Box>
-							<Text color="gray">Command </Text>
-							<Text color="cyan">{server.command}</Text>
-						</Box>
+						<box>
+							<text fg="gray">Command </text>
+							<text fg="cyan">{server.command}</text>
+						</box>
 					)}
 					{server.requiresConfig && (
-						<Box>
-							<Text color="gray">Config </Text>
-							<Text color="yellow">
+						<box>
+							<text fg="gray">Config </text>
+							<text fg="yellow">
 								{server.configFields?.length || 0} fields required
-							</Text>
-						</Box>
+							</text>
+						</box>
 					)}
-				</Box>
+				</box>
 
-				<Box marginTop={2}>
+				<box marginTop={2}>
 					{isInstalled ? (
-						<Box>
-							<Text backgroundColor="red" color="white">
-								{" "}
-								Enter{" "}
-							</Text>
-							<Text color="gray"> Remove server</Text>
-						</Box>
+						<box>
+							<text bg="red" fg="white"> Enter </text>
+							<text fg="gray"> Remove server</text>
+						</box>
 					) : (
-						<Box>
-							<Text backgroundColor="green" color="black">
-								{" "}
-								Enter{" "}
-							</Text>
-							<Text color="gray"> Install server</Text>
-						</Box>
+						<box>
+							<text bg="green" fg="black"> Enter </text>
+							<text fg="gray"> Install server</text>
+						</box>
 					)}
-				</Box>
-			</Box>
+				</box>
+			</box>
 		);
 	};
 
@@ -346,9 +338,7 @@ export function McpScreen(): React.ReactElement {
 		// Category header
 		if (item.isCategory) {
 			return (
-				<Text bold color="magenta">
-					▸ {item.label}
-				</Text>
+				<text fg="magenta"><strong>▸ {item.label}</strong></text>
 			);
 		}
 
@@ -360,16 +350,16 @@ export function McpScreen(): React.ReactElement {
 		const iconColor = isInstalled ? "green" : "gray";
 
 		return isSelected ? (
-			<Text backgroundColor="magenta" color="white" wrap="truncate">
+			<text bg="magenta" fg="white">
 				{" "}
 				{icon} {server?.name || ""}{" "}
-			</Text>
+			</text>
 		) : (
-			<Text wrap="truncate">
-				<Text color={iconColor}>{icon}</Text>
-				<Text color="white"> {server?.name || ""}</Text>
-				{server?.requiresConfig && <Text color="yellow"> ⚙</Text>}
-			</Text>
+			<text>
+				<span fg={iconColor}>{icon}</span>
+				<span fg="white"> {server?.name || ""}</span>
+				{server?.requiresConfig && <span fg="yellow"> ⚙</span>}
+			</text>
 		);
 	};
 

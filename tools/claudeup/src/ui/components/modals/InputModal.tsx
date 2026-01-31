@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Text, useInput } from "ink";
+import { useKeyboard } from "../../hooks/useKeyboard.js";
 
 interface InputModalProps {
 	/** Modal title */
@@ -20,47 +20,48 @@ export function InputModal({
 	defaultValue = "",
 	onSubmit,
 	onCancel,
-}: InputModalProps): React.ReactElement {
+}: InputModalProps) {
 	const [value, setValue] = useState(defaultValue);
 
-	useInput((input, key) => {
-		if (key.return) {
+	useKeyboard((key) => {
+		if (key.name === "enter") {
 			onSubmit(value);
-		} else if (key.escape) {
+		} else if (key.name === "escape") {
 			onCancel();
-		} else if (key.backspace || key.delete) {
-			setValue((prev) => prev.slice(0, -1));
-		} else if (input && !key.ctrl && !key.meta) {
-			setValue((prev) => prev + input);
 		}
 	});
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor="cyan"
-			paddingX={2}
-			paddingY={1}
+			paddingLeft={2}
+			paddingRight={2}
+			paddingTop={1}
+			paddingBottom={1}
 			width={60}
 		>
-			<Text bold>{title}</Text>
+			<text>
+				<strong>{title}</strong>
+			</text>
 
-			<Box marginY={1}>
-				<Text>{label}</Text>
-			</Box>
+			<box marginTop={1} marginBottom={1}>
+				<text>{label}</text>
+			</box>
 
-			<Box borderStyle="single" borderColor="green" paddingX={1} width={56}>
-				<Text>
-					{value}
-					<Text inverse> </Text>
-				</Text>
-			</Box>
+			<input
+				value={value}
+				onChange={setValue}
+				focused
+				width={54}
+			/>
 
-			<Box marginTop={1}>
-				<Text color="gray">Enter to confirm • Escape to cancel</Text>
-			</Box>
-		</Box>
+			<box marginTop={1}>
+				<text fg="#666666">Enter to confirm • Escape to cancel</text>
+			</box>
+		</box>
 	);
 }
 

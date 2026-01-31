@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp, useModal } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import { statusLineCategories } from "../../data/statuslines.js";
@@ -20,7 +20,7 @@ interface ListItem {
 	isCategory?: boolean;
 }
 
-export function StatusLineScreen(): React.ReactElement {
+export function StatusLineScreen() {
 	const { state, dispatch } = useApp();
 	const { statusline: statusLine } = state;
 	const modal = useModal();
@@ -94,25 +94,25 @@ export function StatusLineScreen(): React.ReactElement {
 	const listItems = buildListItems();
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		if (state.isSearching || state.modal) return;
 
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, statusLine.selectedIndex - 1);
 			dispatch({ type: "STATUSLINE_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(
 				listItems.length - 1,
 				statusLine.selectedIndex + 1,
 			);
 			dispatch({ type: "STATUSLINE_SELECT", index: newIndex });
-		} else if (input === "p") {
+		} else if (event.name === "p") {
 			dispatch({ type: "STATUSLINE_SET_SCOPE", scope: "project" });
-		} else if (input === "g") {
+		} else if (event.name === "g") {
 			dispatch({ type: "STATUSLINE_SET_SCOPE", scope: "global" });
-		} else if (input === "r") {
+		} else if (event.name === "r") {
 			handleReset();
-		} else if (key.return) {
+		} else if (event.name === "enter") {
 			handleSelect();
 		}
 	});
@@ -203,86 +203,86 @@ export function StatusLineScreen(): React.ReactElement {
 	// Build preview
 	const renderPreview = () => {
 		if (isLoading) {
-			return <Text color="gray">Loading status line settings...</Text>;
+			return <text fg="gray">Loading status line settings...</text>;
 		}
 
 		if (!selectedItem || selectedItem.isCategory) {
 			return (
-				<Box
+				<box
 					flexDirection="column"
 					alignItems="center"
 					justifyContent="center"
 					flexGrow={1}
 				>
-					<Text color="gray">Select a theme to see preview</Text>
-				</Box>
+					<text fg="gray">Select a theme to see preview</text>
+				</box>
 			);
 		}
 
 		if (selectedItem.isCustom) {
 			return (
-				<Box flexDirection="column">
-					<Text bold color="cyan">
-						✨ Custom Status Line
-					</Text>
-					<Text color="gray">Create your own unique status line!</Text>
+				<box flexDirection="column">
+					<text fg="cyan">
+						<strong>✨ Custom Status Line</strong>
+					</text>
+					<text fg="gray">Create your own unique status line!</text>
 
-					<Box marginTop={1} flexDirection="column">
-						<Text bold color="yellow">
-							Available variables:
-						</Text>
-						<Box marginTop={1} flexDirection="column">
-							<Text>
-								<Text color="green" bold>
-									{"{model}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Model name
-							</Text>
-							<Text>
-								<Text color="green" bold>
-									{"{model_short}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Short name
-							</Text>
-							<Text>
-								<Text color="yellow" bold>
-									{"{cost}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Session cost
-							</Text>
-							<Text>
-								<Text color="blue" bold>
-									{"{cwd}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Working directory
-							</Text>
-							<Text>
-								<Text color="magenta" bold>
-									{"{git_branch}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Git branch
-							</Text>
-							<Text>
-								<Text color="cyan" bold>
-									{"{input_tokens}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Input tokens
-							</Text>
-							<Text>
-								<Text color="cyan" bold>
-									{"{output_tokens}"}
-								</Text>{" "}
-								<Text color="gray">→</Text> Output tokens
-							</Text>
-							<Text>
-								<Text color="red" bold>
-									{"{session_duration}"}
-								</Text>
-								<Text color="gray">→</Text> Duration
-							</Text>
-						</Box>
-					</Box>
-				</Box>
+					<box marginTop={1} flexDirection="column">
+						<text fg="yellow">
+							<strong>Available variables:</strong>
+						</text>
+						<box marginTop={1} flexDirection="column">
+							<text>
+								<span fg="green">
+									<strong>{"{model}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Model name
+							</text>
+							<text>
+								<span fg="green">
+									<strong>{"{model_short}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Short name
+							</text>
+							<text>
+								<span fg="yellow">
+									<strong>{"{cost}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Session cost
+							</text>
+							<text>
+								<span fg="blue">
+									<strong>{"{cwd}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Working directory
+							</text>
+							<text>
+								<span fg="magenta">
+									<strong>{"{git_branch}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Git branch
+							</text>
+							<text>
+								<span fg="cyan">
+									<strong>{"{input_tokens}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Input tokens
+							</text>
+							<text>
+								<span fg="cyan">
+									<strong>{"{output_tokens}"}</strong>
+								</span>{" "}
+								<span fg="gray">→</span> Output tokens
+							</text>
+							<text>
+								<span fg="red">
+									<strong>{"{session_duration}"}</strong>
+								</span>
+								<span fg="gray">→</span> Duration
+							</text>
+						</box>
+					</box>
+				</box>
 			);
 		}
 
@@ -298,33 +298,31 @@ export function StatusLineScreen(): React.ReactElement {
 				.replace("{session_duration}", "12m");
 
 			return (
-				<Box flexDirection="column">
-					<Text bold color="cyan">
-						◆ {selectedItem.preset.name}
-					</Text>
-					<Text color="gray">{selectedItem.preset.description}</Text>
+				<box flexDirection="column">
+					<text fg="cyan">
+						<strong>◆ {selectedItem.preset.name}</strong>
+					</text>
+					<text fg="gray">{selectedItem.preset.description}</text>
 
-					<Box marginTop={1} flexDirection="column">
-						<Text color="yellow" bold>
-							Preview:
-						</Text>
-						<Box
+					<box marginTop={1} flexDirection="column">
+						<text fg="yellow">
+							<strong>Preview:</strong>
+						</text>
+						<box
 							marginTop={1}
-							paddingX={1}
-							borderStyle="round"
+							paddingLeft={1} paddingRight={1}
+							borderStyle="rounded"
 							borderColor="green"
 						>
-							<Text color="white">{example}</Text>
-						</Box>
-					</Box>
+							<text fg="white">{example}</text>
+						</box>
+					</box>
 
-					<Box marginTop={1} flexDirection="column">
-						<Text color="gray" dimColor>
-							Template:
-						</Text>
-						<Text color="gray">{selectedItem.preset.template}</Text>
-					</Box>
-				</Box>
+					<box marginTop={1} flexDirection="column">
+						<text fg="#666666">Template:</text>
+						<text fg="gray">{selectedItem.preset.template}</text>
+					</box>
+				</box>
 			);
 		}
 
@@ -338,22 +336,24 @@ export function StatusLineScreen(): React.ReactElement {
 	) => {
 		if (item.isCategory) {
 			return (
-				<Text bold color="magenta" wrap="truncate">
-					▸ {item.label}
-				</Text>
+				<text fg="magenta" >
+					<strong>▸ {item.label}</strong>
+				</text>
 			);
 		}
 
 		if (item.isCustom) {
 			return isSelected ? (
-				<Text backgroundColor="cyan" color="black" bold wrap="truncate">
-					{" "}
-					➕ Custom Status Line{" "}
-				</Text>
+				<text bg="cyan" fg="black" >
+					<strong>
+						{" "}
+						➕ Custom Status Line{" "}
+					</strong>
+				</text>
 			) : (
-				<Text color="cyan" bold wrap="truncate">
-					{"  "}➕ Custom Status Line
-				</Text>
+				<text fg="cyan" >
+					<strong>{"  "}➕ Custom Status Line</strong>
+				</text>
 			);
 		}
 
@@ -361,15 +361,15 @@ export function StatusLineScreen(): React.ReactElement {
 		const isActive = item.preset && currentForScope === item.preset.template;
 
 		return isSelected ? (
-			<Text backgroundColor="magenta" color="white" wrap="truncate">
+			<text bg="magenta" fg="white" >
 				{" "}
 				{isActive ? "●" : "○"} {item.preset?.name || ""}{" "}
-			</Text>
+			</text>
 		) : (
-			<Text color={isActive ? "green" : "white"} wrap="truncate">
+			<text fg={isActive ? "green" : "white"} >
 				{"  "}
 				{isActive ? "●" : "○"} {item.preset?.name || ""}
-			</Text>
+			</text>
 		);
 	};
 
@@ -378,14 +378,14 @@ export function StatusLineScreen(): React.ReactElement {
 	const currentValue = getCurrentStatusLine();
 	const statusContent = (
 		<>
-			<Text color="gray">Scope: </Text>
-			<Text color="cyan">{scopeLabel}</Text>
-			<Text color="gray"> │ Current: </Text>
-			<Text color="green">
+			<text fg="gray">Scope: </text>
+			<text fg="cyan">{scopeLabel}</text>
+			<text fg="gray"> │ Current: </text>
+			<text fg="green">
 				{currentValue
 					? currentValue.slice(0, 35) + (currentValue.length > 35 ? "..." : "")
 					: "(not set)"}
-			</Text>
+			</text>
 		</>
 	);
 

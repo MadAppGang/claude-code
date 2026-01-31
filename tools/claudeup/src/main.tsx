@@ -1,17 +1,16 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 
-import { render } from "ink";
+import { createCliRenderer } from "@opentui/core";
+import { createRoot } from "@opentui/react";
 import { spawn } from "node:child_process";
-import { App, VERSION } from "./ui/InkApp.js";
+import { App } from "./ui/App.js";
 import { prerunClaude } from "./prerunner/index.js";
 import { checkForUpdates } from "./services/version-check.js";
 
-// ANSI escape codes for terminal control
-const ENTER_ALT_SCREEN = "\x1b[?1049h";
-const EXIT_ALT_SCREEN = "\x1b[?1049l";
-const HIDE_CURSOR = "\x1b[?25l";
-const SHOW_CURSOR = "\x1b[?25h";
-const CLEAR_SCREEN = "\x1b[2J\x1b[H";
+export const VERSION = "3.0.0";
+
+// Note: OpenTUI renderer handles alternate screen buffer automatically
+// No need for manual ANSI escape codes
 
 async function main(): Promise<void> {
 	const args = process.argv.slice(2);
@@ -21,10 +20,13 @@ async function main(): Promise<void> {
 		const claudeArgs = args.slice(1);
 
 		// Parse prerunner-specific flags
-		const forceUpdate = claudeArgs.includes("--force") || claudeArgs.includes("-f");
+		const forceUpdate =
+			claudeArgs.includes("--force") || claudeArgs.includes("-f");
 
 		// Remove prerunner flags before passing to claude
-		const filteredArgs = claudeArgs.filter(arg => arg !== "--force" && arg !== "-f");
+		const filteredArgs = claudeArgs.filter(
+			(arg) => arg !== "--force" && arg !== "-f",
+		);
 
 		const exitCode = await prerunClaude(filteredArgs, { force: forceUpdate });
 		process.exit(exitCode);
@@ -110,36 +112,31 @@ Keys:
 		process.exit(0);
 	}
 
-	// Enter alternate screen buffer for clean TUI rendering
-	process.stdout.write(ENTER_ALT_SCREEN + HIDE_CURSOR + CLEAR_SCREEN);
+	// Create OpenTUI renderer (handles alternate screen buffer automatically)
+	const renderer = await createCliRenderer();
+	const root = createRoot(renderer);
 
 	// Cleanup function to restore terminal
 	const cleanup = () => {
-		process.stdout.write(SHOW_CURSOR + EXIT_ALT_SCREEN);
+		root.unmount();
+		renderer.destroy(); // CRITICAL: Never use process.exit() directly
 	};
-
-	// Render the Ink app
-	const { waitUntilExit, clear, unmount } = render(<App />, {
-		exitOnCtrlC: false, // We'll handle it ourselves
-	});
 
 	// Handle cleanup on exit signals
 	const handleExit = () => {
-		clear();
-		unmount();
 		cleanup();
+		// Exit after cleanup completes
 		process.exit(0);
 	};
 
 	process.on("SIGINT", handleExit);
 	process.on("SIGTERM", handleExit);
 
-	// Wait for the app to exit
-	try {
-		await waitUntilExit();
-	} finally {
-		cleanup();
-	}
+	// Render the OpenTUI app with exit handler
+	root.render(<App onExit={handleExit} />);
+
+	// Wait indefinitely (app runs until user exits)
+	await new Promise(() => {});
 }
 
 main().catch((error) => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState, useRef } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp, useModal, useNavigation } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import { searchMcpServers, formatDate } from "../../services/mcp-registry.js";
@@ -67,7 +67,7 @@ function compareVersions(a: McpRegistryServer, b: McpRegistryServer): number {
 	return 0;
 }
 
-export function McpRegistryScreen(): React.ReactElement {
+export function McpRegistryScreen() {
 	const { state, dispatch } = useApp();
 	const { mcpRegistry } = state;
 	const modal = useModal();
@@ -128,32 +128,32 @@ export function McpRegistryScreen(): React.ReactElement {
 	}, []);
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		// Handle search mode
 		if (isSearchActive) {
-			if (key.escape) {
+			if (event.name === "escape") {
 				dispatch({ type: "SET_SEARCHING", isSearching: false });
-			} else if (key.return) {
+			} else if (event.name === "enter") {
 				// Exit search mode and stay on list for navigation
 				dispatch({ type: "SET_SEARCHING", isSearching: false });
-			} else if (key.upArrow) {
+			} else if (event.name === "up") {
 				// Allow navigation while searching
 				const newIndex = Math.max(0, mcpRegistry.selectedIndex - 1);
 				dispatch({ type: "MCPREGISTRY_SELECT", index: newIndex });
-			} else if (key.downArrow) {
+			} else if (event.name === "down") {
 				// Allow navigation while searching
 				const newIndex = Math.min(
 					Math.max(0, servers.length - 1),
 					mcpRegistry.selectedIndex + 1,
 				);
 				dispatch({ type: "MCPREGISTRY_SELECT", index: newIndex });
-			} else if (key.backspace || key.delete) {
+			} else if (event.name === "backspace" || event.name === "delete") {
 				const newQuery = searchQuery.slice(0, -1);
 				setSearchQuery(newQuery);
 				dispatch({ type: "MCPREGISTRY_SEARCH", query: newQuery });
 				debouncedSearch(newQuery);
-			} else if (input && !key.ctrl && !key.meta) {
-				const newQuery = searchQuery + input;
+			} else if (event.name.length === 1 && !event.ctrl && !event.meta) {
+				const newQuery = searchQuery + event.name;
 				setSearchQuery(newQuery);
 				dispatch({ type: "MCPREGISTRY_SEARCH", query: newQuery });
 				debouncedSearch(newQuery);
@@ -164,26 +164,26 @@ export function McpRegistryScreen(): React.ReactElement {
 		if (state.modal) return;
 
 		// Start search with /
-		if (input === "/") {
+		if (event.name === "/") {
 			dispatch({ type: "SET_SEARCHING", isSearching: true });
 			return;
 		}
 
 		// Navigation
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, mcpRegistry.selectedIndex - 1);
 			dispatch({ type: "MCPREGISTRY_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(
 				Math.max(0, servers.length - 1),
 				mcpRegistry.selectedIndex + 1,
 			);
 			dispatch({ type: "MCPREGISTRY_SELECT", index: newIndex });
-		} else if (input === "l") {
+		} else if (event.name === "l") {
 			navigateToScreen("mcp");
-		} else if (input === "R") {
+		} else if (event.name === "R") {
 			loadServers(searchQuery);
-		} else if (key.return) {
+		} else if (event.name === "enter") {
 			handleInstall();
 		}
 	});
@@ -218,15 +218,15 @@ export function McpRegistryScreen(): React.ReactElement {
 
 	const renderDetail = () => {
 		if (isLoading) {
-			return <Text color="gray">Loading...</Text>;
+			return <text fg="gray">Loading...</text>;
 		}
 
 		if (error) {
-			return <Text color="red">Error: {error}</Text>;
+			return <text fg="red">Error: {error}</text>;
 		}
 
 		if (!selectedServer) {
-			return <Text color="gray">Select a server to see details</Text>;
+			return <text fg="gray">Select a server to see details</text>;
 		}
 
 		const dateDisplay = selectedServer.published_at
@@ -238,35 +238,33 @@ export function McpRegistryScreen(): React.ReactElement {
 			: "unknown";
 
 		return (
-			<Box flexDirection="column">
-				<Text bold color="magenta">
-					{selectedServer.name}
-				</Text>
-				<Box marginTop={1}>
-					<Text>{selectedServer.short_description}</Text>
-				</Box>
-				<Box marginTop={1}>
-					<Text bold>Version: </Text>
-					<Text color="green">{versionDisplay}</Text>
-				</Box>
-				<Box>
-					<Text bold>Published: </Text>
-					<Text color="cyan">{dateDisplay}</Text>
-				</Box>
-				<Box marginTop={1} flexDirection="column">
-					<Text bold>URL:</Text>
-					<Text color="cyan">{selectedServer.url}</Text>
-				</Box>
+			<box flexDirection="column">
+				<text fg="magenta"><strong>{selectedServer.name}</strong></text>
+				<box marginTop={1}>
+					<text>{selectedServer.short_description}</text>
+				</box>
+				<box marginTop={1}>
+					<text><strong>Version: </strong></text>
+					<text fg="green">{versionDisplay}</text>
+				</box>
+				<box>
+					<text><strong>Published: </strong></text>
+					<text fg="cyan">{dateDisplay}</text>
+				</box>
+				<box marginTop={1} flexDirection="column">
+					<text><strong>URL:</strong></text>
+					<text fg="cyan">{selectedServer.url}</text>
+				</box>
 				{selectedServer.source_code_url && (
-					<Box marginTop={1} flexDirection="column">
-						<Text bold>Source:</Text>
-						<Text color="gray">{selectedServer.source_code_url}</Text>
-					</Box>
+					<box marginTop={1} flexDirection="column">
+						<text><strong>Source:</strong></text>
+						<text fg="gray">{selectedServer.source_code_url}</text>
+					</box>
 				)}
-				<Box marginTop={1}>
-					<Text color="green">Press Enter to install</Text>
-				</Box>
-			</Box>
+				<box marginTop={1}>
+					<text fg="green">Press Enter to install</text>
+				</box>
+			</box>
 		);
 	};
 
@@ -277,16 +275,16 @@ export function McpRegistryScreen(): React.ReactElement {
 	) => {
 		const version = server.version ? ` v${server.version}` : "";
 		return isSelected ? (
-			<Text backgroundColor="magenta" color="white" wrap="truncate">
+			<text bg="magenta" fg="white">
 				{" "}
 				{server.name}
 				{version}{" "}
-			</Text>
+			</text>
 		) : (
-			<Text wrap="truncate">
-				<Text bold>{server.name}</Text>
-				<Text color="green">{version}</Text>
-			</Text>
+			<text>
+				<span><strong>{server.name}</strong></span>
+				<span fg="green">{version}</span>
+			</text>
 		);
 	};
 
@@ -311,11 +309,11 @@ export function McpRegistryScreen(): React.ReactElement {
 			footerHints={footerHints}
 			listPanel={
 				isLoading ? (
-					<Text color="gray">Loading...</Text>
+					<text fg="gray">Loading...</text>
 				) : error ? (
-					<Text color="red">Error: {error}</Text>
+					<text fg="red">Error: {error}</text>
 				) : servers.length === 0 ? (
-					<Text color="gray">No servers found</Text>
+					<text fg="gray">No servers found</text>
 				) : (
 					<ScrollableList
 						items={servers}

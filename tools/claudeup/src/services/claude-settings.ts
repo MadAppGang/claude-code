@@ -5,7 +5,6 @@ import type {
 	ClaudeSettings,
 	ClaudeLocalSettings,
 	McpServerConfig,
-	Marketplace,
 	MarketplaceSource,
 	DiscoveredMarketplace,
 	InstalledPluginsRegistry,
@@ -213,33 +212,10 @@ export async function setAllowMcp(
 	// This function is kept for API compatibility but is now a no-op
 }
 
-// Marketplace management
-export async function addMarketplace(
-	marketplace: Marketplace,
-	projectPath?: string,
-): Promise<void> {
-	const settings = await readSettings(projectPath);
-	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
-	settings.extraKnownMarketplaces[marketplace.name] = {
-		source: marketplace.source,
-	};
-	await writeSettings(settings, projectPath);
-
-	// Also enable auto-update in known_marketplaces.json if entry exists
-	// (Claude Code creates the entry when it syncs the marketplace)
-	await setMarketplaceAutoUpdate(marketplace.name, true);
-}
-
-export async function removeMarketplace(
-	name: string,
-	projectPath?: string,
-): Promise<void> {
-	const settings = await readSettings(projectPath);
-	if (settings.extraKnownMarketplaces) {
-		delete settings.extraKnownMarketplaces[name];
-	}
-	await writeSettings(settings, projectPath);
-}
+// Marketplace management - READ ONLY
+// Use Claude Code CLI commands to add/remove marketplaces:
+// claude marketplace add owner/repo
+// claude marketplace remove name
 
 // Plugin management
 export async function enablePlugin(
@@ -439,29 +415,8 @@ export async function getConfiguredMarketplaces(
 	return settings.extraKnownMarketplaces || {};
 }
 
-// Global marketplace management
-export async function addGlobalMarketplace(
-	marketplace: Marketplace,
-): Promise<void> {
-	const settings = await readGlobalSettings();
-	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
-	settings.extraKnownMarketplaces[marketplace.name] = {
-		source: marketplace.source,
-	};
-	await writeGlobalSettings(settings);
-
-	// Also enable auto-update in known_marketplaces.json if entry exists
-	// (Claude Code creates the entry when it syncs the marketplace)
-	await setMarketplaceAutoUpdate(marketplace.name, true);
-}
-
-export async function removeGlobalMarketplace(name: string): Promise<void> {
-	const settings = await readGlobalSettings();
-	if (settings.extraKnownMarketplaces) {
-		delete settings.extraKnownMarketplaces[name];
-	}
-	await writeGlobalSettings(settings);
-}
+// Global marketplace management - READ ONLY
+// Marketplaces are managed via Claude Code's native system
 
 export async function getGlobalConfiguredMarketplaces(): Promise<
 	Record<string, MarketplaceSource>
@@ -678,7 +633,10 @@ export async function recoverMarketplaceSettings(): Promise<MarketplaceRecoveryR
 
 	for (const [name, entry] of Object.entries(known)) {
 		// Check if install location still exists
-		if (entry.installLocation && !(await fs.pathExists(entry.installLocation))) {
+		if (
+			entry.installLocation &&
+			!(await fs.pathExists(entry.installLocation))
+		) {
 			result.removed.push(name);
 			continue;
 		}

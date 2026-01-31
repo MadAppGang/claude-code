@@ -1,4 +1,6 @@
 import path from "node:path";
+import os from "node:os";
+import { execSync } from "node:child_process";
 import {
 	getConfiguredMarketplaces,
 	getEnabledPlugins,
@@ -15,10 +17,8 @@ import {
 import { defaultMarketplaces } from "../data/marketplaces.js";
 import {
 	scanLocalMarketplaces,
-	refreshLocalMarketplaces,
 	repairAllMarketplaces,
 	type LocalMarketplace,
-	type RefreshResult,
 	type ProgressCallback,
 	type RepairMarketplaceResult,
 } from "./local-marketplace.js";
@@ -593,35 +593,101 @@ export async function getLocalMarketplacesInfo(): Promise<
 }
 
 export interface RefreshAndRepairResult {
-	refresh: RefreshResult[];
+	refresh: never[];
 	repair: RepairMarketplaceResult[];
 }
 
 /**
- * Refresh all marketplace data:
- * 1. Git pull on all local marketplaces
- * 2. Auto-repair plugin.json files (add missing agents/commands/skills arrays)
- * 3. Clear all caches (forces re-fetch from GitHub and re-scan of local)
- * Returns results from git pull and repair operations
- * @param onProgress - Optional callback for progress updates
+ * Refresh claudeup's internal cache
+ * Note: Marketplace updates should be done via Claude Code's /plugin marketplace update command
  */
 export async function refreshAllMarketplaces(
 	onProgress?: ProgressCallback,
 ): Promise<RefreshAndRepairResult> {
-	// First, git pull all local marketplaces
-	const refreshResults = await refreshLocalMarketplaces(onProgress);
+	onProgress?.({ current: 1, total: 1, name: "Clearing cache..." });
+
+	// Clear all caches to force fresh data
+	clearMarketplaceCache();
 
 	// Auto-repair plugin.json files with missing agents/commands/skills
 	const repairResults = await repairAllMarketplaces();
 
-	// Then clear all caches to force fresh data
-	clearMarketplaceCache();
-
 	return {
-		refresh: refreshResults,
+		refresh: [],
 		repair: repairResults,
 	};
 }
 
+export interface MarketplaceUpdateInfo {
+	name: string;
+	hasUpdate: boolean;
+	latestCommit?: string;
+	currentCommit?: string;
+}
+
+/**
+ * Check if marketplaces have updates available on GitHub
+ * Compares local git HEAD with remote HEAD
+ */
+export async function checkMarketplaceUpdates(): Promise<
+	MarketplaceUpdateInfo[]
+> {
+	const results: MarketplaceUpdateInfo[] = [];
+	const localMarketplaces = await getLocalMarketplaces();
+
+	for (const [name, marketplace] of localMarketplaces) {
+		if (!marketplace.gitRepo) continue;
+
+		try {
+			const marketplacePath = path.join(
+				os.homedir(),
+				".claude",
+				"plugins",
+				"marketplaces",
+				name,
+			);
+
+			// Get current HEAD from local repo
+			let currentHead: string;
+			try {
+				currentHead = execSync("git rev-parse HEAD", {
+					cwd: marketplacePath,
+					encoding: "utf-8",
+					timeout: 5000,
+				}).trim();
+			} catch {
+				continue; // Skip if can't get HEAD
+			}
+
+			// Fetch latest commit from GitHub API
+			const apiUrl = `https://api.github.com/repos/${marketplace.gitRepo}/commits/main`;
+			const response = await fetch(apiUrl, {
+				signal: AbortSignal.timeout(10000),
+				headers: {
+					Accept: "application/vnd.github.v3+json",
+				},
+			});
+
+			if (response.ok) {
+				const data = (await response.json()) as { sha: string };
+				const latestCommit = data.sha;
+
+				results.push({
+					name,
+					hasUpdate: currentHead !== latestCommit,
+					currentCommit: currentHead.substring(0, 7),
+					latestCommit: latestCommit.substring(0, 7),
+				});
+			} else {
+				results.push({ name, hasUpdate: false });
+			}
+		} catch {
+			results.push({ name, hasUpdate: false });
+		}
+	}
+
+	return results;
+}
+
 // Re-export types for consumers
-export type { RefreshResult, ProgressCallback };
+export type { ProgressCallback };

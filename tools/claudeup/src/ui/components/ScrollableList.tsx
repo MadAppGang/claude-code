@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Box, Text } from "ink";
+import React, { useState, useEffect, useMemo } from 'react';
+import { useKeyboardHandler } from '../hooks/useKeyboardHandler';
 
 interface ScrollableListProps<T> {
 	/** Array of items to display */
@@ -12,6 +12,10 @@ interface ScrollableListProps<T> {
 	maxHeight: number;
 	/** Show scroll indicators */
 	showScrollIndicators?: boolean;
+	/** Called when selection changes (arrow keys) */
+	onSelect?: (index: number) => void;
+	/** Whether this list should receive keyboard input */
+	focused?: boolean;
 }
 
 export function ScrollableList<T>({
@@ -20,8 +24,23 @@ export function ScrollableList<T>({
 	renderItem,
 	maxHeight,
 	showScrollIndicators = true,
-}: ScrollableListProps<T>): React.ReactElement {
+	onSelect,
+	focused = false,
+}: ScrollableListProps<T>) {
 	const [scrollOffset, setScrollOffset] = useState(0);
+
+	// Handle keyboard navigation
+	useKeyboardHandler((input, key) => {
+		if (!focused || !onSelect) return;
+
+		if (key.upArrow || input === 'k') {
+			const newIndex = Math.max(0, selectedIndex - 1);
+			onSelect(newIndex);
+		} else if (key.downArrow || input === 'j') {
+			const newIndex = Math.min(items.length - 1, selectedIndex + 1);
+			onSelect(newIndex);
+		}
+	});
 
 	// Account for scroll indicators in available space
 	const hasItemsAbove = scrollOffset > 0;
@@ -55,24 +74,24 @@ export function ScrollableList<T>({
 	const itemsBelow = items.length - scrollOffset - effectiveMaxHeight;
 
 	return (
-		<Box flexDirection="column">
+		<box flexDirection="column">
 			{/* Scroll up indicator */}
 			{showScrollIndicators && hasItemsAbove && (
-				<Text color="cyan">↑ {scrollOffset} more</Text>
+				<text fg="cyan">↑ {scrollOffset} more</text>
 			)}
 
 			{/* Visible items - strictly limited */}
 			{visibleItems.map(({ item, originalIndex }) => (
-				<Box key={originalIndex} width="100%" overflow="hidden">
+				<box key={originalIndex} width="100%" overflow="hidden">
 					{renderItem(item, originalIndex, originalIndex === selectedIndex)}
-				</Box>
+				</box>
 			))}
 
 			{/* Scroll down indicator */}
 			{showScrollIndicators && hasItemsBelow && (
-				<Text color="cyan">↓ {itemsBelow} more</Text>
+				<text fg="cyan">↓ {itemsBelow} more</text>
 			)}
-		</Box>
+		</box>
 	);
 }
 

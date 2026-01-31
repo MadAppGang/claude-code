@@ -1,9 +1,9 @@
 import React, { useEffect, useCallback, useState, useRef } from "react";
-import { Box, Text, useInput } from "ink";
 import { exec, execSync } from "child_process";
 import { promisify } from "util";
 import { useApp, useModal } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import { cliTools, type CliTool } from "../../data/cli-tools.js";
@@ -108,7 +108,7 @@ function compareVersions(v1: string, v2: string): number {
 	return 0;
 }
 
-export function CliToolsScreen(): React.ReactElement {
+export function CliToolsScreen() {
 	const { state, dispatch } = useApp();
 	const { cliTools: cliToolsState } = state;
 	const modal = useModal();
@@ -177,23 +177,23 @@ export function CliToolsScreen(): React.ReactElement {
 	}, [fetchVersionInfo, toolStatuses]);
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		if (state.isSearching || state.modal) return;
 
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, cliToolsState.selectedIndex - 1);
 			dispatch({ type: "CLITOOLS_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(
 				toolStatuses.length - 1,
 				cliToolsState.selectedIndex + 1,
 			);
 			dispatch({ type: "CLITOOLS_SELECT", index: newIndex });
-		} else if (input === "r") {
+		} else if (event.name === "r") {
 			handleRefresh();
-		} else if (input === "a") {
+		} else if (event.name === "a") {
 			handleUpdateAll();
-		} else if (key.return) {
+		} else if (event.name === "enter") {
 			handleInstall();
 		}
 	});
@@ -296,14 +296,14 @@ export function CliToolsScreen(): React.ReactElement {
 	const renderDetail = () => {
 		if (!selectedStatus) {
 			return (
-				<Box
+				<box
 					flexDirection="column"
 					alignItems="center"
 					justifyContent="center"
 					flexGrow={1}
 				>
-					<Text color="gray">Select a tool to see details</Text>
-				</Box>
+					<text fg="gray">Select a tool to see details</text>
+				</box>
 			);
 		}
 
@@ -317,75 +317,75 @@ export function CliToolsScreen(): React.ReactElement {
 		} = selectedStatus;
 
 		return (
-			<Box flexDirection="column">
-				<Box marginBottom={1}>
-					<Text bold color="cyan">
-						⚙ {tool.displayName}
-					</Text>
-					{hasUpdate && <Text color="yellow"> ⬆</Text>}
-				</Box>
+			<box flexDirection="column">
+				<box marginBottom={1}>
+					<text fg="cyan">
+						<strong>⚙ {tool.displayName}</strong>
+					</text>
+					{hasUpdate && <text fg="yellow"> ⬆</text>}
+				</box>
 
-				<Text color="gray">{tool.description}</Text>
+				<text fg="gray">{tool.description}</text>
 
-				<Box marginTop={1} flexDirection="column">
-					<Box>
-						<Text color="gray">Status </Text>
+				<box marginTop={1} flexDirection="column">
+					<box>
+						<text fg="gray">Status </text>
 						{!installed ? (
-							<Text color="gray">○ Not installed</Text>
+							<text fg="gray">○ Not installed</text>
 						) : checking ? (
-							<Text color="green">● Checking...</Text>
+							<text fg="green">● Checking...</text>
 						) : hasUpdate ? (
-							<Text color="yellow">● Update available</Text>
+							<text fg="yellow">● Update available</text>
 						) : (
-							<Text color="green">● Up to date</Text>
+							<text fg="green">● Up to date</text>
 						)}
-					</Box>
+					</box>
 					{installedVersion && (
-						<Box>
-							<Text color="gray">Installed </Text>
-							<Text color="green">v{installedVersion}</Text>
-						</Box>
+						<box>
+							<text fg="gray">Installed </text>
+							<text fg="green">v{installedVersion}</text>
+						</box>
 					)}
 					{latestVersion && (
-						<Box>
-							<Text color="gray">Latest </Text>
-							<Text color="white">v{latestVersion}</Text>
-						</Box>
+						<box>
+							<text fg="gray">Latest </text>
+							<text fg="white">v{latestVersion}</text>
+						</box>
 					)}
-					<Box>
-						<Text color="gray">Website </Text>
-						<Text color="blue">{tool.website}</Text>
-					</Box>
-				</Box>
+					<box>
+						<text fg="gray">Website </text>
+						<text fg="blue">{tool.website}</text>
+					</box>
+				</box>
 
-				<Box marginTop={2}>
+				<box marginTop={2}>
 					{!installed ? (
-						<Box>
-							<Text backgroundColor="green" color="black">
+						<box>
+							<text bg="green" fg="black">
 								{" "}
 								Enter{" "}
-							</Text>
-							<Text color="gray"> Install</Text>
-						</Box>
+							</text>
+							<text fg="gray"> Install</text>
+						</box>
 					) : hasUpdate ? (
-						<Box>
-							<Text backgroundColor="yellow" color="black">
+						<box>
+							<text bg="yellow" fg="black">
 								{" "}
 								Enter{" "}
-							</Text>
-							<Text color="gray"> Update to v{latestVersion}</Text>
-						</Box>
+							</text>
+							<text fg="gray"> Update to v{latestVersion}</text>
+						</box>
 					) : (
-						<Box>
-							<Text backgroundColor="gray" color="white">
+						<box>
+							<text bg="gray" fg="white">
 								{" "}
 								Enter{" "}
-							</Text>
-							<Text color="gray"> Reinstall</Text>
-						</Box>
+							</text>
+							<text fg="gray"> Reinstall</text>
+						</box>
 					)}
-				</Box>
-			</Box>
+				</box>
+			</box>
 		);
 	};
 
@@ -413,18 +413,18 @@ export function CliToolsScreen(): React.ReactElement {
 		const versionText = installedVersion ? `v${installedVersion}` : "";
 
 		return isSelected ? (
-			<Text backgroundColor="magenta" color="white" wrap="truncate">
+			<text bg="magenta" fg="white">
 				{" "}
 				{icon} {tool.displayName} {versionText}
 				{checking ? "..." : ""}{" "}
-			</Text>
+			</text>
 		) : (
-			<Text wrap="truncate">
-				<Text color={iconColor}>{icon}</Text>
-				<Text color="white"> {tool.displayName}</Text>
-				{versionText && <Text color="green"> {versionText}</Text>}
-				{checking && <Text color="gray">...</Text>}
-			</Text>
+			<text>
+				<span fg={iconColor}>{icon}</span>
+				<span fg="white"> {tool.displayName}</span>
+				{versionText && <span fg="green"> {versionText}</span>}
+				{checking && <span fg="gray">...</span>}
+			</text>
 		);
 	};
 
@@ -433,14 +433,14 @@ export function CliToolsScreen(): React.ReactElement {
 	const updateCount = toolStatuses.filter((s) => s.hasUpdate).length;
 	const statusContent = (
 		<>
-			<Text color="gray">Installed: </Text>
-			<Text color="cyan">
+			<text fg="gray">Installed: </text>
+			<text fg="cyan">
 				{installedCount}/{toolStatuses.length}
-			</Text>
+			</text>
 			{updateCount > 0 && (
 				<>
-					<Text color="gray"> │ Updates: </Text>
-					<Text color="yellow">{updateCount}</Text>
+					<text fg="gray"> │ Updates: </text>
+					<text fg="yellow">{updateCount}</text>
 				</>
 			)}
 		</>

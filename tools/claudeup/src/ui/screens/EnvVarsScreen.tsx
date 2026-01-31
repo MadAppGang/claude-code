@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp, useModal } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import {
@@ -15,7 +15,7 @@ interface EnvVar {
 	value: string;
 }
 
-export function EnvVarsScreen(): React.ReactElement {
+export function EnvVarsScreen() {
 	const { state, dispatch } = useApp();
 	const { envVars } = state;
 	const modal = useModal();
@@ -45,23 +45,23 @@ export function EnvVarsScreen(): React.ReactElement {
 	}, [fetchData]);
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		if (state.isSearching || state.modal) return;
 
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, envVars.selectedIndex - 1);
 			dispatch({ type: "ENVVARS_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(
 				Math.max(0, envVarList.length - 1),
 				envVars.selectedIndex + 1,
 			);
 			dispatch({ type: "ENVVARS_SELECT", index: newIndex });
-		} else if (input === "a") {
+		} else if (event.name === "a") {
 			handleAdd();
-		} else if (input === "e" || key.return) {
+		} else if (event.name === "e" || event.name === "enter") {
 			handleEdit();
-		} else if (input === "d") {
+		} else if (event.name === "d") {
 			handleDelete();
 		}
 	});
@@ -161,54 +161,54 @@ export function EnvVarsScreen(): React.ReactElement {
 
 	const renderDetail = () => {
 		if (isLoading) {
-			return <Text color="gray">Loading environment variables...</Text>;
+			return <text fg="gray">Loading environment variables...</text>;
 		}
 
 		if (envVarList.length === 0) {
 			return (
-				<Box flexDirection="column">
-					<Text color="gray">No environment variables configured.</Text>
-					<Box marginTop={1}>
-						<Text color="green">Press 'a' to add a new variable</Text>
-					</Box>
-				</Box>
+				<box flexDirection="column">
+					<text fg="gray">No environment variables configured.</text>
+					<box marginTop={1}>
+						<text fg="green">Press 'a' to add a new variable</text>
+					</box>
+				</box>
 			);
 		}
 
 		if (!selectedVar) {
-			return <Text color="gray">Select a variable to see details</Text>;
+			return <text fg="gray">Select a variable to see details</text>;
 		}
 
 		return (
-			<Box flexDirection="column">
-				<Text bold color="cyan">
-					{selectedVar.name}
-				</Text>
-				<Box marginTop={1}>
-					<Text color="gray">Value: </Text>
-					<Text>
+			<box flexDirection="column">
+				<text fg="cyan">
+					<strong>{selectedVar.name}</strong>
+				</text>
+				<box marginTop={1}>
+					<text fg="gray">Value: </text>
+					<text>
 						{selectedVar.value.length > 50
 							? selectedVar.value.slice(0, 50) + "..."
 							: selectedVar.value}
-					</Text>
-				</Box>
-				<Box marginTop={2} flexDirection="column">
-					<Box>
-						<Text backgroundColor="magenta" color="white">
+					</text>
+				</box>
+				<box marginTop={2} flexDirection="column">
+					<box>
+						<text bg="magenta" fg="white">
 							{" "}
 							Enter{" "}
-						</Text>
-						<Text color="gray"> Edit value</Text>
-					</Box>
-					<Box marginTop={1}>
-						<Text backgroundColor="red" color="white">
+						</text>
+						<text fg="gray"> Edit value</text>
+					</box>
+					<box marginTop={1}>
+						<text bg="red" fg="white">
 							{" "}
 							d{" "}
-						</Text>
-						<Text color="gray"> Delete variable</Text>
-					</Box>
-				</Box>
-			</Box>
+						</text>
+						<text fg="gray"> Delete variable</text>
+					</box>
+				</box>
+			</box>
 		);
 	};
 
@@ -222,24 +222,24 @@ export function EnvVarsScreen(): React.ReactElement {
 				? envVar.value.slice(0, 20) + "..."
 				: envVar.value;
 		return isSelected ? (
-			<Text backgroundColor="magenta" color="white" wrap="truncate">
+			<text bg="magenta" fg="white">
 				{" "}
 				{envVar.name} = "{masked}"{" "}
-			</Text>
+			</text>
 		) : (
-			<Text wrap="truncate">
-				<Text color="cyan">{envVar.name}</Text>
-				<Text color="gray"> = "{masked}"</Text>
-			</Text>
+			<text>
+				<span fg="cyan">{envVar.name}</span>
+				<span fg="gray"> = "{masked}"</span>
+			</text>
 		);
 	};
 
 	const statusContent = (
 		<>
-			<Text color="gray">Variables: </Text>
-			<Text color="cyan">{envVarList.length}</Text>
-			<Text color="gray"> │ Location: </Text>
-			<Text color="green">.claude/settings.local.json</Text>
+			<text fg="gray">Variables: </text>
+			<text fg="cyan">{envVarList.length}</text>
+			<text fg="gray"> │ Location: </text>
+			<text fg="green">.claude/settings.local.json</text>
 		</>
 	);
 
@@ -251,7 +251,7 @@ export function EnvVarsScreen(): React.ReactElement {
 			footerHints="↑↓:nav │ Enter/e:edit │ a:add │ d:delete"
 			listPanel={
 				envVarList.length === 0 ? (
-					<Text color="gray">No environment variables configured</Text>
+					<text fg="gray">No environment variables configured</text>
 				) : (
 					<ScrollableList
 						items={envVarList}

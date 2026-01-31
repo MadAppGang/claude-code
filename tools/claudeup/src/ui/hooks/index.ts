@@ -1,5 +1,3 @@
-export {
-	useKeyboardNavigation,
-	useGlobalKeyboard,
-} from "./useKeyboardNavigation.js";
-export { useAsyncData, useDebouncedAsyncData } from "./useAsyncData.js";
+export { useAsyncData, useDebouncedAsyncData } from './useAsyncData.js';
+export { useKeyboardHandler } from './useKeyboardHandler.js';
+export { useKeyboard } from './useKeyboard.js';

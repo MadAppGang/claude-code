@@ -1,5 +1,4 @@
 import React from "react";
-import { Box, Text } from "ink";
 
 interface ProgressBarProps {
 	/** Progress message */
@@ -14,7 +13,7 @@ export function ProgressBar({
 	message,
 	current,
 	total,
-}: ProgressBarProps): React.ReactElement {
+}: ProgressBarProps) {
 	const isDeterminate =
 		current !== undefined && total !== undefined && total > 0;
 
@@ -25,23 +24,23 @@ export function ProgressBar({
 		const bar = "█".repeat(filled) + "░".repeat(empty);
 
 		return (
-			<Box>
-				<Text color="cyan">⟳</Text>
-				<Text> {message} </Text>
-				<Text color="cyan">
+			<box>
+				<text fg="cyan">⟳</text>
+				<text> {message} </text>
+				<text fg="cyan">
 					[{bar}] {current}/{total}
-				</Text>
-			</Box>
+				</text>
+			</box>
 		);
 	}
 
 	// Indeterminate progress
 	return (
-		<Box>
-			<Text color="cyan">⟳</Text>
-			<Text> {message}</Text>
-			<Text color="gray"> ...</Text>
-		</Box>
+		<box>
+			<text fg="cyan">⟳</text>
+			<text> {message}</text>
+			<text fg="gray"> ...</text>
+		</box>
 	);
 }
 

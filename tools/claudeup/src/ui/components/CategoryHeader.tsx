@@ -1,5 +1,4 @@
 import React from "react";
-import { Text } from "ink";
 
 interface CategoryHeaderProps {
 	/** Category title */
@@ -20,30 +19,22 @@ export function CategoryHeader({
 	statusColor = "green",
 	expanded = true,
 	count,
-}: CategoryHeaderProps): React.ReactElement {
+}: CategoryHeaderProps) {
 	const expandIcon = expanded ? "▼" : "▶";
 	const countBadge = count !== undefined ? ` (${count})` : "";
 	const statusText = status ? ` ${status}` : "";
 
 	// Simple format without dynamic line calculation
 	return (
-		<Text>
-			<Text color="gray" dimColor>
-				{expandIcon}
-			</Text>
-			<Text color="white" bold>
-				{" "}
-				{title}
-			</Text>
-			<Text color="gray" dimColor>
-				{countBadge}
-			</Text>
-			<Text color="gray" dimColor>
-				{" "}
-				────
-			</Text>
-			<Text color={statusColor}>{statusText}</Text>
-		</Text>
+		<text>
+			<span fg="#666666">{expandIcon}</span>
+			<span fg="white">
+				<strong> {title}</strong>
+			</span>
+			<span fg="#666666">{countBadge}</span>
+			<span fg="#666666"> ────</span>
+			<span fg={statusColor}>{statusText}</span>
+		</text>
 	);
 }
 

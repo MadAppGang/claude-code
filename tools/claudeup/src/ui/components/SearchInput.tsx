@@ -1,5 +1,5 @@
-import React from "react";
-import { Box, Text, useInput } from "ink";
+import React from 'react';
+import { useKeyboardHandler } from '../hooks/useKeyboardHandler.js';
 
 interface SearchInputProps {
 	/** Current search value */
@@ -19,48 +19,37 @@ interface SearchInputProps {
 export function SearchInput({
 	value,
 	onChange,
-	placeholder = "Search...",
+	placeholder = 'Search...',
 	isActive,
 	onExit,
 	onSubmit,
-}: SearchInputProps): React.ReactElement {
-	useInput(
-		(input, key) => {
-			if (!isActive) return;
+}: SearchInputProps) {
+	// Handle keyboard shortcuts when active
+	useKeyboardHandler((_input, key) => {
+		if (!isActive) return;
 
-			if (key.escape) {
-				onExit?.();
-				return;
-			}
+		if (key.escape) {
+			onExit?.();
+			return;
+		}
 
-			if (key.return) {
-				onSubmit?.();
-				return;
-			}
-
-			if (key.backspace || key.delete) {
-				onChange(value.slice(0, -1));
-				return;
-			}
-
-			// Only accept printable characters
-			if (input && !key.ctrl && !key.meta) {
-				onChange(value + input);
-			}
-		},
-		{ isActive },
-	);
-
-	const displayValue = value || (isActive ? "" : placeholder);
-	const showCursor = isActive;
-	const textColor = value ? "white" : "gray";
+		if (key.return) {
+			onSubmit?.();
+			return;
+		}
+	});
 
 	return (
-		<Box>
-			<Text color="cyan">❯ </Text>
-			<Text color={textColor}>{displayValue}</Text>
-			{showCursor && <Text color="cyan">▋</Text>}
-		</Box>
+		<box flexDirection="row">
+			<text fg="cyan">❯ </text>
+			<input
+				value={value}
+				onChange={onChange}
+				placeholder={placeholder}
+				focused={isActive}
+				width={40}
+			/>
+		</box>
 	);
 }
 

@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
 import { ScrollableList } from "../components/ScrollableList.js";
 import { fuzzyFilter, highlightMatches } from "../../utils/fuzzy-search.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 
 interface ModelItem {
 	id: string;
@@ -155,7 +155,7 @@ const XAI_MODELS: ModelItem[] = [
 	}, // Configured check missing in reference image? No, line is very faint. Assuming not configured or just separator missing.
 ];
 
-export function ModelSelectorScreen(): React.ReactElement {
+export function ModelSelectorScreen() {
 	const { state, dispatch } = useApp();
 	const { modelSelector } = state;
 	const dimensions = useDimensions();
@@ -229,9 +229,9 @@ export function ModelSelectorScreen(): React.ReactElement {
 	}, [filteredItems, modelSelector.selectedIndex, dispatch]);
 
 	// Handle keyboard
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		// Search input handling
-		if (key.backspace || key.delete) {
+		if (event.name === "backspace" || event.name === "delete") {
 			dispatch({
 				type: "MODEL_SELECTOR_SET_SEARCH",
 				query: modelSelector.searchQuery.slice(0, -1),
@@ -239,34 +239,15 @@ export function ModelSelectorScreen(): React.ReactElement {
 			return;
 		}
 
-		if (
-			input &&
-			!key.ctrl &&
-			!key.meta &&
-			!key.upArrow &&
-			!key.downArrow &&
-			!key.leftArrow &&
-			!key.rightArrow &&
-			!key.return &&
-			!key.tab &&
-			!key.escape
-		) {
-			dispatch({
-				type: "MODEL_SELECTOR_SET_SEARCH",
-				query: modelSelector.searchQuery + input,
-			});
-			return;
-		}
-
 		// Toggle Task Size
-		if (key.tab) {
+		if (event.name === "tab") {
 			const newSize = modelSelector.taskSize === "large" ? "small" : "large";
 			dispatch({ type: "MODEL_SELECTOR_SET_TASK_SIZE", size: newSize });
 			return;
 		}
 
 		// Navigation
-		if (key.upArrow || (key.ctrl && input === "p")) {
+		if (event.name === "up" || (event.ctrl && event.name === "p")) {
 			// Standard navigation
 			let newIndex = modelSelector.selectedIndex - 1;
 			// Skip headers while moving up
@@ -276,7 +257,10 @@ export function ModelSelectorScreen(): React.ReactElement {
 			if (newIndex >= 0) {
 				dispatch({ type: "MODEL_SELECTOR_SELECT", index: newIndex });
 			}
-		} else if (key.downArrow || (key.ctrl && input === "n")) {
+			return;
+		}
+
+		if (event.name === "down" || (event.ctrl && event.name === "n")) {
 			let newIndex = modelSelector.selectedIndex + 1;
 			// Skip headers while moving down
 			while (
@@ -288,9 +272,26 @@ export function ModelSelectorScreen(): React.ReactElement {
 			if (newIndex < filteredItems.length) {
 				dispatch({ type: "MODEL_SELECTOR_SELECT", index: newIndex });
 			}
-		} else if (key.return) {
+			return;
+		}
+
+		if (event.name === "enter" || event.name === "return") {
 			// Just log selection for now or exit
 			// dispatch({ type: 'NAVIGATE', route: { screen: 'plugins' } });
+			return;
+		}
+
+		// Regular text input (single character keys)
+		if (
+			event.name.length === 1 &&
+			!event.ctrl &&
+			!event.shift
+		) {
+			dispatch({
+				type: "MODEL_SELECTOR_SET_SEARCH",
+				query: modelSelector.searchQuery + event.name,
+			});
+			return;
 		}
 	});
 
@@ -301,14 +302,14 @@ export function ModelSelectorScreen(): React.ReactElement {
 			const status = item.configured ? "✔ Configured" : "";
 
 			return (
-				<Box marginY={0}>
-					<Text color="gray">{item.label} </Text>
-					<Text color="gray" dimColor>
+				<box margin={0}>
+					<text fg="gray">{item.label} </text>
+					<text fg="#888888">
 						⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
-					</Text>
-					{status && <Text color="green"> {status}</Text>}
-					{item.provider && <Text color="blue"> {item.provider}</Text>}
-				</Box>
+					</text>
+					{status && <text fg="green"> {status}</text>}
+					{item.provider && <text fg="blue"> {item.provider}</text>}
+				</box>
 			);
 		}
 
@@ -318,12 +319,12 @@ export function ModelSelectorScreen(): React.ReactElement {
 		const labelSegment = matches ? highlightMatches(item.label, matches) : null;
 
 		const Label = () => (
-			<Text color={isSelected ? "white" : "white"}>
+			<text fg={isSelected ? "white" : "white"}>
 				{labelSegment
 					? labelSegment.map((seg, i) => (
-							<Text
+							<text
 								key={i}
-								color={
+								fg={
 									seg.highlighted
 										? isSelected
 											? "white"
@@ -332,42 +333,40 @@ export function ModelSelectorScreen(): React.ReactElement {
 											? "white"
 											: "white"
 								}
-								underline={seg.highlighted}
-								bold={seg.highlighted}
 							>
-								{seg.text}
-							</Text>
+								{seg.highlighted ? <u><strong>{seg.text}</strong></u> : seg.text}
+							</text>
 						))
 					: item.label}
-			</Text>
+			</text>
 		);
 
 		if (isSelected) {
 			return (
-				<Box overflow="hidden">
-					<Text backgroundColor="magenta" color="white">
+				<box overflow="hidden">
+					<text bg="magenta" fg="white">
 						{" "}
-					</Text>
-					<Text backgroundColor="magenta" color="white">
+					</text>
+					<text bg="magenta" fg="white">
 						<Label />
-					</Text>
-					<Box flexGrow={1}>
-						<Text backgroundColor="magenta"> </Text>
-					</Box>
+					</text>
+					<box flexGrow={1}>
+						<text bg="magenta"> </text>
+					</box>
 					{item.provider && (
-						<Text backgroundColor="magenta" color="white">
+						<text bg="magenta" fg="white">
 							{item.provider}{" "}
-						</Text>
+						</text>
 					)}
-				</Box>
+				</box>
 			);
 		} else {
 			return (
-				<Box overflow="hidden">
+				<box overflow="hidden">
 					<Label />
-					<Box flexGrow={1} />
-					{item.provider && <Text color="gray">{item.provider}</Text>}
-				</Box>
+					<box flexGrow={1} />
+					{item.provider && <text fg="gray">{item.provider}</text>}
+				</box>
 			);
 		}
 	};
@@ -382,46 +381,47 @@ export function ModelSelectorScreen(): React.ReactElement {
 	const listHeight = Math.max(5, dimensions.contentHeight - 5);
 
 	return (
-		<Box flexDirection="column" height={dimensions.contentHeight}>
+		<box flexDirection="column" height={dimensions.contentHeight}>
 			{/* Top Bar */}
-			<Box
+			<box
 				flexDirection="row"
+				border
 				borderStyle="single"
 				borderColor="#7e57c2"
-				paddingX={1}
-				marginBottom={0}
+				paddingLeft={1}
+				paddingRight={1}
 			>
-				<Box flexDirection="column" flexGrow={1}>
-					<Box flexDirection="row" justifyContent="space-between">
-						<Box>
-							<Text color="#7e57c2">Switch Model </Text>
-							<Text
-								color={modelSelector.taskSize === "large" ? "white" : "gray"}
+				<box flexDirection="column" flexGrow={1}>
+					<box flexDirection="row" justifyContent="space-between">
+						<box>
+							<text fg="#7e57c2">Switch Model </text>
+							<text
+								fg={modelSelector.taskSize === "large" ? "white" : "gray"}
 							>
 								{modelSelector.taskSize === "large" ? "◎" : "○"} Large Task
 								{"  "}
-							</Text>
-							<Text
-								color={modelSelector.taskSize === "small" ? "white" : "gray"}
+							</text>
+							<text
+								fg={modelSelector.taskSize === "small" ? "white" : "gray"}
 							>
 								{modelSelector.taskSize === "small" ? "◎" : "○"} Small Task
-							</Text>
-						</Box>
-					</Box>
-					<Box flexDirection="row" marginTop={1}>
-						<Text color="green">{"> "}</Text>
-						<Text>{modelSelector.searchQuery}</Text>
-						<Text inverse color="gray">
+							</text>
+						</box>
+					</box>
+					<box flexDirection="row" marginTop={1}>
+						<text fg="green">{"> "}</text>
+						<text>{modelSelector.searchQuery}</text>
+						<text bg="gray" fg="black">
 							{" "}
-						</Text>
-					</Box>
-				</Box>
-			</Box>
+						</text>
+					</box>
+				</box>
+			</box>
 
 			{/* Initial selection ensurement */}
 			{/* (Handled in reducer or manually here if needed to avoid index -1) */}
 
-			<Box flexGrow={1} paddingX={1}>
+			<box flexGrow={1} paddingLeft={1} paddingRight={1}>
 				<ScrollableList
 					items={filteredItems}
 					selectedIndex={modelSelector.selectedIndex}
@@ -429,20 +429,12 @@ export function ModelSelectorScreen(): React.ReactElement {
 					maxHeight={listHeight}
 					showScrollIndicators={false}
 				/>
-			</Box>
+			</box>
 
-			<Box
-				height={1}
-				borderStyle="single"
-				borderTop={false}
-				borderLeft={false}
-				borderRight={false}
-				borderBottom={false}
-				marginTop={0}
-			>
-				<Text dimColor>{footerHints}</Text>
-			</Box>
-		</Box>
+			<box height={1}>
+				<text fg="#888888">{footerHints}</text>
+			</box>
+		</box>
 	);
 }
 

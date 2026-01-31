@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, useInput } from "ink";
+import { useKeyboard } from "../../hooks/useKeyboard.js";
 
 interface MessageModalProps {
 	/** Modal title */
@@ -23,36 +23,41 @@ export function MessageModal({
 	message,
 	variant,
 	onDismiss,
-}: MessageModalProps): React.ReactElement {
+}: MessageModalProps) {
 	const config = variantConfig[variant];
 
-	useInput(() => {
+	useKeyboard(() => {
 		// Any key dismisses
 		onDismiss();
 	});
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor={config.color}
-			paddingX={2}
-			paddingY={1}
+			paddingLeft={2}
+			paddingRight={2}
+			paddingTop={1}
+			paddingBottom={1}
 			width={60}
 		>
-			<Box>
-				<Text color={config.color}>{config.icon}</Text>
-				<Text bold> {title}</Text>
-			</Box>
+			<box>
+				<text fg={config.color}>{config.icon} </text>
+				<text>
+					<strong>{title}</strong>
+				</text>
+			</box>
 
-			<Box marginY={1}>
-				<Text>{message}</Text>
-			</Box>
+			<box marginTop={1} marginBottom={1}>
+				<text>{message}</text>
+			</box>
 
-			<Box>
-				<Text color="gray">Press any key to continue</Text>
-			</Box>
-		</Box>
+			<box>
+				<text fg="#666666">Press any key to continue</text>
+			</box>
+		</box>
 	);
 }
 

@@ -1,5 +1,4 @@
 import React from "react";
-import { Box, Text } from "ink";
 
 interface ScopeTabsProps {
 	/** Current scope */
@@ -14,44 +13,40 @@ export function ScopeTabs({
 	scope,
 	onToggle: _onToggle,
 	toggleHint,
-}: ScopeTabsProps): React.ReactElement {
+}: ScopeTabsProps) {
 	const isProject = scope === "project";
 
 	return (
-		<Box marginBottom={1} flexDirection="row" gap={1}>
+		<box marginBottom={1} flexDirection="row" gap={1}>
 			{/* Project tab */}
-			<Box>
+			<box>
 				{isProject ? (
-					<Text backgroundColor="cyan" color="black" bold>
-						{" "}
-						◆ Project{" "}
-					</Text>
+					<text bg="cyan" fg="black">
+						<strong> ◆ Project </strong>
+					</text>
 				) : (
-					<Text color="gray"> ○ Project </Text>
+					<text fg="gray"> ○ Project </text>
 				)}
-			</Box>
+			</box>
 
 			{/* Global tab */}
-			<Box>
+			<box>
 				{!isProject ? (
-					<Text backgroundColor="magenta" color="white" bold>
-						{" "}
-						◆ Global{" "}
-					</Text>
+					<text bg="magenta" fg="white">
+						<strong> ◆ Global </strong>
+					</text>
 				) : (
-					<Text color="gray"> ○ Global </Text>
+					<text fg="gray"> ○ Global </text>
 				)}
-			</Box>
+			</box>
 
 			{/* Toggle hint */}
 			{toggleHint && (
-				<Box marginLeft={2}>
-					<Text color="gray" dimColor>
-						({toggleHint})
-					</Text>
-				</Box>
+				<box marginLeft={2}>
+					<text fg="#666666">({toggleHint})</text>
+				</box>
 			)}
-		</Box>
+		</box>
 	);
 }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Text, useInput } from "ink";
+import { useKeyboard } from "../../hooks/useKeyboard.js";
 
 interface ConfirmModalProps {
 	/** Modal title */
@@ -17,35 +17,42 @@ export function ConfirmModal({
 	message,
 	onConfirm,
 	onCancel,
-}: ConfirmModalProps): React.ReactElement {
-	useInput((input, key) => {
-		if (input === "y" || input === "Y") {
+}: ConfirmModalProps) {
+	useKeyboard((key) => {
+		if (key.name === "y" || key.name === "Y") {
 			onConfirm();
-		} else if (input === "n" || input === "N" || key.escape) {
+		} else if (key.name === "n" || key.name === "N" || key.name === "escape") {
 			onCancel();
 		}
 	});
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor="yellow"
-			paddingX={2}
-			paddingY={1}
+			paddingLeft={2}
+			paddingRight={2}
+			paddingTop={1}
+			paddingBottom={1}
 			width={60}
 		>
-			<Text bold>{title}</Text>
-			<Box marginY={1}>
-				<Text>{message}</Text>
-			</Box>
-			<Box>
-				<Text color="green">[Y]</Text>
-				<Text>es </Text>
-				<Text color="red">[N]</Text>
-				<Text>o</Text>
-			</Box>
-		</Box>
+			<text>
+				<strong>{title}</strong>
+			</text>
+			<box marginTop={1} marginBottom={1}>
+				<text>{message}</text>
+			</box>
+			<box>
+				<text>
+					<span fg="green">[Y]</span>
+					<span>es </span>
+					<span fg="red">[N]</span>
+					<span>o</span>
+				</text>
+			</box>
+		</box>
 	);
 }
 

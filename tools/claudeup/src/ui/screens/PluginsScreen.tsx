@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useMemo } from "react";
-import { Box, Text, useInput } from "ink";
 import { useApp, useModal, useProgress } from "../state/AppContext.js";
 import { useDimensions } from "../state/DimensionsContext.js";
+import { useKeyboard } from "../hooks/useKeyboard.js";
 import { ScreenLayout } from "../components/layout/index.js";
 import { CategoryHeader } from "../components/CategoryHeader.js";
 import { ScrollableList } from "../components/ScrollableList.js";
@@ -17,10 +17,6 @@ import {
 	type PluginInfo,
 } from "../../services/plugin-manager.js";
 import {
-	addMarketplace,
-	removeMarketplace,
-	addGlobalMarketplace,
-	removeGlobalMarketplace,
 	enablePlugin,
 	enableGlobalPlugin,
 	enableLocalPlugin,
@@ -35,12 +31,6 @@ import {
 	getPluginEnvRequirements,
 	getPluginSourcePath,
 } from "../../services/plugin-mcp-config.js";
-import {
-	cloneMarketplace,
-	deleteMarketplace,
-	addToKnownMarketplaces,
-	removeFromKnownMarketplaces,
-} from "../../services/local-marketplace.js";
 import type { Marketplace } from "../../types/index.js";
 
 interface ListItem {
@@ -54,7 +44,7 @@ interface ListItem {
 	isExpanded?: boolean;
 }
 
-export function PluginsScreen(): React.ReactElement {
+export function PluginsScreen() {
 	const { state, dispatch } = useApp();
 	const { plugins: pluginsState } = state;
 	const modal = useModal();
@@ -213,24 +203,24 @@ export function PluginsScreen(): React.ReactElement {
 	}, [filteredItems]);
 
 	// Keyboard handling
-	useInput((input, key) => {
+	useKeyboard((event) => {
 		// Handle search mode
 		if (isSearchActive) {
-			if (key.escape) {
+			if (event.name === "escape") {
 				dispatch({ type: "SET_SEARCHING", isSearching: false });
 				dispatch({ type: "PLUGINS_SET_SEARCH", query: "" });
-			} else if (key.return) {
+			} else if (event.name === "enter") {
 				dispatch({ type: "SET_SEARCHING", isSearching: false });
 				// Keep the search query, just exit search mode
-			} else if (key.backspace || key.delete) {
+			} else if (event.name === "backspace" || event.name === "delete") {
 				dispatch({
 					type: "PLUGINS_SET_SEARCH",
 					query: pluginsState.searchQuery.slice(0, -1),
 				});
-			} else if (input && !key.ctrl && !key.meta) {
+			} else if (event.name.length === 1 && !event.ctrl && !event.meta) {
 				dispatch({
 					type: "PLUGINS_SET_SEARCH",
-					query: pluginsState.searchQuery + input,
+					query: pluginsState.searchQuery + event.name,
 				});
 			}
 			return;
@@ -239,16 +229,16 @@ export function PluginsScreen(): React.ReactElement {
 		if (state.modal) return;
 
 		// Start search with /
-		if (input === "/") {
+		if (event.name === "/") {
 			dispatch({ type: "SET_SEARCHING", isSearching: true });
 			return;
 		}
 
 		// Navigation
-		if (key.upArrow || input === "k") {
+		if (event.name === "up" || event.name === "k") {
 			const newIndex = Math.max(0, pluginsState.selectedIndex - 1);
 			dispatch({ type: "PLUGINS_SELECT", index: newIndex });
-		} else if (key.downArrow || input === "j") {
+		} else if (event.name === "down" || event.name === "j") {
 			const newIndex = Math.min(
 				selectableItems.length - 1,
 				pluginsState.selectedIndex + 1,
@@ -258,7 +248,7 @@ export function PluginsScreen(): React.ReactElement {
 
 		// Collapse/expand marketplace
 		else if (
-			(key.leftArrow || key.rightArrow || input === "<" || input === ">") &&
+			(event.name === "left" || event.name === "right" || event.name === "<" || event.name === ">") &&
 			selectableItems[pluginsState.selectedIndex]?.marketplace
 		) {
 			const item = selectableItems[pluginsState.selectedIndex];
@@ -271,75 +261,73 @@ export function PluginsScreen(): React.ReactElement {
 		}
 
 		// Refresh
-		else if (input === "r") {
+		else if (event.name === "r") {
 			handleRefresh();
 		}
 
-		// New marketplace
-		else if (input === "n") {
-			handleAddMarketplace();
+		// New marketplace (show instructions)
+		else if (event.name === "n") {
+			handleShowAddMarketplaceInstructions();
+		}
+
+		// Team config help
+		else if (event.name === "t") {
+			handleShowTeamConfigHelp();
 		}
 
 		// Scope-specific toggle shortcuts (u/p/l)
-		else if (input === "u") {
+		else if (event.name === "u") {
 			handleScopeToggle("user");
-		} else if (input === "p") {
+		} else if (event.name === "p") {
 			handleScopeToggle("project");
-		} else if (input === "l") {
+		} else if (event.name === "l") {
 			handleScopeToggle("local");
 		}
 
 		// Update plugin (Shift+U)
-		else if (input === "U") {
+		else if (event.name === "U") {
 			handleUpdate();
 		}
 
 		// Update all
-		else if (input === "a") {
+		else if (event.name === "a") {
 			handleUpdateAll();
 		}
 
 		// Delete/uninstall
-		else if (input === "d") {
+		else if (event.name === "d") {
 			handleUninstall();
 		}
 
 		// Enter for selection
-		else if (key.return) {
+		else if (event.name === "enter") {
 			handleSelect();
 		}
 	});
 
 	// Handle actions
 	const handleRefresh = async () => {
-		progress.show("Refreshing marketplaces...");
+		progress.show("Refreshing cache...");
 		try {
 			const result = await refreshAllMarketplaces((p) => {
-				progress.show(`Refreshing ${p.name}...`, p.current, p.total);
+				progress.show(`${p.name}`, p.current, p.total);
 			});
 			clearMarketplaceCache();
 			progress.hide();
 
-			// Build success message with repair info
-			let message = "Marketplaces refreshed successfully.";
+			// Build message
+			let message =
+				"Cache refreshed.\n\n" +
+				"To update marketplaces from GitHub, run in Claude Code:\n" +
+				"  /plugin marketplace update\n\n" +
+				"Then refresh claudeup again with 'r'.";
+
 			if (result.repair.length > 0) {
 				const totalRepaired = result.repair.reduce(
 					(sum, r) => sum + r.repaired.length,
 					0,
 				);
 				message += `\n\nAuto-repaired ${totalRepaired} plugin(s) with missing agents/commands.`;
-				for (const mp of result.repair) {
-					for (const plugin of mp.repaired) {
-						const parts = [];
-						if (plugin.added.agents.length > 0)
-							parts.push(`${plugin.added.agents.length} agents`);
-						if (plugin.added.commands.length > 0)
-							parts.push(`${plugin.added.commands.length} commands`);
-						if (plugin.added.skills.length > 0)
-							parts.push(`${plugin.added.skills.length} skills`);
-						message += `\n  • ${plugin.pluginName}: added ${parts.join(", ")}`;
-					}
-				}
 			}
 
 			await modal.message("Refreshed", message, "success");
@@ -350,56 +338,46 @@ export function PluginsScreen(): React.ReactElement {
 		}
 	};
 
-	const handleAddMarketplace = async () => {
-		const repo = await modal.input(
+	const handleShowAddMarketplaceInstructions = async () => {
+		await modal.message(
 			"Add Marketplace",
-			"GitHub repo (owner/repo):",
+			"To add a marketplace, run this command in your terminal:\n\n" +
+				"  claude marketplace add owner/repo\n\n" +
+				"Examples:\n" +
+				"  claude marketplace add MadAppGang/claude-code\n" +
+				"  claude marketplace add anthropics/claude-plugins-official\n\n" +
+				"Auto-update is enabled by default for new marketplaces.\n\n" +
+				"After adding, refresh claudeup with 'r' to see the new marketplace.",
+			"info",
 		);
-		if (!repo || !repo.trim()) return;
+	};
 
-		progress.show("Cloning marketplace...");
-		try {
-			const result = await cloneMarketplace(repo.trim());
-			if (result.success) {
-				const normalizedRepo = repo
-					.trim()
-					.replace(/^https:\/\/github\.com\//, "")
-					.replace(/\.git$/, "");
-				const marketplace: Marketplace = {
-					name: result.name,
-					displayName: result.name,
-					source: { source: "github", repo: normalizedRepo },
-					description: "",
-					official: false,
-				};
+	const handleShowTeamConfigHelp = async () => {
+		const helpText =
+			"TEAM CONFIGURATION FOR MARKETPLACES\n\n" +
+			"To configure marketplaces for your entire team:\n\n" +
+			"1. Add to .claude/settings.json (committed to git):\n\n" +
+			"   {\n" +
+			'     "extraKnownMarketplaces": {\n' +
+			'       "company-tools": {\n' +
+			'         "source": {\n' +
+			'           "source": "github",\n' +
+			'           "repo": "your-org/claude-plugins"\n' +
+			"         }\n" +
+			"       }\n" +
+			"     },\n" +
+			'     "enabledPlugins": {\n' +
+			'       "code-formatter@company-tools": true\n' +
+			"     }\n" +
+			"   }\n\n" +
+			"2. Team members get prompted to install when they trust the folder\n\n" +
+			"3. Marketplaces are GLOBAL ONLY (managed by Claude Code)\n" +
+			"   - Not project-specific\n" +
+			"   - All team members share the same marketplace cache\n\n" +
+			"NOTE: Individual plugin enablement is still project-specific.\n" +
+			'Use "Project" scope in claudeup to enable for the team.';
 
-				if (pluginsState.scope === "global") {
-					await addGlobalMarketplace(marketplace);
-				} else {
-					await addMarketplace(marketplace, state.projectPath);
-				}
-
-				await addToKnownMarketplaces(result.name, normalizedRepo);
-				clearMarketplaceCache();
-				progress.hide();
-				await modal.message(
-					"Added",
-					`${result.name} marketplace added.`,
-					"success",
-				);
-				fetchData();
-			} else {
-				progress.hide();
-				await modal.message("Failed", result.error || "Clone failed", "error");
-			}
-		} catch (error) {
-			progress.hide();
-			await modal.message(
-				"Error",
-				`Failed to add marketplace: ${error}`,
-				"error",
-			);
-		}
+		await modal.message("Team Configuration", helpText, "info");
 	};
 
 	/**
@@ -497,7 +475,6 @@ export function PluginsScreen(): React.ReactElement {
 
 		if (item.type === "category" && item.marketplace) {
 			const mp = item.marketplace;
-			const isGlobal = pluginsState.scope === "global";
 
 			if (item.marketplaceEnabled) {
 				const isCollapsed = pluginsState.collapsedMarketplaces.has(mp.name);
@@ -509,54 +486,25 @@ export function PluginsScreen(): React.ReactElement {
 					// If expanded with plugins, collapse
 					dispatch({ type: "PLUGINS_TOGGLE_MARKETPLACE", name: mp.name });
 				} else {
-					// If expanded with no plugins, offer to remove
-					const confirmed = await modal.confirm(
+					// If expanded with no plugins, show removal instructions
+					await modal.message(
 						`Remove ${mp.displayName}?`,
-						"Plugins from this marketplace will no longer be available.",
+						`To remove this marketplace, run in Claude Code:\n\n` +
+							`  /plugin marketplace remove ${mp.name}\n\n` +
+							`After removing, refresh claudeup with 'r' to update the display.`,
+						"info",
 					);
-					if (confirmed) {
-						modal.loading(`Removing ${mp.displayName}...`);
-						try {
-							if (isGlobal) {
-								await removeGlobalMarketplace(mp.name);
-							} else {
-								await removeMarketplace(mp.name, state.projectPath);
-							}
-							await deleteMarketplace(mp.name);
-							await removeFromKnownMarketplaces(mp.name);
-							clearMarketplaceCache();
-							modal.hideModal();
-							await modal.message(
-								"Removed",
-								`${mp.displayName} removed.`,
-								"success",
-							);
-							fetchData();
-						} catch (error) {
-							modal.hideModal();
-							await modal.message(
-								"Error",
-								`Failed to remove: ${error}`,
-								"error",
-							);
-						}
-					}
 				}
 			} else {
-				// Add marketplace
-				modal.loading(`Adding ${mp.displayName}...`);
-				try {
-					if (isGlobal) {
-						await addGlobalMarketplace(mp);
-					} else {
-						await addMarketplace(mp, state.projectPath);
-					}
-					modal.hideModal();
-					fetchData();
-				} catch (error) {
-					modal.hideModal();
-					await modal.message("Error", `Failed to add: ${error}`, "error");
-				}
+				// Show add marketplace instructions
+				await modal.message(
+					`Add ${mp.displayName}?`,
+					`To add this marketplace, run in your terminal:\n\n` +
+						`  claude marketplace add ${mp.source.repo || mp.name}\n\n` +
+						`Auto-update is enabled by default.\n\n` +
+						`After adding, refresh claudeup with 'r' to see it.`,
+					"info",
+				);
 			}
 		} else if (item.type === "plugin" && item.plugin) {
 			const plugin = item.plugin;
@@ -925,12 +873,10 @@ export function PluginsScreen(): React.ReactElement {
 		pluginsState.plugins.status === "loading"
 	) {
 		return (
-			<Box flexDirection="column" paddingX={1}>
-				<Text color="#7e57c2" bold>
-					claudeup Plugins
-				</Text>
-				<Text color="gray">Loading...</Text>
-			</Box>
+			<box flexDirection="column" paddingLeft={1} paddingRight={1}>
+				<text fg="#7e57c2"><strong>claudeup Plugins</strong></text>
+				<text fg="gray">Loading...</text>
+			</box>
 		);
 	}
 
@@ -940,12 +886,10 @@ export function PluginsScreen(): React.ReactElement {
 		pluginsState.plugins.status === "error"
 	) {
 		return (
-			<Box flexDirection="column" paddingX={1}>
-				<Text color="#7e57c2" bold>
-					claudeup Plugins
-				</Text>
-				<Text color="red">Error loading data</Text>
-			</Box>
+			<box flexDirection="column" paddingLeft={1} paddingRight={1}>
+				<text fg="#7e57c2"><strong>claudeup Plugins</strong></text>
+				<text fg="red">Error loading data</text>
+			</box>
 		);
 	}
 
@@ -986,9 +930,7 @@ export function PluginsScreen(): React.ReactElement {
 						? ` (${item.pluginCount})`
 						: "";
 				return (
-					<Text backgroundColor="magenta" color="white" bold>
-						{` ${arrow} ${mp.displayName}${count} `}
-					</Text>
+					<text bg="magenta" fg="white"><strong> {arrow} {mp.displayName}{count} </strong></text>
 				);
 			}
 
@@ -1032,9 +974,9 @@ export function PluginsScreen(): React.ReactElement {
 			if (isSelected) {
 				const displayText = `   ${statusIcon} ${plugin.name}${versionStr} `;
 				return (
-					<Text backgroundColor="magenta" color="white" wrap="truncate">
+					<text bg="magenta" fg="white">
 						{displayText}
-					</Text>
+					</text>
 				);
 			}
 
@@ -1043,24 +985,21 @@ export function PluginsScreen(): React.ReactElement {
 				? segments.map((seg) => seg.text).join("")
 				: plugin.name;
 			return (
-				<Text wrap="truncate">
-					<Text color={statusColor}>
-						{"   "}
-						{statusIcon}{" "}
-					</Text>
-					<Text>{displayName}</Text>
-					<Text color={plugin.hasUpdate ? "yellow" : "gray"}>{versionStr}</Text>
-				</Text>
+				<text>
+					<span fg={statusColor}>{"   "}{statusIcon} </span>
+					<span>{displayName}</span>
+					<span fg={plugin.hasUpdate ? "yellow" : "gray"}>{versionStr}</span>
+				</text>
 			);
 		}
 
-		return <Text color="gray">{item.label}</Text>;
+		return <text fg="gray">{item.label}</text>;
 	};
 
 	// Render detail content - compact to fit in available space
 	const renderDetail = () => {
 		if (!selectedItem) {
-			return <Text color="gray">Select an item</Text>;
+			return <text fg="gray">Select an item</text>;
 		}
 
 		if (selectedItem.type === "category" && selectedItem.marketplace) {
@@ -1090,34 +1029,24 @@ export function PluginsScreen(): React.ReactElement {
 			}
 
 			return (
-				<Box flexDirection="column">
-					<Text bold color="cyan">
-						{mp.displayName}
-						{getBadge()}
-					</Text>
-					<Text color="gray" wrap="wrap">
-						{mp.description || "No description"}
-					</Text>
-					<Text color={isEnabled ? "green" : "gray"}>
+				<box flexDirection="column">
+					<text fg="cyan"><strong>{mp.displayName}{getBadge()}</strong></text>
+					<text fg="gray">{mp.description || "No description"}</text>
+					<text fg={isEnabled ? "green" : "gray"}>
 						{isEnabled ? "● Added" : "○ Not added"}
-					</Text>
-					<Text color="blue" wrap="wrap">
-						github.com/{mp.source.repo}
-					</Text>
-					<Text>Plugins: {selectedItem.pluginCount || 0}</Text>
-					<Box marginTop={1}>
-						<Text backgroundColor={isEnabled ? "cyan" : "green"} color="black">
-							{" "}
-							Enter{" "}
-						</Text>
-						<Text color="gray"> {actionHint}</Text>
-					</Box>
+					</text>
+					<text fg="blue">github.com/{mp.source.repo}</text>
+					<text>Plugins: {selectedItem.pluginCount || 0}</text>
+					<box marginTop={1}>
+						<text bg={isEnabled ? "cyan" : "green"} fg="black"> Enter </text>
+						<text fg="gray"> {actionHint}</text>
+					</box>
 					{isEnabled && (
-						<Box>
-							<Text color="gray">← → to expand/collapse</Text>
-						</Box>
+						<box>
+							<text fg="gray">← → to expand/collapse</text>
+						</box>
 					)}
-				</Box>
+				</box>
 			);
 		}
 
@@ -1145,134 +1074,115 @@ export function PluginsScreen(): React.ReactElement {
 				plugin.installedVersion && plugin.installedVersion !== "0.0.0";
 
 			return (
-				<Box flexDirection="column">
+				<box flexDirection="column">
 					{/* Plugin name header - centered */}
-					<Box justifyContent="center">
-						<Text backgroundColor="magenta" color="white" bold>
-							{` ${plugin.name}${plugin.hasUpdate ? " ⬆" : ""} `}
-						</Text>
-					</Box>
+					<box justifyContent="center">
+						<text bg="magenta" fg="white"><strong> {plugin.name}{plugin.hasUpdate ? " ⬆" : ""} </strong></text>
+					</box>
 
 					{/* Status line */}
-					<Box marginTop={1}>
+					<box marginTop={1}>
 						{isInstalled ? (
-							<Text color={plugin.enabled ? "green" : "yellow"}>
+							<text fg={plugin.enabled ? "green" : "yellow"}>
 								{plugin.enabled ? "● Enabled" : "● Disabled"}
-							</Text>
+							</text>
 						) : (
-							<Text color="gray">○ Not installed</Text>
+							<text fg="gray">○ Not installed</text>
 						)}
-					</Box>
+					</box>
 
 					{/* Description */}
-					<Box marginTop={1} marginBottom={1}>
-						<Text color="white" wrap="wrap">
-							{plugin.description}
-						</Text>
-					</Box>
+					<box marginTop={1} marginBottom={1}>
+						<text fg="white">{plugin.description}</text>
+					</box>
 
 					{/* Metadata */}
 					{showVersion && (
-						<Text>
-							<Text dimColor>Version </Text>
-							<Text color="blue">v{plugin.version}</Text>
+						<text>
+							<span>Version </span>
+							<span fg="blue">v{plugin.version}</span>
 							{showInstalledVersion &&
 								plugin.installedVersion !== plugin.version && (
-									<Text dimColor> (v{plugin.installedVersion} installed)</Text>
+									<span> (v{plugin.installedVersion} installed)</span>
 								)}
-						</Text>
+						</text>
 					)}
 					{plugin.category && (
-						<Text>
-							<Text dimColor>Category </Text>
-							<Text color="magenta">{plugin.category}</Text>
-						</Text>
+						<text>
+							<span>Category </span>
+							<span fg="magenta">{plugin.category}</span>
+						</text>
 					)}
 					{plugin.author && (
-						<Text>
-							<Text dimColor>Author </Text>
-							<Text>{plugin.author.name}</Text>
-						</Text>
+						<text>
+							<span>Author </span>
+							<span>{plugin.author.name}</span>
+						</text>
 					)}
 					{components.length > 0 && (
-						<Text>
-							<Text dimColor>Contains </Text>
-							<Text color="yellow">{components.join(" · ")}</Text>
-						</Text>
+						<text>
+							<span>Contains </span>
+							<span fg="yellow">{components.join(" · ")}</span>
+						</text>
 					)}
 
 					{/* Scope Status with shortcuts - each scope has its own color */}
-					<Box flexDirection="column" marginTop={1}>
-						<Text dimColor>────────────────────────</Text>
-						<Text bold>Scopes:</Text>
-						<Box marginTop={1} flexDirection="column">
-							<Box>
-								<Text backgroundColor="cyan" color="black">
-									{" "}
-									u{" "}
-								</Text>
-								<Text color={plugin.userScope?.enabled ? "cyan" : "gray"}>
+					<box flexDirection="column" marginTop={1}>
+						<text>────────────────────────</text>
+						<text><strong>Scopes:</strong></text>
+						<box marginTop={1} flexDirection="column">
+							<text>
+								<span bg="cyan" fg="black"> u </span>
+								<span fg={plugin.userScope?.enabled ? "cyan" : "gray"}>
 									{plugin.userScope?.enabled ? " ● " : " ○ "}
-								</Text>
-								<Text color="cyan">User</Text>
-								<Text dimColor> global</Text>
+								</span>
+								<span fg="cyan">User</span>
+								<span> global</span>
 								{plugin.userScope?.version && (
-									<Text color="cyan"> v{plugin.userScope.version}</Text>
+									<span fg="cyan"> v{plugin.userScope.version}</span>
 								)}
-							</Box>
-							<Box>
-								<Text backgroundColor="green" color="black">
-									{" "}
-									p{" "}
-								</Text>
-								<Text color={plugin.projectScope?.enabled ? "green" : "gray"}>
+							</text>
+							<text>
+								<span bg="green" fg="black"> p </span>
+								<span fg={plugin.projectScope?.enabled ? "green" : "gray"}>
 									{plugin.projectScope?.enabled ? " ● " : " ○ "}
-								</Text>
-								<Text color="green">Project</Text>
-								<Text dimColor> team</Text>
+								</span>
+								<span fg="green">Project</span>
+								<span> team</span>
 								{plugin.projectScope?.version && (
-									<Text color="green"> v{plugin.projectScope.version}</Text>
+									<span fg="green"> v{plugin.projectScope.version}</span>
 								)}
-							</Box>
-							<Box>
-								<Text backgroundColor="yellow" color="black">
-									{" "}
-									l{" "}
-								</Text>
-								<Text color={plugin.localScope?.enabled ? "yellow" : "gray"}>
+							</text>
+							<text>
+								<span bg="yellow" fg="black"> l </span>
+								<span fg={plugin.localScope?.enabled ? "yellow" : "gray"}>
 									{plugin.localScope?.enabled ? " ● " : " ○ "}
-								</Text>
-								<Text color="yellow">Local</Text>
-								<Text dimColor> private</Text>
+								</span>
+								<span fg="yellow">Local</span>
+								<span> private</span>
 								{plugin.localScope?.version && (
-									<Text color="yellow"> v{plugin.localScope.version}</Text>
+									<span fg="yellow"> v{plugin.localScope.version}</span>
 								)}
-							</Box>
-						</Box>
-					</Box>
+							</text>
+						</box>
+					</box>
 
 					{/* Additional actions */}
 					{isInstalled && (
-						<Box flexDirection="column" marginTop={1}>
+						<box flexDirection="column" marginTop={1}>
 							{plugin.hasUpdate && (
-								<Box>
-									<Text backgroundColor="magenta" color="white">
-										{" "}
-										U{" "}
-									</Text>
-									<Text> Update to v{plugin.version}</Text>
-								</Box>
+								<box>
+									<text bg="magenta" fg="white"> U </text>
+									<text> Update to v{plugin.version}</text>
+								</box>
 							)}
-							<Box>
-								<Text backgroundColor="red" color="white">
-									{" "}
-									d{" "}
-								</Text>
-								<Text> Uninstall</Text>
-							</Box>
-						</Box>
+							<box>
+								<text bg="red" fg="white"> d </text>
+								<text> Uninstall</text>
+							</box>
+						</box>
 					)}
-				</Box>
+				</box>
 			);
 		}
 
@@ -1281,7 +1191,7 @@ export function PluginsScreen(): React.ReactElement {
 
 	const footerHints = isSearchActive
 		? "Type to search │ Enter Confirm │ Esc Cancel"
-		: "u/p/l:scope │ U:update │ a:all │ d:remove │ /:search";
+		: "u/p/l:scope │ U:update │ a:all │ d:remove │ n:add │ t:team │ /:search";
 
 	// Calculate status for subtitle
 	const scopeLabel = pluginsState.scope === "global" ? "Global" : "Project";

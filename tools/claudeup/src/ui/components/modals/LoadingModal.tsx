@@ -1,28 +1,39 @@
-import React from "react";
-import { Box, Text } from "ink";
-import Spinner from "ink-spinner";
+import React, { useState, useEffect } from "react";
 
 interface LoadingModalProps {
 	/** Loading message */
 	message: string;
 }
 
+const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
 export function LoadingModal({
 	message,
-}: LoadingModalProps): React.ReactElement {
+}: LoadingModalProps) {
+	const [frame, setFrame] = useState(0);
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setFrame((prev) => (prev + 1) % SPINNER_FRAMES.length);
+		}, 80);
+
+		return () => clearInterval(interval);
+	}, []);
+
 	return (
-		<Box
+		<box
 			flexDirection="row"
-			borderStyle="round"
+			border
+			borderStyle="rounded"
 			borderColor="cyan"
-			paddingX={2}
-			paddingY={1}
+			paddingLeft={2}
+			paddingRight={2}
+			paddingTop={1}
+			paddingBottom={1}
 		>
-			<Text color="cyan">
-				<Spinner type="dots" />
-			</Text>
-			<Text> {message}</Text>
-		</Box>
+			<text fg="cyan">{SPINNER_FRAMES[frame]}</text>
+			<text> {message}</text>
+		</box>
 	);
 }
 

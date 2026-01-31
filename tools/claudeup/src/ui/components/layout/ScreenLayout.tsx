@@ -1,5 +1,4 @@
 import React from "react";
-import { Box, Text } from "ink";
 import { useDimensions } from "../../state/DimensionsContext.js";
 import { TabBar } from "../TabBar.js";
 import type { Screen } from "../../state/types.js";
@@ -41,7 +40,7 @@ export function ScreenLayout({
 	footerHints,
 	listPanel,
 	detailPanel,
-}: ScreenLayoutProps): React.ReactElement {
+}: ScreenLayoutProps) {
 	const dimensions = useDimensions();
 
 	// Calculate panel heights
@@ -55,40 +54,39 @@ export function ScreenLayout({
 	);
 
 	return (
-		<Box flexDirection="column" height={dimensions.contentHeight}>
+		<box flexDirection="column" height={dimensions.contentHeight}>
 			{/* Header */}
-			<Box
+			<box
 				flexDirection="column"
+				border
 				borderStyle="single"
 				borderColor={HEADER_COLOR}
-				paddingX={1}
+				padding={1}
 				marginBottom={0}
 			>
 				{/* Title row */}
-				<Box flexDirection="row" justifyContent="space-between">
-					<Text color={HEADER_COLOR} bold>
-						{title}
-					</Text>
-					{subtitle && <Text color="gray">{subtitle}</Text>}
-				</Box>
+				<box flexDirection="row" justifyContent="space-between">
+					<text fg={HEADER_COLOR}>
+						<strong>{title}</strong>
+					</text>
+					{subtitle && <text fg="gray">{subtitle}</text>}
+				</box>
 
 				{/* Status/Search row - always present */}
-				<Box flexDirection="row" marginTop={0}>
+				<box flexDirection="row" marginTop={0}>
 					{search ? (
 						// Search mode
 						<>
-							<Text color="green">{"> "}</Text>
+							<text fg="green">{"> "}</text>
 							{search.isActive ? (
 								<>
-									<Text color="white">{search.query}</Text>
-									<Text inverse color="gray">
-										{" "}
-									</Text>
+									<text fg="white">{search.query}</text>
+									<text bg="white" fg="black"> </text>
 								</>
 							) : (
-								<Text color="gray">
+								<text fg="gray">
 									{search.query || search.placeholder || "/"}
-								</Text>
+								</text>
 							)}
 						</>
 					) : statusLine ? (
@@ -96,56 +94,53 @@ export function ScreenLayout({
 						statusLine
 					) : (
 						// Default empty status
-						<Text color="gray">─</Text>
+						<text fg="gray">─</text>
 					)}
-				</Box>
-			</Box>
+				</box>
+			</box>
 
 			{/* Main content area */}
-			<Box flexDirection="row" height={panelHeight}>
+			<box flexDirection="row" height={panelHeight}>
 				{/* List panel */}
-				<Box
+				<box
 					flexDirection="column"
-					width="50%"
+					width="49%"
 					height={panelHeight}
 					paddingRight={1}
-					borderStyle="single"
-					borderTop={false}
-					borderBottom={false}
-					borderColor="gray"
-					overflow="hidden"
 				>
 					{listPanel}
-				</Box>
+				</box>
+
+				{/* Vertical separator */}
+				<box
+					flexDirection="column"
+					width={1}
+					height={panelHeight}
+				>
+					<text fg="#444444">{"│".repeat(panelHeight)}</text>
+				</box>
 
 				{/* Detail panel */}
-				<Box
+				<box
 					flexDirection="column"
 					width="50%"
 					height={panelHeight}
 					paddingLeft={1}
-					overflow="hidden"
 				>
 					{detailPanel}
-				</Box>
-			</Box>
+				</box>
+			</box>
 
 			{/* Footer */}
-			<Box
+			<box
 				height={1}
-				borderStyle="single"
-				borderTop={true}
-				borderBottom={false}
-				borderLeft={false}
-				borderRight={false}
-				borderColor="gray"
 				flexDirection="row"
 				justifyContent="space-between"
 			>
-				<Text dimColor>{footerHints}</Text>
+				<text fg="gray">{footerHints}</text>
 				<TabBar currentScreen={currentScreen} />
-			</Box>
-		</Box>
+			</box>
+		</box>
 	);
 }
 

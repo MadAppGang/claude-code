@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Text, useApp as useInkApp, useInput, useStdout } from "ink";
+import { useRenderer } from "@opentui/react";
 import fs from "node:fs";
 import {
 	AppProvider,
@@ -11,7 +11,6 @@ import {
 	DimensionsProvider,
 	useDimensions,
 } from "./state/DimensionsContext.js";
-// Header removed as per new design
 import { ModalContainer } from "./components/modals/index.js";
 import {
 	PluginsScreen,
@@ -20,21 +19,25 @@ import {
 	StatusLineScreen,
 	EnvVarsScreen,
 	CliToolsScreen,
+	ModelSelectorScreen,
 } from "./screens/index.js";
-import type { Screen } from "./state/types.js"; // Import Screen type
-import {
-	refreshLocalMarketplaces,
-	repairAllMarketplaces,
-} from "../services/local-marketplace.js";
+import type { Screen } from "./state/types.js";
+import { repairAllMarketplaces } from "../services/local-marketplace.js";
 import {
 	checkForUpdates,
 	getCurrentVersion,
 	type VersionCheckResult,
 } from "../services/version-check.js";
+import { useKeyboardHandler } from "./hooks/useKeyboardHandler.js";
+import { ProgressBar } from "./components/layout/ProgressBar.js";
 
 export const VERSION = getCurrentVersion();
 
-function Router(): React.ReactElement {
+/**
+ * Router Component
+ * Renders the current screen based on route
+ */
+function Router() {
 	const { state } = useApp();
 	const { currentRoute } = state;
 
@@ -51,28 +54,35 @@ function Router(): React.ReactElement {
 			return <EnvVarsScreen />;
 		case "cli-tools":
 			return <CliToolsScreen />;
+		case "model-selector":
+			return <ModelSelectorScreen />;
 		default:
 			return <PluginsScreen />;
 	}
 }
 
+/**
+ * GlobalKeyHandler Component
+ * Handles global keyboard shortcuts (1-5, Tab, Escape, q, ?, Shift+D)
+ * Does not render anything (returns null)
+ */
 function GlobalKeyHandler({
 	onDebugToggle,
-}: { onDebugToggle: () => void }): null {
+	onExit,
+}: { onDebugToggle: () => void; onExit: () => void }): null {
 	const { state } = useApp();
 	const { navigateToScreen } = useNavigation();
-	const { exit } = useInkApp();
 	const modal = useModal();
-	const { stdout } = useStdout();
+	const renderer = useRenderer();
 
-	useInput((input, key) => {
-		// Debug key - always available
+	useKeyboardHandler((input, key) => {
+		// Debug key (Shift+D) - always available
 		if (input === "D" && key.shift) {
 			onDebugToggle();
-			// Also write debug info to file
+			// Write debug info to file
 			const debugInfo = {
 				timestamp: new Date().toISOString(),
-				terminal: { rows: stdout?.rows, columns: stdout?.columns },
+				terminal: { rows: renderer.height, columns: renderer.width },
 				state: {
 					currentRoute: state.currentRoute,
 					isSearching: state.isSearching,
@@ -104,6 +114,7 @@ function GlobalKeyHandler({
 			"statusline",
 			"env-vars",
 			"cli-tools",
+			"model-selector",
 		].includes(state.currentRoute.screen);
 
 		if (isTopLevel) {
@@ -138,7 +149,7 @@ function GlobalKeyHandler({
 		if (key.escape || input === "q") {
 			if (state.currentRoute.screen === "plugins") {
 				// On home screen, exit immediately
-				exit();
+				onExit();
 			} else if (state.currentRoute.screen === "mcp-registry") {
 				// Go back to MCP from registry
 				navigateToScreen("mcp");
@@ -178,66 +189,67 @@ MCP Servers
 	return null;
 }
 
-interface ProgressIndicatorProps {
-	message: string;
-	current?: number;
-	total?: number;
+/**
+ * UpdateBanner Component
+ * Shows version update notification
+ */
+function UpdateBanner({
+	result,
+}: { result: VersionCheckResult }) {
+	if (!result.updateAvailable) return null;
+
+	return (
+		<box paddingLeft={1} paddingRight={1} >
+			<text bg="yellow" fg="black">
+				<strong> UPDATE </strong>
+			</text>
+			<text fg="yellow">
+				{" "}
+				v{result.currentVersion} → v{result.latestVersion}
+			</text>
+			<text fg="gray"> Run: </text>
+			<text fg="cyan">npm i -g claudeup</text>
+		</box>
+	);
 }
 
+/**
+ * ProgressIndicator Component
+ * Shows progress bar when operations are running
+ */
 function ProgressIndicator({
 	message,
 	current,
 	total,
-}: ProgressIndicatorProps): React.ReactElement {
-	let progressText = message;
-
-	if (current !== undefined && total !== undefined && total > 0) {
-		const barWidth = 20;
-		const filled = Math.round((current / total) * barWidth);
-		const empty = barWidth - filled;
-		progressText += ` [${"█".repeat(filled)}${"░".repeat(empty)}] ${current}/${total}`;
-	}
-
+}: {
+	message: string;
+	current?: number;
+	total?: number;
+}) {
 	return (
-		<Box paddingX={1}>
-			<Text color="cyan">⟳ </Text>
-			<Text>{progressText}</Text>
-		</Box>
+		<box paddingLeft={1} paddingRight={1}>
+			<ProgressBar message={message} current={current} total={total} />
+		</box>
 	);
 }
 
-function UpdateBanner({
-	result,
-}: { result: VersionCheckResult }): React.ReactElement | null {
-	if (!result.updateAvailable) return null;
-
-	return (
-		<Box paddingX={1} marginBottom={0}>
-			<Text backgroundColor="yellow" color="black" bold>
-				{" "}
-				UPDATE{" "}
-			</Text>
-			<Text color="yellow">
-				{" "}
-				v{result.currentVersion} → v{result.latestVersion}
-			</Text>
-			<Text color="gray"> Run: </Text>
-			<Text color="cyan">npm i -g claudeup</Text>
-		</Box>
-	);
-}
-
+/**
+ * AppContentInner Component
+ * Main app layout with all UI elements
+ */
 interface AppContentInnerProps {
 	showDebug: boolean;
 	onDebugToggle: () => void;
 	updateInfo: VersionCheckResult | null;
+	onExit: () => void;
 }
 
 function AppContentInner({
 	showDebug,
 	onDebugToggle,
 	updateInfo,
-}: AppContentInnerProps): React.ReactElement {
+	onExit,
+}: AppContentInnerProps) {
 	const { state, dispatch } = useApp();
 	const { progress } = state;
 	const dimensions = useDimensions();
@@ -249,22 +261,13 @@ function AppContentInner({
 
 		dispatch({
 			type: "SHOW_PROGRESS",
-			state: { message: "Syncing marketplaces..." },
+			state: { message: "Scanning marketplaces..." },
 		});
 
-		refreshLocalMarketplaces((prog) => {
-			dispatch({
-				type: "UPDATE_PROGRESS",
-				state: {
-					message: `Syncing ${prog.name}...`,
-					current: prog.current,
-					total: prog.total,
-				},
-			});
-		})
+		// Note: Marketplace updates should be done via Claude Code's /plugin marketplace update
+		// Just repair plugin.json files
+		repairAllMarketplaces()
 			.then(async () => {
-				// Auto-repair plugin.json files with missing agents/commands/skills
-				await repairAllMarketplaces();
 				dispatch({ type: "HIDE_PROGRESS" });
 				dispatch({ type: "DATA_REFRESH_COMPLETE" });
 			})
@@ -274,33 +277,40 @@ function AppContentInner({
 	}, [dispatch]);
 
 	return (
-		<Box flexDirection="column" height={dimensions.terminalHeight}>
+		<box flexDirection="column" height={dimensions.terminalHeight}>
 			{updateInfo?.updateAvailable && <UpdateBanner result={updateInfo} />}
 			{showDebug && (
-				<Box paddingX={1}>
-					<Text color="yellow" dimColor>
+				<box paddingLeft={1} paddingRight={1}>
+					<text fg="#888888">
 						DEBUG: {dimensions.terminalWidth}x{dimensions.terminalHeight} |
 						content={dimensions.contentHeight} | screen=
 						{state.currentRoute.screen}
-					</Text>
-				</Box>
+					</text>
+				</box>
 			)}
 			{progress && <ProgressIndicator {...progress} />}
-			<Box
+			<box
 				flexDirection="column"
 				height={dimensions.contentHeight}
-				paddingX={1}
-				overflow="hidden"
+				paddingLeft={1} paddingRight={1}
 			>
 				<Router />
-			</Box>
-			<GlobalKeyHandler onDebugToggle={onDebugToggle} />
+			</box>
+			<GlobalKeyHandler onDebugToggle={onDebugToggle} onExit={onExit} />
 			<ModalContainer />
-		</Box>
+		</box>
 	);
 }
 
-function AppContent(): React.ReactElement {
+/**
+ * AppContent Component
+ * Wraps app with DimensionsProvider and manages state for debug/updates
+ */
+interface AppContentProps {
+	onExit: () => void;
+}
+
+function AppContent({ onExit }: AppContentProps) {
 	const { state } = useApp();
 	const { progress } = state;
 	const [showDebug, setShowDebug] = useState(false);
@@ -323,15 +333,25 @@ function AppContent(): React.ReactElement {
 				showDebug={showDebug}
 				onDebugToggle={() => setShowDebug((s) => !s)}
 				updateInfo={updateInfo}
+				onExit={onExit}
 			/>
 		</DimensionsProvider>
 	);
 }
 
-export function App(): React.ReactElement {
+/**
+ * App Component (Root)
+ * Entry point for the OpenTUI application
+ * Wraps everything with AppProvider
+ */
+interface AppProps {
+	onExit: () => void;
+}
+
+export function App({ onExit }: AppProps) {
 	return (
 		<AppProvider>
-			<AppContent />
+			<AppContent onExit={onExit} />
 		</AppProvider>
 	);
 }

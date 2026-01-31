@@ -1,5 +1,4 @@
 import React from "react";
-import { Box, Text } from "ink";
 
 interface PanelProps {
 	/** Panel title */
@@ -10,10 +9,10 @@ interface PanelProps {
 	borderColor?: string;
 	/** Title color */
 	titleColor?: string;
-	/** Panel width */
-	width?: number | string;
-	/** Panel height */
-	height?: number | string;
+	/** Panel width - number or percentage like "50%" */
+	width?: number | `${number}%` | "auto";
+	/** Panel height - number or percentage like "50%" */
+	height?: number | `${number}%` | "auto";
 	/** Whether to use flexGrow */
 	flexGrow?: number;
 	/** Whether panel is focused/active */
@@ -29,34 +28,34 @@ export function Panel({
 	height,
 	flexGrow = 1,
 	focused = false,
-}: PanelProps): React.ReactElement {
+}: PanelProps) {
 	const activeColor = focused ? "#7e57c2" : borderColor;
 
 	return (
-		<Box
+		<box
 			flexDirection="column"
 			width={width}
 			height={height}
 			flexGrow={flexGrow}
+			border
 			borderStyle="single"
 			borderColor={activeColor}
-			paddingX={1}
-			overflow="hidden"
+			padding={1}
 		>
 			{/* Title row */}
 			{title && (
-				<Box marginBottom={0}>
-					<Text color={titleColor} bold>
-						{title}
-					</Text>
-				</Box>
+				<box marginBottom={0}>
+					<text fg={titleColor}>
+						<strong>{title}</strong>
+					</text>
+				</box>
 			)}
 
-			{/* Content - overflow hidden to clip content that exceeds panel */}
-			<Box flexDirection="column" flexGrow={1} overflow="hidden">
+			{/* Content */}
+			<box flexDirection="column" flexGrow={1}>
 				{children}
-			</Box>
-		</Box>
+			</box>
+		</box>
 	);
 }
 

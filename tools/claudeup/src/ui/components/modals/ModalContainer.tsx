@@ -1,6 +1,6 @@
 import React from "react";
-import { Box } from "ink";
 import { useApp } from "../../state/AppContext.js";
+import { useKeyboard } from "../../hooks/useKeyboard.js";
 import { ConfirmModal } from "./ConfirmModal.js";
 import { InputModal } from "./InputModal.js";
 import { SelectModal } from "./SelectModal.js";
@@ -9,10 +9,27 @@ import { LoadingModal } from "./LoadingModal.js";
 
 /**
  * Container that renders the active modal as an overlay
+ * Handles global Escape key to close modals
  */
-export function ModalContainer(): React.ReactElement | null {
+export function ModalContainer() {
 	const { state } = useApp();
 	const { modal } = state;
+
+	// Handle Escape key to close modal (except loading)
+	useKeyboard((key) => {
+		if (key.name === "escape" && modal && modal.type !== "loading") {
+			// Loading modal cannot be dismissed with Escape
+			if (modal.type === "confirm") {
+				modal.onCancel();
+			} else if (modal.type === "input") {
+				modal.onCancel();
+			} else if (modal.type === "select") {
+				modal.onCancel();
+			} else if (modal.type === "message") {
+				modal.onDismiss();
+			}
+		}
+	});
 
 	if (!modal) {
 		return null;
@@ -72,7 +89,7 @@ export function ModalContainer(): React.ReactElement | null {
 
 	// Center the modal on screen
 	return (
-		<Box
+		<box
 			position="absolute"
 			width="100%"
 			height="100%"
@@ -80,7 +97,7 @@ export function ModalContainer(): React.ReactElement | null {
 			alignItems="center"
 		>
 			{renderModal()}
-		</Box>
+		</box>
 	);
 }
 
