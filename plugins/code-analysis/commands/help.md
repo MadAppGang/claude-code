@@ -9,7 +9,7 @@ Present the following help information to the user:
 
 ---
 
-## Code Analysis Plugin v2.0.0
+## Code Analysis Plugin v3.1.0
 
 **Deep code investigation using INDEXED MEMORY (claudemem). GREP/FIND FORBIDDEN.**
 
@@ -68,6 +68,60 @@ Present the following help information to the user:
 | **debugger-detective** | Bug investigation (root cause, error tracing) |
 | **ultrathink-detective** | Comprehensive deep analysis with Opus model |
 | **cross-plugin-detective** | Agent-to-skill mapping for any plugin |
+| **investigate** | Unified entry point with keyword-based routing to specialized detectives |
+
+### Which Detective Should I Use?
+
+| Your Question Contains... | Use This Detective | Why |
+|--------------------------|-------------------|-----|
+| "debug", "error", "broken", "failing", "crash" | **debugger-detective** | Root cause analysis via call chain tracing |
+| "test", "coverage", "edge case", "mock" | **tester-detective** | Test discovery via callers analysis |
+| "architecture", "design", "structure", "layer" | **architect-detective** | Pattern discovery via PageRank |
+| "implementation", "how does", "code flow" | **developer-detective** | Data flow via callers/callees |
+| No specific keywords | **investigate skill** | Auto-routes based on keywords |
+
+**Examples:**
+- "Why is login broken?" → debugger-detective
+- "What's tested?" → tester-detective
+- "What's the architecture?" → architect-detective
+- "How does auth work?" → developer-detective
+
+### Understanding Skills vs Agents
+
+**Skills** (use with Task tool):
+- `architect-detective`, `developer-detective`, `tester-detective`, `debugger-detective`
+- Specialized investigation workflows
+- Keyword-optimized for specific investigation types
+- Can be loaded by any agent via Task tool
+
+**Task-Only Agents** (no direct usage):
+- `ultrathink-detective` - High-quality analysis with Opus model
+- `cross-plugin-detective` - Maps agents to skills across plugins
+
+**When to Use Task Tool:**
+```typescript
+// From any agent/skill, delegate to specialist
+Task({
+  description: "Investigate auth implementation",
+  agent: "developer-detective"
+})
+```
+
+### Quick Reference
+
+| Scenario | Command/Skill | Example |
+|----------|---------------|---------|
+| General investigation | `/analyze` | `/analyze How does payment work?` |
+| Architecture focus | Task → architect-detective | See multimodel plugin patterns |
+| Implementation focus | Task → developer-detective | Data flow analysis |
+| Test coverage | Task → tester-detective | Find untested code |
+| Bug investigation | Task → debugger-detective | Root cause tracing |
+| Deep analysis | Task → ultrathink-detective | Opus-powered investigation |
+
+**Integration Patterns:**
+- Frontend plugin's `/implement` suggests code-analysis for codebase understanding
+- Multimodel plugin uses detective skills for parallel orchestration
+- Use investigate skill for automatic routing
 
 ### Semantic Code Search with claudemem
 
