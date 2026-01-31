@@ -222,6 +222,7 @@ export async function addMarketplace(
 	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
 	settings.extraKnownMarketplaces[marketplace.name] = {
 		source: marketplace.source,
+		autoUpdate: true, // Enable auto-update by default for new marketplaces
 	};
 	await writeSettings(settings, projectPath);
 }
@@ -443,6 +444,7 @@ export async function addGlobalMarketplace(
 	settings.extraKnownMarketplaces = settings.extraKnownMarketplaces || {};
 	settings.extraKnownMarketplaces[marketplace.name] = {
 		source: marketplace.source,
+		autoUpdate: true, // Enable auto-update by default for new marketplaces
 	};
 	await writeGlobalSettings(settings);
 }

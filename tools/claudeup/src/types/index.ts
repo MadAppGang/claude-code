@@ -70,6 +70,7 @@ export interface MarketplaceSource {
 		source: "github";
 		repo: string;
 	};
+	autoUpdate?: boolean; // Enable auto-update for this marketplace (default: true for new marketplaces)
 }
 
 export interface ClaudeSettings {
