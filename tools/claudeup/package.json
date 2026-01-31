@@ -1,6 +1,6 @@
 {
   "name": "claudeup",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "description": "TUI tool for managing Claude Code plugins, MCPs, and configuration",
   "type": "module",
   "main": "dist/main.js",
