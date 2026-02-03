@@ -199,16 +199,32 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
           If .claude/settings.json exists:
           - Read file
           - Extract enabledPlugins object
-          - For each enabled plugin, note the plugin name
+          - For each enabled plugin where value == true:
+            - Parse plugin name: "dev@mag-claude-plugins" → plugin="dev", marketplace="mag-claude-plugins"
+            - Note for marketplace skill search
           ```
         </step>
         <step>
-          Search for plugin skills in additional locations:
+          **CRITICAL: Search MARKETPLACE-INSTALLED plugin skills:**
+          ```
+          For each enabled plugin from .claude/settings.json:
+
+          Example: "dev@mag-claude-plugins" is enabled
+          → Search: ~/.claude/plugins/marketplaces/mag-claude-plugins/plugins/dev/skills/**/SKILL.md
+
+          Use Glob with ABSOLUTE path:
+          ~/.claude/plugins/marketplaces/{marketplace}/plugins/{plugin}/skills/**/SKILL.md
+
+          This is where REAL plugin skills live when installed via marketplace!
+          ```
+        </step>
+        <step>
+          Search for LOCAL plugin skills (workspace/project):
           ```
           Use Glob with pattern: ".claude-plugin/*/skills/**/SKILL.md"
           Use Glob with pattern: "plugins/*/skills/**/SKILL.md"
           ```
-          Note: These are OPTIONAL secondary locations.
+          Note: These are for locally-developed plugins, not marketplace installs.
         </step>
         <step>
           For each discovered SKILL.md, follow these EXACT steps:
@@ -457,9 +473,16 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
     Project-level skills (highest priority):
     - .claude/skills/**/SKILL.md
 
-    Plugin skills (if plugins enabled in .claude/settings.json):
+    Local plugin skills:
     - .claude-plugin/*/skills/**/SKILL.md
     - plugins/*/skills/**/SKILL.md
+
+    **MARKETPLACE-INSTALLED PLUGIN SKILLS** (CRITICAL):
+    - Read .claude/settings.json to get enabledPlugins
+    - For each enabled plugin like "dev@mag-claude-plugins":
+      - Parse: plugin="dev", marketplace="mag-claude-plugins"
+      - Search: ~/.claude/plugins/marketplaces/{marketplace}/plugins/{plugin}/skills/**/SKILL.md
+    - Example: ~/.claude/plugins/marketplaces/mag-claude-plugins/plugins/dev/skills/**/SKILL.md
 
     Home directory skills (user-wide):
     - ~/.claude/skills/**/SKILL.md

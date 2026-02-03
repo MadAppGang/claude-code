@@ -145,33 +145,41 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
         <step name="1a_skill_confirmation">
           **STEP 1A: Skill Confirmation**
 
-          User Confirmation (AskUserQuestion):
+          **MANDATORY FORMAT - USE EXACTLY THIS STRUCTURE:**
+
           ```
           Detected Stack: {stack_name}
           Mode: {frontend | backend | fullstack}
 
           🎯 **Discovered Project Skills** ({count} found):
+          {if count == 0}
+          (None found in .claude/skills/ - this project has no custom skills)
+          {else}
           {for each skill in discovered_skills}
           - {skill.name} ({skill.source}) - {skill.description}
-            ⚡ Auto-loaded: {if skill.auto_loaded} YES - matches task keywords
+          {end}
           {end}
 
-          📦 **Bundled Skills** (from dev plugin):
-          - {skill_1}
-          - {skill_2}
-          - {skill_3}
+          📦 **Bundled Skills** (from dev plugin - these are PATTERNS, not project files):
+          - {bundled_skill_1} (pattern only)
+          - {bundled_skill_2} (pattern only)
+          - {bundled_skill_3} (pattern only)
 
           Options:
-          1. Proceed with these skills [RECOMMENDED]
-          2. Add additional discovered skills
-          3. Remove some skills
-          4. Manual skill selection
+          1. Proceed with bundled patterns [RECOMMENDED]
+          2. Skip skill loading
           ```
 
+          **CRITICAL RULES:**
+          - NEVER say "Recommended Skills" - use EXACT headers above
+          - NEVER pretend bundled skills are project skills
+          - ALWAYS show "(0 found)" if no .claude/skills/ exists
+          - ALWAYS label bundled skills as "(pattern only)"
+          - Bundled skills are GUIDANCE, not actual project files
+
           **Priority Order:**
-          1. Auto-loaded discovered skills (matched to task)
-          2. User-selected discovered skills
-          3. Bundled skills (fallback patterns)
+          1. Discovered project skills (if any exist)
+          2. Bundled patterns (fallback guidance)
         </step>
 
         <step name="1b_validation_criteria">

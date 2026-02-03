@@ -191,8 +191,8 @@
     {
       "name": "dev",
       "source": "./plugins/dev",
-      "description": "Universal development assistant with real skill discovery. v1.27.1: Improved skill discovery for external models - explicit step-by-step instructions, path verification. Internal Claude (sonnet) default is reliable. 44 skills.",
-      "version": "1.27.1",
+      "description": "Universal development assistant with real skill discovery. v1.27.2: Fixed marketplace plugin skill discovery - now searches ~/.claude/plugins/marketplaces/ for installed plugin skills. 44 skills.",
+      "version": "1.27.2",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
