@@ -1,4 +1,5 @@
 ---
+name: autopilot-run
 description: Manually trigger execution of a specific Linear task
 allowed-tools: Task, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, AskUserQuestion
 skills: autopilot:linear-integration, autopilot:tag-command-mapping, autopilot:state-machine, autopilot:proof-of-work

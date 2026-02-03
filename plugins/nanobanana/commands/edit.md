@@ -1,4 +1,5 @@
 ---
+name: image-edit
 description: Edit existing images with natural language instructions
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: nanobanana:gemini-api

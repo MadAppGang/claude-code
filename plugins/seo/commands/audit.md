@@ -1,4 +1,5 @@
 ---
+name: seo-audit
 description: Technical SEO audit for crawlability, Core Web Vitals, schema markup, and on-page SEO
 allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep, WebFetch
 skills: seo:technical-audit, seo:schema-markup, orchestration:error-recovery

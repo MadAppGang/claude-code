@@ -1,4 +1,5 @@
 ---
+name: interview
 description: Comprehensive specification interview with intelligent requirements elicitation
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:universal-patterns, dev:api-design, dev:design-references, orchestration:quality-gates, orchestration:task-orchestration

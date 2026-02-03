@@ -1,4 +1,5 @@
 ---
+name: deep-research
 description: Deep research with convergence-based finalization and parallel exploration
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, orchestration:multi-model-validation, orchestration:task-orchestration

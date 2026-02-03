@@ -1,4 +1,5 @@
 ---
+name: debug-status
 description: Check current debug mode status for agentdev sessions. Shows if enabled/disabled, debug level, and recent session files.
 allowed-tools: Bash
 ---

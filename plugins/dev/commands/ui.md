@@ -1,4 +1,5 @@
 ---
+name: ui
 description: UI design review using Gemini multimodal analysis for usability and accessibility
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation

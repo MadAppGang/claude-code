@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.27.5",
-  "description": "Universal development assistant with real skill discovery. v1.27.5: Moved discover-skills.js to context-detection skill per Claude Code conventions. Scripts belong inside skill directories, not plugin root. 44 skills.",
+  "version": "1.28.0",
+  "description": "Universal development assistant with real skill discovery. v1.28.0: Added explicit name: fields to all commands for prefix-free invocation (/implement instead of /dev:implement). 44 skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",

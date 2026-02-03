@@ -1,4 +1,5 @@
 ---
+name: image-style
 description: Manage image generation style templates (create, list, show, delete, update)
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: nanobanana:style-format

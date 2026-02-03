@@ -1,4 +1,5 @@
 ---
+name: architect
 description: Universal architecture planning for any stack with trade-off analysis
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:context-detection, dev:universal-patterns, orchestration:quality-gates

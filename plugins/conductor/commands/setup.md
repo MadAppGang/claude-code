@@ -1,4 +1,5 @@
 ---
+name: conductor-setup
 description: Initialize Conductor with interactive Q&A to create project context files
 allowed-tools: AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

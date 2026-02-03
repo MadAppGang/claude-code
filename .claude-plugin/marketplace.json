@@ -14,8 +14,8 @@
     {
       "name": "code-analysis",
       "source": "./plugins/code-analysis",
-      "description": "Deep code investigation with claudemem. v3.1.0: Added investigate skill for keyword-based routing and enhanced documentation. v3.0.0: ENRICHMENT MODE - hooks enhance native tools with AST context instead of blocking.",
-      "version": "3.1.1",
+      "description": "Deep code investigation with claudemem. v3.2.0: Added explicit name: fields to commands for prefix-free invocation. v3.0.0: ENRICHMENT MODE - hooks enhance native tools with AST context instead of blocking.",
+      "version": "3.2.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -69,8 +69,8 @@
     {
       "name": "agentdev",
       "source": "./plugins/agentdev",
-      "description": "Create, implement, and review Claude Code agents and commands with multi-model validation, LLM performance tracking, and session-based artifact isolation. v1.4.0: Debug mode - record all tool invocations, skill activations, and agent delegations to JSONL for analysis. Per-project config via /agentdev:debug-enable. Full-cycle workflow: design → review → implement → iterate.",
-      "version": "1.4.0",
+      "description": "Create, implement, and review Claude Code agents and commands with multi-model validation, LLM performance tracking, and session-based artifact isolation. v1.5.0: Added explicit name: fields to commands for prefix-free invocation (/develop instead of /agentdev:develop). Full-cycle workflow: design → review → implement → iterate.",
+      "version": "1.5.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -94,8 +94,8 @@
     {
       "name": "seo",
       "source": "./plugins/seo",
-      "description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.5.1: Fixed hooks configuration - moved from inline plugin.json to hooks/hooks.json. Features E-E-A-T self-assessment, interactive /seo:start entry point, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
-      "version": "1.5.2",
+      "description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.6.0: Added explicit name: fields to commands for prefix-free invocation (/seo instead of /seo:start). Features E-E-A-T self-assessment, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
+      "version": "1.6.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -118,8 +118,8 @@
     {
       "name": "video-editing",
       "source": "./plugins/video-editing",
-      "description": "Professional video editing toolkit with FFmpeg operations, Whisper transcription, and Apple Final Cut Pro project generation. Features intelligent video analysis, automated transcription with timing sync, FCPXML timeline creation with markers, multi-format export, and comprehensive validation.",
-      "version": "1.0.1",
+      "description": "Professional video editing toolkit with FFmpeg operations, Whisper transcription, and Apple Final Cut Pro project generation. v1.1.0: Added explicit name: fields to commands for prefix-free invocation. Features intelligent video analysis, automated transcription with timing sync, FCPXML timeline creation.",
+      "version": "1.1.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -143,8 +143,8 @@
     {
       "name": "nanobanana",
       "source": "./plugins/nanobanana",
-      "description": "AI image generation and editing using Google Gemini 3 Pro Image API (Nano Banana Pro). Simple Node.js CLI with markdown styles, batch generation, reference image support, and comprehensive error handling with retry logic.",
-      "version": "2.2.3",
+      "description": "AI image generation and editing using Google Gemini 3 Pro Image API. v2.3.0: Added explicit name: fields to commands for prefix-free invocation (/generate instead of /nanobanana:generate). Simple Node.js CLI with markdown styles and batch generation.",
+      "version": "2.3.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -166,8 +166,8 @@
     {
       "name": "conductor",
       "source": "./plugins/conductor",
-      "description": "Context-Driven Development workflow inspired by Gemini Conductor. Full-featured implementation with TDD workflow (Red/Green/Refactor), Phase Completion Protocol with verification reports, Git Notes audit trail, comprehensive styleguides (general, TypeScript, JavaScript, HTML/CSS), emergency procedures, and deployment workflow. v2.0.1: Fixed command descriptions for autocomplete display.",
-      "version": "2.0.1",
+      "description": "Context-Driven Development workflow inspired by Gemini Conductor. v2.1.0: Added explicit name: fields to commands for prefix-free invocation. Full-featured implementation with TDD workflow, Phase Completion Protocol, Git Notes audit trail, and comprehensive styleguides.",
+      "version": "2.1.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -191,8 +191,8 @@
     {
       "name": "dev",
       "source": "./plugins/dev",
-      "description": "Universal development assistant with real skill discovery. v1.27.5: Moved discover-skills.js to context-detection skill per Claude Code conventions. Scripts belong inside skill directories, not plugin root. 44 skills.",
-      "version": "1.27.5",
+      "description": "Universal development assistant with real skill discovery. v1.28.0: Added explicit name: fields to all commands for prefix-free invocation (/implement instead of /dev:implement). 44 skills.",
+      "version": "1.28.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",

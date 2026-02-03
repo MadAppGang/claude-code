@@ -1,4 +1,5 @@
 ---
+name: code-analysis-help
 description: Show comprehensive help for the Code Analysis Plugin - lists agents, commands, skills, and usage examples
 allowed-tools: Read
 ---

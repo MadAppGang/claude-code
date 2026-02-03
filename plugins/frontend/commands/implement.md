@@ -1,4 +1,5 @@
 ---
+name: frontend-implement
 description: Full-cycle feature implementation with multi-agent orchestration and quality gates
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

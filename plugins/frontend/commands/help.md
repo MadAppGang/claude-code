@@ -1,4 +1,5 @@
 ---
+name: frontend-help
 description: Show comprehensive help for the Frontend Development Plugin - lists all agents, commands, skills, and usage examples
 allowed-tools: Read
 ---

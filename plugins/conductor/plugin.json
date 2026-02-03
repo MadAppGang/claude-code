@@ -1,6 +1,6 @@
 {
   "name": "conductor",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Context-Driven Development workflow for Claude Code. Manages project context (product.md, tech-stack.md, workflow.md) and guides structured development through: Context -> Spec & Plan -> Implement. Features TDD workflow (Red/Green/Refactor), Phase Completion Protocol with verification reports, Git Notes audit trail, comprehensive styleguides, emergency procedures, and deployment workflow.",
   "author": "MadAppGang",
   "license": "MIT",

@@ -1,4 +1,5 @@
 ---
+name: autopilot-config
 description: Configure Linear integration settings for autopilot
 allowed-tools: AskUserQuestion, Bash, Read, Write
 skills: autopilot:linear-integration, autopilot:tag-command-mapping

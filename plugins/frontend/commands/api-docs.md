@@ -1,4 +1,5 @@
 ---
+name: api-docs
 description: Analyze API documentation for endpoints, data types, and request/response formats
 allowed-tools: Task, Read, Bash
 ---

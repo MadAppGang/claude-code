@@ -1,4 +1,5 @@
 ---
+name: seo-alternatives
 description: Parallel content generation orchestrator using multiple AI models for A/B testing and hybrid optimization
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: orchestration:multi-model-validation, orchestration:model-tracking-protocol, orchestration:quality-gates, seo:content-brief

@@ -1,4 +1,5 @@
 ---
+name: bun-help
 description: Show comprehensive help for the Bun Backend Plugin - lists agents, commands, skills, and usage examples
 allowed-tools: Read
 ---

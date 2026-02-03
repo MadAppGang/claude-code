@@ -1,6 +1,6 @@
 {
   "name": "video-editing",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Professional video editing toolkit with FFmpeg operations, Whisper transcription, and Apple Final Cut Pro project generation. Features intelligent video analysis, automated transcription with timing sync, and FCPXML timeline creation.",
   "author": {
     "name": "Jack Rudenko",

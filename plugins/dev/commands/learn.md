@@ -1,4 +1,5 @@
 ---
+name: learn
 description: Analyze session for learnable patterns and propose CLAUDE.md updates
 allowed-tools: Read, Write, Edit, AskUserQuestion
 ---

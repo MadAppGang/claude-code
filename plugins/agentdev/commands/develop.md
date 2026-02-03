@@ -1,4 +1,5 @@
 ---
+name: develop
 description: |
   Full-cycle agent/command development with multi-model validation and performance tracking.
   Orchestrates design (architect) -> plan review -> implementation (developer) -> quality review (reviewer) -> iteration.

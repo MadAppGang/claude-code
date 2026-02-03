@@ -1,4 +1,5 @@
 ---
+name: conductor-status
 description: Show active tracks, progress, current tasks, and blockers
 allowed-tools: Bash, Read, Glob, Grep
 ---

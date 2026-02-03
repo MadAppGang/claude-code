@@ -1,4 +1,5 @@
 ---
+name: conductor-help
 description: Show Conductor commands, philosophy, and quick start guide
 allowed-tools: Read, Glob
 ---

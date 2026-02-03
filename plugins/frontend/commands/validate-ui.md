@@ -1,4 +1,5 @@
 ---
+name: validate-ui
 description: Multi-agent orchestrated UI design validation with iterative fixes and optional external AI expert review
 ---
 

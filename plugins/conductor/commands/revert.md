@@ -1,4 +1,5 @@
 ---
+name: revert
 description: Git-aware logical undo at track, phase, or task level
 allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

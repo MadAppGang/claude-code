@@ -1,4 +1,5 @@
 ---
+name: implement-api
 description: Full-cycle API implementation with multi-agent orchestration, architecture planning, implementation, testing, and quality gates
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

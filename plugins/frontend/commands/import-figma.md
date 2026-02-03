@@ -1,4 +1,5 @@
 ---
+name: import-figma
 description: Intelligently clean up temporary artifacts and development files from the project
 allowed-tools: Task, TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Glob, Bash, AskUserQuestion, mcp__figma__get_design_context
 ---

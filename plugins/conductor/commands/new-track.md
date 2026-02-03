@@ -1,4 +1,5 @@
 ---
+name: new-track
 description: Create development track with spec and hierarchical task plan
 allowed-tools: AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

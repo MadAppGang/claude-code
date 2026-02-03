@@ -1,4 +1,5 @@
 ---
+name: agentdev-help
 description: Show comprehensive help for the Agent Development Plugin - lists agents, commands, skills, and usage examples
 allowed-tools: Read
 ---

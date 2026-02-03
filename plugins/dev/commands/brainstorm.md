@@ -1,4 +1,5 @@
 ---
+name: brainstorm
 description: Collaborative ideation and planning with multi-model exploration and consensus scoring
 allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: dev:brainstorming, superpowers:using-git-worktrees, superpowers:writing-plans

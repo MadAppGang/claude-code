@@ -1,4 +1,5 @@
 ---
+name: generate
 description: Generate images from text prompts with optional styles and aspect ratios
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: nanobanana:gemini-api

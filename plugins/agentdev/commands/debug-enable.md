@@ -1,4 +1,5 @@
 ---
+name: debug-enable
 description: Enable debug mode for agentdev sessions. Records tool invocations, skill activations, and agent delegations to JSONL files.
 allowed-tools: Bash
 ---

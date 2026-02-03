@@ -1,4 +1,5 @@
 ---
+name: implement-ui
 description: Implement UI components from scratch with design reference, intelligent validation, and adaptive agent switching
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

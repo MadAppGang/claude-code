@@ -1,4 +1,5 @@
 ---
+name: autopilot-create-task
 description: Create a Linear task from CLI and assign to autopilot for execution
 allowed-tools: Task, AskUserQuestion, Bash, Read, Write, TaskCreate, TaskUpdate, TaskList, TaskGet
 skills: autopilot:linear-integration, autopilot:tag-command-mapping

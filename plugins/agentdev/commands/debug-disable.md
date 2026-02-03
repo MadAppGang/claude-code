@@ -1,4 +1,5 @@
 ---
+name: debug-disable
 description: Disable debug mode for agentdev sessions. Stops recording tool invocations and agent delegations.
 allowed-tools: Bash
 ---

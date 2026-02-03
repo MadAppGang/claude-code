@@ -1,4 +1,5 @@
 ---
+name: create-style
 description: |
   Interactive wizard to create and update project design style guides.
   Supports reference image capture, style updates, and visual reference management.

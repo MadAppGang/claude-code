@@ -1,4 +1,5 @@
 ---
+name: setup-project
 description: Initialize a new Bun + TypeScript backend project with best practices setup (Hono, Prisma, Biome, testing, Docker)
 allowed-tools: Bash, Write, AskUserQuestion, TaskCreate, TaskUpdate, TaskList, TaskGet, Read
 ---

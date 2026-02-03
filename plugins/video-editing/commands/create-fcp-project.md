@@ -1,4 +1,5 @@
 ---
+name: create-fcp-project
 description: Create Final Cut Pro FCPXML projects with timelines and markers
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 skills: video-editing:final-cut-pro, video-editing:ffmpeg-core

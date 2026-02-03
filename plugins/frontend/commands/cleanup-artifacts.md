@@ -1,4 +1,5 @@
 ---
+name: cleanup-artifacts
 description: Intelligently clean up temporary artifacts and development files from the project
 allowed-tools: Task, AskUserQuestion, Bash, Read, Glob, Grep
 ---

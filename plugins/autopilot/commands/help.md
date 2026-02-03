@@ -1,4 +1,5 @@
 ---
+name: autopilot-help
 description: Show comprehensive help for the Autopilot plugin
 allowed-tools: Read
 ---

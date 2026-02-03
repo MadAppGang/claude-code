@@ -1,6 +1,6 @@
 {
   "name": "autopilot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Autonomous task execution with Linear integration. Picks tasks from Linear, routes to appropriate agents via tag-to-command mapping, generates proof-of-work artifacts, and handles feedback loops. Phase 1: Core Linear integration and task execution.",
   "author": {
     "name": "Jack Rudenko",

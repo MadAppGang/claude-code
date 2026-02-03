@@ -1,4 +1,5 @@
 ---
+name: frontend-review
 description: Multi-model code review orchestrator with parallel execution and consensus analysis
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

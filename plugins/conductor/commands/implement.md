@@ -1,4 +1,5 @@
 ---
+name: conductor-implement
 description: Execute tasks from track plan with TDD workflow and git commits
 allowed-tools: AskUserQuestion, Bash, Read, Write, Edit, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---

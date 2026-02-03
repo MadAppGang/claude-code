@@ -1,6 +1,6 @@
 {
   "name": "nanobanana",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "description": "AI image generation and editing using Google Gemini 3 Pro Image API. Simple CLI pattern with markdown styles, batch generation, and reference image support.",
   "author": {
     "name": "Jack Rudenko",

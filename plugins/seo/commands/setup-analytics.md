@@ -1,4 +1,5 @@
 ---
+name: setup-analytics
 description: Interactive setup wizard for GA4 and Google Search Console integrations
 allowed-tools: Bash, AskUserQuestion, Read, Write
 ---
