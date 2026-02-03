@@ -182,11 +182,16 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
       <steps>
         <step>Mark skill discovery as in_progress</step>
         <step>
-          Search for .claude/skills/ directory:
+          **IMPORTANT: All paths are relative to CURRENT WORKING DIRECTORY.**
+          First, confirm working directory with Bash: pwd
+        </step>
+        <step>
+          Search for project-level skills in .claude/skills/:
           ```
-          Use Glob: .claude/skills/**/SKILL.md
+          Use Glob with pattern: ".claude/skills/**/SKILL.md"
+          This is the PRIMARY location for project-specific skills.
           ```
-          These are project-level custom skills.
+          CRITICAL: Use relative path ".claude/skills/" - NOT absolute paths.
         </step>
         <step>
           Parse .claude/settings.json for enabled plugins:
@@ -198,33 +203,44 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
           ```
         </step>
         <step>
-          Search for plugin skills in common locations:
+          Search for plugin skills in additional locations:
           ```
-          Use Glob: .claude-plugin/*/skills/**/SKILL.md
-          Use Glob: plugins/*/skills/**/SKILL.md
+          Use Glob with pattern: ".claude-plugin/*/skills/**/SKILL.md"
+          Use Glob with pattern: "plugins/*/skills/**/SKILL.md"
           ```
+          Note: These are OPTIONAL secondary locations.
         </step>
         <step>
-          For each discovered SKILL.md:
-          ```
-          1. Read the file
-          2. Parse YAML frontmatter to extract:
-             - name (required)
-             - description (required)
-          3. Infer categories from:
-             - Path components (e.g., /testing/ → "testing")
-             - Description keywords (e.g., "debug" → "debugging")
-          4. Store in discovered_skills array
-          ```
+          For each discovered SKILL.md, follow these EXACT steps:
+
+          STEP A: Use Read tool to read the file content
+          STEP B: Find the YAML frontmatter (between --- markers at top)
+          STEP C: Extract these fields from frontmatter:
+             - name: (the skill name)
+             - description: (what the skill does)
+          STEP D: Add to discovered_skills array:
+             {
+               "name": "{extracted name}",
+               "description": "{extracted description}",
+               "path": "{file path}",
+               "source": "project",
+               "categories": []
+             }
+
+          DO NOT make up names. Only use values actually found in the file.
         </step>
         <step>
-          Categorize discovered skills by type:
-          - testing: skills with "test", "tdd", "spec" in name/desc
-          - debugging: skills with "debug", "trace", "diagnose" in name/desc
-          - frontend: skills in frontend/ paths or with "react", "vue", "ui"
-          - backend: skills in backend/ paths or with "api", "database", "server"
-          - workflow: skills with "workflow", "process", "pipeline"
-          - documentation: skills with "doc", "readme", "comment"
+          Categorize each discovered skill by matching keywords:
+
+          For each skill, check name and description for these keywords:
+          - "test", "tdd", "spec" → add category "testing"
+          - "debug", "trace", "error" → add category "debugging"
+          - "react", "vue", "component", "ui" → add category "frontend"
+          - "api", "endpoint", "server" → add category "backend"
+          - "workflow", "process", "pipeline" → add category "workflow"
+          - "doc", "readme" → add category "documentation"
+
+          Add matching categories to the skill's categories array.
         </step>
         <step>Mark skill discovery as completed</step>
       </steps>
