@@ -1,6 +1,6 @@
 ---
 name: context-detection
-version: 1.0.0
+version: 1.1.0
 description: Use when detecting project technology stack from files/configs/directory structure, auto-loading framework-specific skills, or analyzing multi-stack fullstack projects (e.g., React + Go).
 keywords:
   - context detection
@@ -9,12 +9,37 @@ keywords:
   - project analysis
   - auto-detection
   - framework detection
+  - skill discovery
 plugin: dev
-updated: 2026-01-20
+updated: 2026-02-03
 used_by: stack-detector agent, all dev commands
+allowed-tools: Bash(node *)
 ---
 
 # Context Detection Skill
+
+## Quick Start: Skill Discovery Script
+
+Run the helper script to discover ALL skills available to a project:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/context-detection/scripts/discover-skills.js" "$(pwd)"
+```
+
+This searches all 7 official Claude Code skill locations:
+1. Personal: `~/.claude/skills/`
+2. Project: `.claude/skills/`
+3. Nested (monorepos): `**/.claude/skills/`
+4. Legacy commands: `.claude/commands/`
+5. Marketplace plugins: `~/.claude/plugins/marketplaces/{m}/plugins/{p}/skills/`
+6. Local plugins: `.claude-plugin/skills/`, `plugins/*/skills/`
+7. Enterprise (managed settings)
+
+**Output:** JSON with summary stats and full skill metadata.
+
+For detailed documentation on the script, see [scripts/discover-skills.js](scripts/discover-skills.js).
+
+---
 
 ## Overview
 

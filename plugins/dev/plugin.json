@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.27.4",
-  "description": "Universal development assistant with real skill discovery. v1.27.4: Added discover-skills.js helper script for reliable skill discovery across all 7 official locations. Single Bash call replaces complex multi-step Glob searches. 44 skills.",
+  "version": "1.27.5",
+  "description": "Universal development assistant with real skill discovery. v1.27.5: Moved discover-skills.js to context-detection skill per Claude Code conventions. Scripts belong inside skill directories, not plugin root. 44 skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",

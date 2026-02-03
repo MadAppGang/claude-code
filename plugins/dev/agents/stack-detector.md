@@ -184,7 +184,7 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Glob, Grep, Bash
         <step>
           **Run the skill discovery helper script:**
           ```bash
-          node "${CLAUDE_PLUGIN_ROOT}/scripts/discover-skills.js" "$(pwd)"
+          node "${CLAUDE_PLUGIN_ROOT}/skills/context-detection/scripts/discover-skills.js" "$(pwd)"
           ```
 
           This script searches ALL 7 official Claude Code skill locations:
