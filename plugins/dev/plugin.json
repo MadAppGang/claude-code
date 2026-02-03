@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.25.0",
-  "description": "Universal development assistant with self-improving learning, documentation, deep research, specification interviews, and DevOps guidance. v1.25.0: Enhanced /dev:feature with real validation loops - user-configurable iterations (2/3/5/10/∞), validation criteria questions (browser/screenshot/API), Chrome MCP tool validation, outer loop with browser testing (Phase 7), Phase 8 completion only after real evidence. 44 skills.",
+  "version": "1.26.0",
+  "description": "Universal development assistant with self-improving learning, documentation, deep research, specification interviews, and DevOps guidance. v1.26.0: Enhanced /dev:implement with optional real validation - unit tests (default, fast), browser test, API test, or skip modes. Outer loop with Chrome MCP when real validation selected. Stays lightweight vs dev:feature. 44 skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
