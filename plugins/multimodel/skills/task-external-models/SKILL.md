@@ -116,12 +116,23 @@ Focus on:
 
 ## Common Mistakes
 
+> **⚠️ CRITICAL WARNING: The #1 failure mode in multi-model workflows**
+>
+> `subagent_type: "general-purpose"` **DOES NOT support PROXY_MODE**.
+> Putting `PROXY_MODE: model-id` in a `general-purpose` prompt will **silently run Claude Sonnet**.
+> The response will look normal but NO external model was actually called.
+> All "diverse" perspectives will come from the same Claude Sonnet model.
+>
+> **Fix:** Use a PROXY_MODE-enabled agent (see table below), or use Bash + CLI approach.
+
 | Mistake | Why It Fails | Fix |
 |---------|--------------|-----|
 | `model: "grok"` as Task parameter | Task's `model` only accepts sonnet/opus/haiku | Put PROXY_MODE in prompt, or use Bash approach |
-| `subagent_type: "general-purpose"` | general-purpose doesn't support PROXY_MODE | Use Bash + CLI approach instead |
+| `subagent_type: "general-purpose"` with PROXY_MODE | **general-purpose silently ignores PROXY_MODE** - runs Claude Sonnet instead | Use PROXY_MODE-enabled agent, or Bash + CLI |
 | PROXY_MODE not on first line | Agent won't detect the directive | Ensure PROXY_MODE is first line of prompt |
-| Agent doesn't support PROXY_MODE | Agent ignores the directive | Use Bash + CLI approach instead |
+| Agent doesn't support PROXY_MODE | Agent ignores the directive silently | Use Bash + CLI approach instead |
+| `$(cat /tmp/file.md)` in Task prompt | Shell expansion doesn't work in JSON string parameters | Read file content first, then include in prompt |
+| Missing `--agent` flag with claudish CLI | External model gets default instance with no specialized tools | Always specify `--agent {plugin}:{agent}` |
 
 ---
 
@@ -223,6 +234,31 @@ echo "Your task" | npx claudish --agent {plugin}:{agent} --model {model-id} --st
 ```
 Put PROXY_MODE: {model-id} on the FIRST LINE of the prompt.
 Use a PROXY_MODE-enabled agent (see table above).
+```
+
+---
+
+## Verifying Models Actually Ran
+
+After collecting results from multi-model execution, **always verify** the response came from the intended model:
+
+**For PROXY_MODE Task approach:**
+- Check the Task agent's response for model identification
+- If response metadata shows `claude-sonnet-*` when expecting an external model → the PROXY_MODE was silently ignored
+- Report which models ACTUALLY ran vs which were requested
+
+**For Bash + CLI approach:**
+- Check claudish exit code (0 = success)
+- Parse claudish cost/model output for confirmation
+- If no cost is reported → external model likely didn't run
+
+**Verification checklist:**
+```
+For each model result:
+  ☐ Response contains substantive analysis (not just acknowledgment)
+  ☐ Response style/format differs from other models (genuine diversity)
+  ☐ If using PROXY_MODE: metadata doesn't show claude-sonnet-*
+  ☐ If using CLI: claudish reported non-zero cost for paid models
 ```
 
 ---

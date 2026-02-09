@@ -172,19 +172,31 @@ This approach works with **ALL agents**, not just PROXY_MODE-enabled ones.
 
 ## Common Mistakes
 
-### Mistake 1: Using general-purpose
+### Mistake 1: Using general-purpose (THE #1 FAILURE MODE)
+
+> **⚠️ CRITICAL:** `general-purpose` **DOES NOT** support PROXY_MODE.
+> It will **silently run Claude Sonnet** instead of the external model.
+> The response will look normal, but no external model was called.
+> This produces fake "diverse perspectives" from a single model.
 
 ```typescript
-// ❌ WRONG for Task + PROXY_MODE approach
+// ❌ WRONG - SILENTLY RUNS CLAUDE SONNET
 Task({
   subagent_type: "general-purpose",
-  prompt: "PROXY_MODE: grok..."
+  prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\nReview this code..."
+})
+// Response comes from Claude Sonnet, NOT Grok!
+```
+
+**Fix A (preferred):** Use a PROXY_MODE-enabled agent:
+```typescript
+Task({
+  subagent_type: "dev:researcher",  // ← Supports PROXY_MODE
+  prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\nReview this code..."
 })
 ```
 
-`general-purpose` doesn't have `<proxy_mode_support>` so it won't recognize the directive.
-
-**Fix:** Either use a PROXY_MODE-enabled agent, or use the Bash + CLI approach:
+**Fix B (fallback):** Use the Bash + CLI approach with `--agent` flag:
 ```bash
 echo "Your task" | npx claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet
 ```

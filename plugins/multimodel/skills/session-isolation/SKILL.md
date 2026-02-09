@@ -163,6 +163,25 @@ fi
 | **agentdev** | `/develop` | `agentdev-{target}-{timestamp}-{random}` |
 | **frontend** | `/review`, `/implement` | `review-{timestamp}-{random}` |
 | **seo** | `/review`, `/alternatives` | `seo-review-{timestamp}-{random}` |
+| **multimodel** | `/team` | `team-{task-slug}-{timestamp}-{random}` |
+
+### Team Session Example
+
+The `/team` command creates a session for multi-model blind voting:
+
+```
+ai-docs/sessions/team-stats-validation-20260209-143022-a3f2/
+├── task.md                 # Raw task description (shared by all models)
+├── grok-result.md          # Grok's investigation findings
+├── gemini-result.md        # Gemini's investigation findings
+├── deepseek-result.md      # DeepSeek's investigation findings
+├── internal-result.md      # Internal Claude's findings
+└── verdict.md              # Aggregated verdict with vote breakdown
+```
+
+**Key difference from other plugins:** Team sessions contain results from
+multiple AI models investigating the same task independently. Each model
+writes to its own result file to prevent conflicts during parallel execution.
 
 ## Best Practices
 

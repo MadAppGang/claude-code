@@ -61,16 +61,20 @@ Find appropriate agent or create one → Delegate to sub-agent (default)
 
 ### Step 2: Agent Type Selection Matrix
 
-| Task Type | Recommended Agent | Fallback | Notes |
-|-----------|------------------|----------|-------|
-| **Code implementation** | Create coding agent with proxy mode | `general-purpose` | Best: custom agent for project-specific patterns |
-| **Code review** | Use existing code review agent + proxy | `general-purpose` | Check if plugin has review agent first |
-| **Architecture planning** | Use existing architect agent + proxy | `general-purpose` | Look for `architect` or `planner` agents |
-| **Testing** | Use existing test agent + proxy | `general-purpose` | Look for `test-architect` or `tester` agents |
-| **Refactoring** | Create refactoring agent with proxy | `general-purpose` | Complex refactors benefit from specialized agent |
-| **Documentation** | `general-purpose` | - | Simple task, generic agent OK |
-| **Analysis** | Use existing analysis agent + proxy | `general-purpose` | Check for `analyzer` or `detective` agents |
-| **Other** | `general-purpose` | - | Default for unknown task types |
+> **⚠️ CRITICAL:** `general-purpose` does NOT support PROXY_MODE.
+> If you put `PROXY_MODE: model-id` in a `general-purpose` Task prompt, it will silently run Claude Sonnet.
+> For the `general-purpose` fallback, you MUST use Bash + claudish CLI with `--agent` flag instead.
+
+| Task Type | PROXY_MODE Agent (preferred) | CLI Fallback (`--agent` flag) | Notes |
+|-----------|------------------------------|-------------------------------|-------|
+| **Investigation** | `dev:researcher` | `--agent code-analysis:detective` | For finding bugs, tracing issues |
+| **Code review** | `agentdev:reviewer`, `frontend:reviewer` | `--agent frontend:reviewer` | Check if plugin has review agent |
+| **Architecture** | `dev:architect`, `frontend:architect` | `--agent dev:architect` | Design and planning tasks |
+| **Implementation** | `dev:developer`, `frontend:developer` | `--agent dev:developer` | Building features |
+| **Testing** | `dev:test-architect` | `--agent dev:test-architect` | Test strategy and coverage |
+| **Debugging** | `dev:debugger` | `--agent dev:debugger` | Error analysis and tracing |
+| **Documentation** | N/A | `--agent dev:researcher` | Simple task, researcher works |
+| **UI/Design** | `dev:ui`, `frontend:designer` | `--agent frontend:designer` | Visual and UX tasks |
 
 ### Step 3: Agent Creation Offer (When No Agent Exists)
 
@@ -148,6 +152,30 @@ Decision:
 3. User declines? → Use typescript-frontend-dev with proxy
 4. Still no agent? → Use general-purpose with file-based pattern
 ```
+
+## Team Mode Integration
+
+When used with the `/team` command for multi-model blind voting:
+
+**Execution via PROXY_MODE-enabled agent (preferred):**
+```
+Task({
+  subagent_type: "dev:researcher",  // PROXY_MODE-enabled
+  prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\nInvestigate the stats dashboard..."
+})
+```
+
+**Execution via claudish CLI (fallback for non-PROXY agents):**
+```bash
+cat "ai-docs/sessions/team-xyz/task.md" | claudish \
+  --agent code-analysis:detective \
+  --model x-ai/grok-code-fast-1 \
+  --stdin --quiet \
+  > "ai-docs/sessions/team-xyz/grok-result.md"
+```
+
+The `--agent` flag is **required** for team mode to give the external model
+specialized capabilities (e.g., claudemem search, structured investigation workflow).
 
 ## Overview
 

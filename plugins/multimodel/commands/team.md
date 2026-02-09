@@ -45,12 +45,13 @@ args:
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
-      You MUST use Tasks to track the 5-phase workflow:
+      You MUST use Tasks to track the 6-phase workflow:
       1. Setup and Configuration
-      2. User Confirmation
-      3. Parallel Execution
-      4. Vote Aggregation
-      5. Results and Persistence
+      2. Agent Selection and Task Preparation
+      3. User Confirmation
+      4. Parallel Execution
+      5. Vote Aggregation
+      6. Results and Persistence
     </todowrite_requirement>
 
     <pre_flight_check>
@@ -67,6 +68,107 @@ args:
         Display: "Configure with: export OPENROUTER_API_KEY=your-key"
         Exit gracefully - do NOT proceed with team workflow
     </pre_flight_check>
+
+    <proxy_mode_enforcement>
+      **⚠️ CRITICAL: general-purpose DOES NOT support PROXY_MODE**
+
+      Putting `PROXY_MODE: model-id` in a `general-purpose` Task prompt will
+      **silently run Claude Sonnet** instead of the external model.
+      This is the #1 failure mode in multi-model workflows.
+
+      **NEVER use `subagent_type: "general-purpose"` with PROXY_MODE in prompt.**
+
+      For each model, you MUST use one of these two approaches:
+
+      **Approach A: Task + PROXY_MODE (PREFERRED)**
+      - Requires a PROXY_MODE-enabled agent (see agent_selection_priority below)
+      - Put `PROXY_MODE: {model-id}` on the FIRST LINE of the prompt
+      - Example:
+        ```
+        Task({
+          subagent_type: "dev:researcher",  // ← MUST support PROXY_MODE
+          prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\n{TASK}",
+          run_in_background: true
+        })
+        ```
+
+      **Approach B: Bash + claudish CLI (FALLBACK)**
+      - Works with ANY agent, including specialized non-PROXY agents
+      - Use when no PROXY_MODE agent fits the task, or for `code-analysis:detective`
+      - MUST include `--agent` flag for specialized agent capabilities
+      - Example:
+        ```
+        Task({
+          subagent_type: "general-purpose",
+          prompt: `Read task from {SESSION_DIR}/task.md, then run:
+            cat "{SESSION_DIR}/task.md" | claudish \\
+              --agent code-analysis:detective \\
+              --model x-ai/grok-code-fast-1 \\
+              --stdin --quiet \\
+              > "{SESSION_DIR}/grok-result.md"
+            Then read and return the result summary.`
+        })
+        ```
+    </proxy_mode_enforcement>
+
+    <agent_selection_priority>
+      **MANDATORY: Agent Selection Decision Tree**
+
+      BEFORE launching any model, determine the execution method:
+
+      **Step 1: Determine task type from keywords**
+      - Investigation/analyze/debug/trace → researcher/debugger agent
+      - Code review/audit/validate → reviewer agent
+      - Architecture/design/plan → architect agent
+      - Implementation/build/create → developer agent
+      - Testing/test coverage → test-architect agent
+
+      **Step 2: For each model, select execution method**
+
+      ```
+      IF a PROXY_MODE-enabled agent fits the task type:
+        → Use Task({ subagent_type: "dev:researcher", prompt: "PROXY_MODE: ..." })
+
+        PROXY_MODE-enabled agents by task type:
+        - Investigation: dev:researcher, dev:debugger
+        - Code review: agentdev:reviewer, frontend:reviewer
+        - Architecture: dev:architect, frontend:architect, agentdev:architect
+        - Implementation: dev:developer, frontend:developer, agentdev:developer
+        - Testing: dev:test-architect, frontend:test-architect
+        - DevOps: dev:devops
+        - UI/Design: dev:ui, frontend:designer, frontend:ui-developer
+
+      ELSE IF a specialized non-PROXY agent fits better:
+        → Use Task + Bash + claudish --agent {specialist} --model {model}
+        Example: claudish --agent code-analysis:detective --model grok
+
+      LAST RESORT:
+        → Use Task + Bash + claudish (no --agent, default instance)
+      ```
+
+      **Step 3: NEVER put PROXY_MODE in a general-purpose Task prompt**
+    </agent_selection_priority>
+
+    <task_type_detection>
+      **Raw Task vs Pre-Digested Context**
+
+      Detect task intent to determine what models receive:
+
+      **Investigation tasks** (models discover the problem independently):
+      - Keywords: investigate, find, debug, trace, why, analyze numbers, validate data
+      - Models receive: RAW problem description + relevant file paths
+      - DO NOT: Solve the problem yourself first, then ask models to confirm
+      - DO: Gather minimal context (file names, table names), write raw task
+
+      **Validation tasks** (models review completed work):
+      - Keywords: review, audit, check, validate plan, approve
+      - Models receive: Completed analysis/code + review criteria
+      - OK to: Include your analysis for models to validate
+
+      **CRITICAL:** For investigation tasks, giving pre-digested conclusions
+      turns diverse AI perspectives into rubber-stamping. Each model MUST
+      investigate independently to provide genuine diverse viewpoints.
+    </task_type_detection>
 
     <blind_voting_protocol>
       - Each model receives IDENTICAL prompts
@@ -91,42 +193,58 @@ args:
       <step>Parse command arguments (--models, --agent, --threshold, --no-memory)</step>
       <step>If no task provided, ask user for task description</step>
       <step>Detect task context from keywords (debug/research/coding/review)</step>
-      <step>Scan installed agents for PROXY_MODE support</step>
-      <step>Run agent recommendation algorithm based on task keywords</step>
     </phase>
 
-    <phase number="2" name="Model Selection (Learn and Reuse)">
+    <phase number="2" name="Agent Selection and Task Preparation">
+      <step>Classify task intent: investigation (raw task) vs validation (pre-digested OK)</step>
+      <step>Follow agent_selection_priority decision tree to choose agent type</step>
+      <step>If --agent flag provided, use that agent (bypasses recommendation)</step>
+      <step>Otherwise, recommend agent based on task keywords with confidence score</step>
+      <step>Create session directory: ai-docs/sessions/team-{SLUG}-{TIMESTAMP}-{RANDOM}/</step>
+      <step>Write raw task description to {SESSION_DIR}/task.md</step>
+      <step>For investigation tasks: gather MINIMAL context only (file paths, table names) - DO NOT solve the problem</step>
+      <step>For validation tasks: include analysis/code context in task.md</step>
+    </phase>
+
+    <phase number="3" name="Model Selection (Learn and Reuse)">
       <step>Check for override triggers in user message ("change models", "different models")</step>
       <step>Load contextPreferences[detected_context] from preferences file</step>
-      <step>IF models exist for context AND no override → USE DIRECTLY (skip to phase 3)</step>
+      <step>IF models exist for context AND no override → USE DIRECTLY (skip to phase 4)</step>
       <step>IF models empty OR override triggered → prompt for model selection</step>
       <step>Save user's selection to contextPreferences[detected_context] (unless --no-memory)</step>
       <step>Display recommended agent with confidence score</step>
+      <step>Confirm execution plan: models × agent × task type</step>
     </phase>
 
-    <phase number="3" name="Parallel Execution">
-      <step>Generate session ID: team-YYYYMMDD-HHMMSS-XXXX</step>
+    <phase number="4" name="Parallel Execution">
       <step>Create tracking table with all models as "pending"</step>
-      <step>Launch ALL models in parallel using Task tool with PROXY_MODE</step>
-      <step>Each Task receives the vote request template with task context</step>
+      <step>For each model, determine execution method (PROXY_MODE vs claudish CLI)</step>
+      <step>Launch ALL models in parallel in a SINGLE message</step>
+      <step>PROXY_MODE models: Task({ subagent_type: "{proxy-agent}", prompt: "PROXY_MODE: {model}\n\n{TASK}" })</step>
+      <step>CLI fallback models: Task({ subagent_type: "general-purpose", prompt: "Run: claudish --agent {agent} --model {model} --stdin" })</step>
+      <step>Each Task writes results to {SESSION_DIR}/{model-slug}-result.md</step>
       <step>Collect results as they complete (timeout: 180s)</step>
     </phase>
 
-    <phase number="4" name="Vote Aggregation">
+    <phase number="5" name="Vote Aggregation and Verification">
       <step>Parse vote blocks from all responses using robust regex</step>
       <step>Extract: VERDICT, CONFIDENCE, SUMMARY, KEY_ISSUES</step>
+      <step>**VERIFY model identity**: Check response metadata for actual model used</step>
+      <step>If metadata shows "claude-sonnet-*" when expecting external model → WARN and flag</step>
       <step>Count: APPROVE, REJECT, ABSTAIN, ERROR votes</step>
       <step>Calculate approval percentage (excluding ABSTAIN from denominator)</step>
       <step>Determine verdict based on threshold</step>
       <step>Aggregate and deduplicate key issues</step>
     </phase>
 
-    <phase number="5" name="Results and Persistence">
-      <step>Present verdict with vote breakdown table</step>
+    <phase number="6" name="Results and Persistence">
+      <step>Present verdict with vote breakdown table (include actual model verified)</step>
       <step>Show key issues ranked by frequency</step>
       <step>Display dissenting opinions if any</step>
+      <step>Report which models ACTUALLY ran vs which were requested</step>
       <step>Update ai-docs/llm-performance.json if exists</step>
       <step>Append to .claude/multimodel-team.json history</step>
+      <step>Save verdict to {SESSION_DIR}/verdict.md</step>
     </phase>
   </workflow>
 </instructions>
@@ -185,6 +303,65 @@ args:
     **Scoring:** Longer keyword matches get higher scores (more specific).
     **Filtering:** Only recommend agents with PROXY_MODE support.
   </agent_recommendation_keywords>
+
+  <session_directory_pattern>
+    **Session Isolation (MANDATORY)**
+
+    All team sessions MUST use unique directories under `ai-docs/sessions/`:
+
+    ```bash
+    TASK_SLUG=$(echo "${TASK_DESCRIPTION}" | tr '[:upper:] ' '[:lower:]-' | sed 's/[^a-z0-9-]//g' | head -c20)
+    SESSION_ID="team-${TASK_SLUG}-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
+    SESSION_DIR="ai-docs/sessions/${SESSION_ID}"
+    mkdir -p "$SESSION_DIR"
+    ```
+
+    **Session directory structure:**
+    ```
+    ai-docs/sessions/team-stats-validation-20260209-143022-a3f2/
+    ├── task.md                 # Raw task description (shared by all models)
+    ├── grok-result.md          # Grok's findings
+    ├── gemini-result.md        # Gemini's findings
+    ├── deepseek-result.md      # DeepSeek's findings
+    ├── internal-result.md      # Internal Claude's findings
+    └── verdict.md              # Aggregated verdict
+    ```
+
+    **Why NOT `/tmp/`:**
+    - Parallel `/team` runs would overwrite each other's files
+    - No traceability - can't associate files with a specific session
+    - No cleanup visibility - files persist indefinitely
+    - Breaks audit trail for historical analysis
+  </session_directory_pattern>
+
+  <claudish_agent_flag>
+    **`--agent` Flag for claudish CLI (REQUIRED for specialized tasks)**
+
+    When using the claudish CLI fallback (Method B), the `--agent` flag tells
+    Claude Code which specialized agent to load for the external model:
+
+    ```bash
+    claudish --agent <PLUGIN>:<AGENT> --model <MODEL> --stdin
+    ```
+
+    **The `--agent` flag is REQUIRED because:**
+    - Without it, the external model gets a default Claude Code instance
+    - No specialized tools, system prompt, or domain knowledge
+    - Agent selection should match the task type:
+
+    | Task Type | --agent Flag |
+    |-----------|-------------|
+    | Investigation | `code-analysis:detective` or `dev:researcher` |
+    | Code review | `frontend:reviewer` or `agentdev:reviewer` |
+    | Architecture | `dev:architect` or `frontend:architect` |
+    | Debugging | `dev:debugger` |
+    | Implementation | `dev:developer` or `frontend:developer` |
+
+    **Example:**
+    ```bash
+    cat "task.md" | claudish --agent code-analysis:detective --model x-ai/grok-code-fast-1 --stdin --quiet
+    ```
+  </claudish_agent_flag>
 
   <vote_request_template>
     ```markdown
@@ -488,17 +665,46 @@ args:
   </skills_used>
 
   <parallel_execution_pattern>
-    Use Task tool with PROXY_MODE in the prompt:
+    **⚠️ CRITICAL: Choose correct execution method per model**
 
+    **Method A: PROXY_MODE-enabled agent (PREFERRED)**
     ```
-    Task(
-      prompt: "PROXY_MODE: {model-id}
+    Task({
+      subagent_type: "dev:researcher",  // MUST be a PROXY_MODE-enabled agent
+      description: "Grok investigates task",
+      run_in_background: true,
+      prompt: "PROXY_MODE: x-ai/grok-code-fast-1
 
                {VOTE_REQUEST_TEMPLATE}
 
-               Task: {user_task}",
-      run_in_background: true
-    )
+               Task: {user_task}
+
+               Write findings to: {SESSION_DIR}/grok-result.md"
+    })
+    ```
+
+    **Method B: claudish CLI fallback (for non-PROXY agents)**
+    ```
+    Task({
+      subagent_type: "general-purpose",
+      description: "Run Grok via claudish",
+      run_in_background: true,
+      prompt: "Read the task from {SESSION_DIR}/task.md, then run:
+               cat '{SESSION_DIR}/task.md' | claudish \\
+                 --agent code-analysis:detective \\
+                 --model x-ai/grok-code-fast-1 \\
+                 --stdin --quiet \\
+                 > '{SESSION_DIR}/grok-result.md'
+               Then read {SESSION_DIR}/grok-result.md and return the result summary."
+    })
+    ```
+
+    **⚠️ NEVER do this (silent failure):**
+    ```
+    Task({
+      subagent_type: "general-purpose",      // ← WRONG
+      prompt: "PROXY_MODE: x-ai/grok...\n..."  // ← SILENTLY IGNORED
+    })
     ```
 
     Launch ALL models in a SINGLE message (parallel execution).

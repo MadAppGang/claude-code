@@ -160,28 +160,31 @@ Instead, create a **unique session directory** for each validation:
 
 ```bash
 # Generate unique session ID
-SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
-SESSION_DIR="/tmp/${SESSION_ID}"
+TARGET_SLUG=$(echo "${TASK_NAME:-review}" | tr '[:upper:] ' '[:lower:]-' | sed 's/[^a-z0-9-]//g' | head -c20)
+SESSION_ID="review-${TARGET_SLUG}-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
+SESSION_DIR="ai-docs/sessions/${SESSION_ID}"
 
 # Create session workspace
 mkdir -p "$SESSION_DIR"
-
-# Export for use by agents
-export SESSION_ID SESSION_DIR
 
 echo "Session: $SESSION_ID"
 echo "Directory: $SESSION_DIR"
 
 # Example output:
-# Session: review-20251212-143052-a3f2
-# Directory: /tmp/review-20251212-143052-a3f2
+# Session: review-auth-impl-20251212-143052-a3f2
+# Directory: ai-docs/sessions/review-auth-impl-20251212-143052-a3f2
 ```
 
 **Benefits:**
 - ✅ Each session is isolated (no cross-contamination)
-- ✅ Easy cleanup (`rm -rf $SESSION_DIR` when done)
+- ✅ Traceable - can associate files with a specific session
 - ✅ Session ID can be used for tracking in statistics
 - ✅ Parallel sessions don't conflict
+- ✅ Aligned with `dev:feature` session pattern
+- ✅ Committed to git for audit trail (unlike `/tmp/`)
+
+> **⚠️ Do NOT use `/tmp/` for session directories.** Files in `/tmp/` are not
+> traceable, not committable, and parallel runs will overwrite each other.
 
 ---
 
@@ -472,7 +475,7 @@ Message 4: Present Results
 Message 1: Preparation (Session Setup + Model Discovery)
   # Create unique session workspace
   Bash: SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
-  Bash: SESSION_DIR="/tmp/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
+  Bash: SESSION_DIR="ai-docs/sessions/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
   Bash: git diff > "$SESSION_DIR/code-context.md"
 
   # Discover available models
@@ -1921,7 +1924,7 @@ Step 3: User Sees Real-Time Progress
 Message 1: Session Setup + Model Discovery
   # Create unique session
   Bash: SESSION_ID="review-$(date +%Y%m%d-%H%M%S)-$(head -c 4 /dev/urandom | xxd -p)"
-  Bash: SESSION_DIR="/tmp/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
+  Bash: SESSION_DIR="ai-docs/sessions/${SESSION_ID}" && mkdir -p "$SESSION_DIR"
   Output: Session: review-20251212-143052-a3f2
 
   # Discover available models
@@ -2425,7 +2428,7 @@ Master this skill and you can validate any implementation with multiple AI persp
 
 **Version 3.0 Additions:**
 - **Pattern 0: Session Setup and Model Discovery**
-  - Unique session directories (`/tmp/review-{timestamp}-{hash}`)
+  - Unique session directories (`ai-docs/sessions/review-{slug}-{timestamp}-{hash}`)
   - Dynamic model discovery via `claudish --top-models` and `claudish --free`
   - Always include internal reviewer (safety net)
   - Recommended free models: qwen3-coder, devstral-2512, qwen3-235b
