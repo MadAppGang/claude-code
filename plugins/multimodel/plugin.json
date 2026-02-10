@@ -28,6 +28,8 @@
     "cost-optimization"
   ],
 
+  "hooks": "./hooks/hooks.json",
+
   "skills": [
     "multi-agent-coordination",
     "multi-model-validation",
@@ -42,7 +44,8 @@
     "task-complexity-router",
     "hierarchical-coordinator",
     "batching-patterns",
-    "performance-tracking"
+    "performance-tracking",
+    "agent-enforcement"
   ],
 
   "commands": [
@@ -53,7 +56,7 @@
     "core": ["multi-agent-coordination", "quality-gates"],
     "advanced": ["multi-model-validation", "error-recovery", "hierarchical-coordinator"],
     "optimization": ["task-complexity-router", "performance-tracking", "batching-patterns"],
-    "hooks": ["hooks-system"],
+    "hooks": ["hooks-system", "agent-enforcement"],
     "complete": ["multi-agent-coordination", "multi-model-validation", "quality-gates", "task-orchestration", "error-recovery", "hooks-system", "task-complexity-router", "hierarchical-coordinator", "batching-patterns", "performance-tracking"]
   },
 
