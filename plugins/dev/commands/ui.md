@@ -27,6 +27,22 @@ skills: dev:ui-analyse, dev:ui-implement, orchestration:multi-model-validation
   $ARGUMENTS
 </user_request>
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: This command uses specialized visual analysis agents. dev:ui uses Gemini multimodal
+  analysis for visual review — other agents cannot do this. dev:ui-engineer applies Anti-AI
+  design patterns that dev:developer does not have.
+
+  AGENT RULES FOR THIS COMMAND:
+  - Design analysis/review → dev:ui agent (subagent_type: "dev:ui")
+  - Implementation of design improvements → dev:ui-engineer agent (subagent_type: "dev:ui-engineer")
+
+  DO NOT use dev:developer for design implementation (lacks Anti-AI design rules and visual verification).
+  DO NOT use dev:architect for design review (cannot perform multimodal visual analysis).
+  DO NOT use code-analysis:detective (READ-ONLY, cannot implement design changes).
+</critical_override>
+
 <instructions>
   <critical_constraints>
     <orchestrator_role>

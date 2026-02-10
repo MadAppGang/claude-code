@@ -4,6 +4,26 @@ description: Full-cycle feature implementation with multi-agent orchestration an
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
 ---
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: This command uses frontend-specific agents that understand React/TypeScript/Vite
+  patterns. The CLAUDE.md routing table might substitute dev:developer or dev:architect,
+  which lack frontend-specific skills like shadcn/ui, TanStack, and Figma integration.
+
+  AGENT RULES FOR THIS COMMAND (follow the Delegation Rules section below):
+  - ALL code changes → frontend:developer agent (subagent_type: "frontend:developer")
+  - ALL planning → frontend:architect agent (subagent_type: "frontend:architect")
+  - ALL design reviews → frontend:designer agent (subagent_type: "frontend:designer")
+  - ALL UI implementation/fixes → frontend:ui-developer agent (subagent_type: "frontend:ui-developer")
+  - ALL code reviews → frontend:reviewer agent (subagent_type: "frontend:reviewer")
+  - ALL testing → frontend:test-architect agent (subagent_type: "frontend:test-architect")
+  - ALL cleanup → frontend:cleaner agent (subagent_type: "frontend:cleaner")
+
+  DO NOT substitute dev:developer for frontend:developer (lacks React/Vite/TanStack patterns).
+  DO NOT substitute dev:architect for frontend:architect (lacks frontend-specific planning).
+</critical_override>
+
 ## Mission
 
 Orchestrate a complete feature implementation workflow using specialized agents with built-in quality gates and feedback loops. This command manages the entire lifecycle from architecture planning through implementation, code review, testing, user approval, and project cleanup.

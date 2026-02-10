@@ -15,7 +15,7 @@
 
 | Plugin | Version | Purpose |
 |--------|---------|---------|
-| **Frontend** | v3.13.0 | React/TypeScript dev with 11 agents, multi-model review |
+| **Frontend** | v3.15.0 | React/TypeScript dev with 11 agents, multi-model review |
 | **Code Analysis** | v3.0.0 | Codebase investigation with claudemem, enrichment mode (non-blocking) |
 | **Bun Backend** | v1.5.2 | TypeScript backend with Bun, Apidog integration |
 | **Orchestration** | v0.8.2 | Multi-agent coordination patterns (6 skills) |
@@ -23,7 +23,7 @@
 | **SEO** | v1.5.1 | SEO analysis and optimization with AUTO GATEs |
 | **Video Editing** | v1.0.1 | FFmpeg, Whisper, Final Cut Pro integration |
 | **Nanobanana** | v2.2.3 | AI image generation with Gemini 3 Pro Image |
-| **Dev** | v1.26.0 | Universal dev assistant with real validation loops, 44 skills |
+| **Dev** | v1.30.0 | Universal dev assistant with real validation loops, 45 skills |
 
 **Claudish CLI**: `npm install -g claudish` - Run Claude with OpenRouter models (separate repo)
 
@@ -182,6 +182,21 @@ CODEX_API_KEY=your-codex-key
 
 **Local dev:** `/plugin marketplace add /path/to/claude-code`
 
+## Task Routing - Agent Delegation
+
+IMPORTANT: For complex tasks, prefer delegating to specialized agents via the Task tool rather than handling inline. Delegated agents run in dedicated context windows with sustained focus, producing higher quality results.
+
+| Task Pattern | Delegate To | Trigger |
+|---|---|---|
+| Research: web search, tech comparison, multi-source reports | `dev:researcher` | 3+ sources or comparison needed |
+| Implementation: creating code, new modules, features, building with tests | `dev:developer` | Writing new code, adding features, creating modules - even if they relate to existing codebase |
+| Investigation: READ-ONLY codebase analysis, tracing, understanding | `code-analysis:detective` | Only when task is to UNDERSTAND code, not to WRITE new code |
+| Debugging: error analysis, root cause investigation | `dev:debugger` | Non-obvious bugs or multi-file root cause |
+| Architecture: system design, trade-off analysis | `dev:architect` | New systems or major refactors |
+| Agent/plugin quality review | `agentdev:reviewer` | Agent description or plugin assessment |
+
+Key distinction: If the task asks to IMPLEMENT/CREATE/BUILD → `dev:developer`. If the task asks to UNDERSTAND/ANALYZE/TRACE → `code-analysis:detective`.
+
 ## Design Principles
 
 1. **Shareable Config, Private Secrets** - Configuration in git, credentials in environment
@@ -198,7 +213,7 @@ CODEX_API_KEY=your-codex-key
 
 **Current Versions:**
 - Multimodel Plugin: **v2.0.0** (2026-01-28)
-- Frontend Plugin: **v3.13.0** (2025-12-14)
+- Frontend Plugin: **v3.15.0** (2026-02-10)
 - Code Analysis Plugin: **v2.15.0** (2026-01-11)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
 - Agent Development Plugin: **v1.4.0** (2026-01-05)
@@ -206,7 +221,7 @@ CODEX_API_KEY=your-codex-key
 - Video Editing Plugin: **v1.0.1** (2026-01-06)
 - Nanobanana Plugin: **v2.2.3** (2026-01-08)
 - Conductor Plugin: **v2.0.1** (2026-01-06)
-- Dev Plugin: **v1.29.0** (2026-02-04)
+- Dev Plugin: **v1.30.0** (2026-02-10)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
 **Latest Changes (Code Analysis v2.15.0):**
@@ -218,7 +233,7 @@ CODEX_API_KEY=your-codex-key
 
 **Git Tags:**
 - Multimodel: `plugins/multimodel/v2.0.0`
-- Frontend: `plugins/frontend/v3.13.0`
+- Frontend: `plugins/frontend/v3.15.0`
 - Bun: `plugins/bun/v1.5.2`
 - Code Analysis: `plugins/code-analysis/v2.15.0`
 - Agent Development: `plugins/agentdev/v1.3.0`
@@ -226,7 +241,7 @@ CODEX_API_KEY=your-codex-key
 - Video Editing: `plugins/video-editing/v1.0.1`
 - Nanobanana: `plugins/nanobanana/v2.2.3`
 - Conductor: `plugins/conductor/v2.0.1`
-- Dev: `plugins/dev/v1.29.0`
+- Dev: `plugins/dev/v1.30.0`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 **⚠️ RELEASE CHECKLIST (ALL 3 REQUIRED):**
@@ -256,5 +271,5 @@ The workflow `.github/workflows/claudeup-release.yml` triggers on `tools/claudeu
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** February 3, 2026
-**Version:** 10 plugins (Multimodel v2.0.0, Frontend v3.13.0, Code Analysis v2.15.0, Bun Backend v1.5.2, Agent Development v1.4.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.29.0)
+**Version:** 10 plugins (Multimodel v2.0.0, Frontend v3.15.0, Code Analysis v2.15.0, Bun Backend v1.5.2, Agent Development v1.4.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.30.0)
 - do not use hardcoded path in code, docs, comments or any other files

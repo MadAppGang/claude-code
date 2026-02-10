@@ -33,6 +33,27 @@ skills: dev:context-detection, dev:universal-patterns, dev:phase-enforcement, or
   $ARGUMENTS
 </user_request>
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: This 8-phase workflow uses DIFFERENT agents for each phase. The CLAUDE.md routing
+  table would incorrectly substitute agents (e.g., dev:architect for implementation,
+  code-analysis:detective for debugging). Each phase MUST use its designated agent.
+
+  AGENT RULES FOR THIS COMMAND:
+  - Stack detection → dev:stack-detector agent (subagent_type: "dev:stack-detector")
+  - Architecture/planning → dev:architect agent (subagent_type: "dev:architect")
+  - Plan review (with PROXY_MODE) → dev:architect agent
+  - Implementation → dev:developer agent (subagent_type: "dev:developer")
+  - Code review (with PROXY_MODE) → agentdev:reviewer or dev:architect agent
+  - Test creation → dev:test-architect agent (subagent_type: "dev:test-architect")
+  - Real validation → Orchestrator (Chrome MCP tools directly)
+
+  DO NOT substitute agents across phases. Each phase has specific agent requirements.
+  DO NOT use code-analysis:detective for any phase (READ-ONLY, cannot write code).
+  DO NOT use dev:researcher for any phase (research only, not in this workflow).
+</critical_override>
+
 <instructions>
   <critical_constraints>
     <todowrite_requirement>

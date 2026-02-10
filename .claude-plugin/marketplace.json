@@ -191,8 +191,8 @@
     {
       "name": "dev",
       "source": "./plugins/dev",
-      "description": "Universal development assistant with real skill discovery. v1.29.0: Added phase completion enforcement with evidence-based validation, failure reporting, and manual testing steps. 45 skills.",
-      "version": "1.29.0",
+      "description": "Universal development assistant with real skill discovery. v1.30.0: Added <critical_override> blocks for reliable agent selection, /dev:setup for CLAUDE.md config, /dev:delegate for task routing. 45 skills.",
+      "version": "1.30.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",

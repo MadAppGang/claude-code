@@ -2,6 +2,7 @@
 name: frontend-review
 description: Multi-model code review orchestrator with parallel execution and consensus analysis
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep
+skills: multimodel:task-external-models, multimodel:proxy-mode-reference
 ---
 
 <role>
@@ -28,6 +29,23 @@ allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskLi
 <user_request>
   $ARGUMENTS
 </user_request>
+
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: ALL code reviews in this command MUST use frontend:senior-code-reviewer agent
+  (subagent_type: "frontend:reviewer") because it is the ONLY frontend agent that handles
+  PROXY_MODE for external model reviews. The CLAUDE.md routing table might substitute
+  dev:architect or agentdev:reviewer, which lack frontend-specific review patterns.
+
+  AGENT RULES FOR THIS COMMAND:
+  - ALL code reviews (embedded and external) → frontend:reviewer agent
+    (subagent_type: "frontend:reviewer")
+  - Consolidation → Orchestrator (reads files, analyzes consensus, NOT delegated)
+
+  DO NOT use dev:architect, agentdev:reviewer, or any other reviewer agent.
+  ONLY frontend:reviewer (senior-code-reviewer) handles PROXY_MODE correctly for this plugin.
+</critical_override>
 
 <instructions>
   <critical_constraints>

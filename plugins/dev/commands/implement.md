@@ -28,6 +28,25 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
   $ARGUMENTS
 </user_request>
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: The CLAUDE.md routing table maps "Implementation" to dev:developer, but this command
+  uses MULTIPLE specialized agents across different phases. Using the wrong agent breaks
+  the orchestration workflow.
+
+  AGENT RULES FOR THIS COMMAND:
+  - Stack detection → dev:stack-detector agent (subagent_type: "dev:stack-detector")
+  - Architecture planning → dev:architect agent (subagent_type: "dev:architect")
+  - ALL implementation work → dev:developer agent (subagent_type: "dev:developer")
+  - ALL code reviews → appropriate reviewer agent
+  - Real validation → Orchestrator (Chrome MCP tools directly)
+
+  DO NOT substitute dev:architect for implementation work (dev:architect only PLANS, not writes code).
+  DO NOT substitute dev:researcher for any phase (dev:researcher only READS, not writes code).
+  DO NOT substitute code-analysis:detective for any phase (READ-ONLY, cannot write code).
+</critical_override>
+
 <instructions>
   <critical_constraints>
     <todowrite_requirement>

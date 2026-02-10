@@ -29,6 +29,26 @@ skills: dev:context-detection, orchestration:multi-model-validation, orchestrati
   $ARGUMENTS
 </user_request>
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: The CLAUDE.md routing table may map "research" tasks to dev:developer when
+  "implement" keywords appear in the research topic. ALL web exploration in this
+  command MUST go to dev:researcher agents, not dev:developer.
+
+  AGENT RULES FOR THIS COMMAND:
+  - Research planning → dev:developer agent (used as planner, NOT for web research)
+  - Query generation → dev:developer agent (used as planner)
+  - Web exploration → dev:researcher agents (parallel, up to 3)
+  - Local investigation → dev:researcher agents
+  - Finding synthesis → dev:synthesizer agent (subagent_type: "dev:synthesizer")
+  - Report generation → dev:synthesizer agent
+
+  DO NOT use dev:developer for web exploration (dev:developer writes code, not research).
+  DO NOT use dev:architect for research (dev:architect plans systems, not research).
+  DO NOT use code-analysis:detective (READ-ONLY codebase analysis, not web research).
+</critical_override>
+
 <instructions>
   <critical_constraints>
     <todowrite_requirement>

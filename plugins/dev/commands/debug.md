@@ -24,6 +24,24 @@ skills: dev:context-detection, dev:debugging-strategies, orchestration:error-rec
   $ARGUMENTS
 </user_request>
 
+<critical_override>
+  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
+
+  WHY: The CLAUDE.md routing table maps "Investigation" to code-analysis:detective, but this
+  command needs dev:debugger for error analysis and dev:developer for applying fixes.
+  code-analysis:detective is READ-ONLY and cannot fix bugs.
+
+  AGENT RULES FOR THIS COMMAND:
+  - Error analysis and root cause investigation → dev:debugger agent (subagent_type: "dev:debugger")
+  - Applying fixes → dev:developer agent (subagent_type: "dev:developer")
+  - Stack detection → dev:stack-detector agent (subagent_type: "dev:stack-detector")
+  - Validation → Bash (run tests directly)
+
+  DO NOT use code-analysis:detective (READ-ONLY — cannot apply fixes or write code).
+  DO NOT use dev:researcher (researches topics, does NOT debug code).
+  DO NOT use dev:architect (plans architecture, does NOT debug or fix code).
+</critical_override>
+
 <instructions>
   <critical_constraints>
     <todowrite_requirement>
