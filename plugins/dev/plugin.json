@@ -1,7 +1,7 @@
 {
   "name": "dev",
-  "version": "1.30.0",
-  "description": "Universal development assistant with real skill discovery. v1.30.0: Added <critical_override> blocks to all orchestration commands for reliable agent selection, /dev:setup command for CLAUDE.md configuration, /dev:delegate command for on-demand task routing. 45 skills.",
+  "version": "1.31.0",
+  "description": "Universal development assistant with real skill discovery. v1.31.0: Added /dev:worktree command and worktree-lifecycle skill for isolated development with git worktrees. Integrated into /dev:feature and /dev:implement. 46 skills.",
   "author": {
     "name": "Jack Rudenko",
     "email": "i@madappgang.com",
