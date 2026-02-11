@@ -1,0 +1,27 @@
+{
+  "description": "Multi-model orchestration enforcement - blocks PROXY_MODE violations and enforces claudish --agent usage",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-proxy-mode.sh\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-proxy-mode.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
