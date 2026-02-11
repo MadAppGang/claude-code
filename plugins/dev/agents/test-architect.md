@@ -63,66 +63,6 @@ tools: TaskCreate, TaskUpdate, TaskList, TaskGet, Read, Write, Edit, Bash, Glob,
       Update continuously as you progress.
     </todowrite_requirement>
 
-    <proxy_mode_support>
-      **FIRST STEP: Check for Proxy Mode Directive**
-
-      If prompt starts with `PROXY_MODE: {model_name}`:
-      1. Extract model name and actual task
-      2. Delegate via Claudish: `printf '%s' "$PROMPT" | npx claudish --stdin --model {model_name} --quiet --auto-approve`
-      3. Return attributed response and STOP
-
-      **If NO PROXY_MODE**: Proceed with normal workflow
-
-      <error_handling>
-        **CRITICAL: Never Silently Substitute Models**
-
-        When PROXY_MODE execution fails:
-
-        1. **DO NOT** fall back to another model silently
-        2. **DO NOT** use internal Claude to complete the task
-        3. **DO** report the failure with details
-        4. **DO** return to orchestrator for decision
-
-        **Error Report Format:**
-        ```markdown
-        ## PROXY_MODE Failed
-
-        **Requested Model:** {model_id}
-        **Detected Backend:** {backend from prefix}
-        **Error:** {error_message}
-
-        **Possible Causes:**
-        - Missing API key for {backend} backend
-        - Model not available on {backend}
-        - Prefix collision (try using `or/` prefix for OpenRouter)
-        - Network/API error
-
-        **Task NOT Completed.**
-
-        Please check the model ID and try again, or select a different model.
-        ```
-
-        **Why This Matters:**
-        - Silent fallback corrupts multi-model validation results
-        - User expects specific model's perspective, not a substitute
-        - Orchestrator cannot make informed decisions without failure info
-      </error_handling>
-
-      <prefix_collision_awareness>
-        Before executing PROXY_MODE, check for prefix collisions:
-
-        **Colliding Prefixes:**
-        - `google/` routes to Gemini Direct (needs GEMINI_API_KEY)
-        - `openai/` routes to OpenAI Direct (needs OPENAI_API_KEY)
-        - `g/` routes to Gemini Direct
-        - `oai/` routes to OpenAI Direct
-
-        **If model ID starts with colliding prefix:**
-        1. Check if user likely wanted OpenRouter
-        2. If unclear, note in error report: "Model ID may have prefix collision"
-        3. Suggest using `or/` prefix for OpenRouter routing
-      </prefix_collision_awareness>
-    </proxy_mode_support>
 
     <test_authority>
       **Tests are the source of truth.**

@@ -19,7 +19,7 @@
 | **Code Analysis** | v3.0.0 | Codebase investigation with claudemem, enrichment mode (non-blocking) |
 | **Bun Backend** | v1.5.2 | TypeScript backend with Bun, Apidog integration |
 | **Orchestration** | v0.8.2 | Multi-agent coordination patterns (6 skills) |
-| **Agent Development** | v1.3.0 | Create Claude Code agents, PROXY_MODE error handling |
+| **Agent Development** | v1.3.0 | Create Claude Code agents and plugins |
 | **SEO** | v1.5.1 | SEO analysis and optimization with AUTO GATEs |
 | **Video Editing** | v1.0.1 | FFmpeg, Whisper, Final Cut Pro integration |
 | **Nanobanana** | v2.2.3 | AI image generation with Gemini 3 Pro Image |
@@ -212,7 +212,7 @@ Key distinction: If the task asks to IMPLEMENT/CREATE/BUILD → `dev:developer`.
 **Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
 
 **Current Versions:**
-- Multimodel Plugin: **v2.3.0** (2026-02-10)
+- Multimodel Plugin: **v2.4.0** (2026-02-10)
 - Frontend Plugin: **v3.15.0** (2026-02-10)
 - Code Analysis Plugin: **v2.15.0** (2026-01-11)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
@@ -232,7 +232,7 @@ Key distinction: If the task asks to IMPLEMENT/CREATE/BUILD → `dev:developer`.
 - ✅ **Preserved Fallbacks**: Native tools still work when claudemem not indexed
 
 **Git Tags:**
-- Multimodel: `plugins/multimodel/v2.3.0`
+- Multimodel: `plugins/multimodel/v2.4.0`
 - Frontend: `plugins/frontend/v3.15.0`
 - Bun: `plugins/bun/v1.5.2`
 - Code Analysis: `plugins/code-analysis/v2.15.0`
@@ -271,5 +271,5 @@ The workflow `.github/workflows/claudeup-release.yml` triggers on `tools/claudeu
 
 **Maintained by:** Jack Rudenko @ MadAppGang
 **Last Updated:** February 10, 2026
-**Version:** 10 plugins (Multimodel v2.3.0, Frontend v3.15.0, Code Analysis v2.15.0, Bun Backend v1.5.2, Agent Development v1.4.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.30.0)
+**Version:** 10 plugins (Multimodel v2.4.0, Frontend v3.15.0, Code Analysis v2.15.0, Bun Backend v1.5.2, Agent Development v1.4.0, SEO v1.5.1, Video Editing v1.0.1, Nanobanana v2.2.3, Conductor v2.0.1, Dev v1.30.0)
 - do not use hardcoded path in code, docs, comments or any other files

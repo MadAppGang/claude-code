@@ -8,6 +8,10 @@ set -euo pipefail
 # Removes LLM decision-making from agent selection entirely.
 # Takes model list + task type, returns JSON resolution per model.
 #
+# Methods:
+#   - "direct": Internal Claude via Task(agent)
+#   - "cli":    External models via Bash(claudish --model --agent)
+#
 # Usage:
 #   bash resolve-agents.sh --models "internal,x-ai/grok-code-fast-1" --task-type "investigation"
 #
@@ -36,26 +40,6 @@ if [ -z "${MODELS}" ]; then
 fi
 
 # --------------------------------------------------------------------------
-# PROXY_MODE-enabled agents: single source of truth
-# --------------------------------------------------------------------------
-
-# Full list of all PROXY_MODE-enabled agents
-# Synced with plugins/multimodel/skills/proxy-mode-reference/SKILL.md
-# When adding agents: update this list, enforce-proxy-mode.sh, and analyze-team-transcript.sh
-PROXY_AGENTS="dev:researcher dev:developer dev:debugger dev:architect dev:test-architect dev:devops dev:ui agentdev:reviewer agentdev:architect agentdev:developer frontend:plan-reviewer frontend:reviewer frontend:architect frontend:designer frontend:developer frontend:ui-developer frontend:css-developer frontend:test-architect seo:analyst seo:editor seo:writer seo:researcher seo:data-analyst"
-
-# --------------------------------------------------------------------------
-# Helper: check if agent is in PROXY_AGENTS list
-# --------------------------------------------------------------------------
-is_proxy_agent() {
-  local agent="$1"
-  for pa in ${PROXY_AGENTS}; do
-    [ "${agent}" = "${pa}" ] && return 0
-  done
-  return 1
-}
-
-# --------------------------------------------------------------------------
 # Resolve agent for task type (case statement for bash 3.2 compatibility)
 # --------------------------------------------------------------------------
 resolve_agent() {
@@ -81,7 +65,7 @@ resolve_agent() {
     ui|frontend|component)
       echo "dev:ui" ;;
     *)
-      # Default: dev:researcher (always PROXY_MODE-enabled)
+      # Default: dev:researcher
       echo "dev:researcher" ;;
   esac
 }
@@ -124,13 +108,13 @@ for model_id in "${MODEL_ARRAY[@]}"; do
 
   # Determine method based on model type
   if [ "${model_id}" = "internal" ]; then
-    # "internal" = use the specialized agent directly (no PROXY_MODE, no claudish)
+    # "internal" = use the specialized agent directly via Task
     METHOD="direct"
-    REASON="Internal Claude via '${AGENT}' agent (no PROXY_MODE needed)"
+    REASON="Internal Claude via '${AGENT}' agent (Task tool)"
   else
-    # External models use PROXY_MODE with the specialized agent
-    METHOD="proxy_mode"
-    REASON="PROXY_MODE agent '${AGENT}' matches ${TASK_TYPE} task"
+    # External models use claudish CLI (deterministic, 100% reliable)
+    METHOD="cli"
+    REASON="External model via claudish CLI with '${AGENT}' agent"
   fi
 
   RESOLUTIONS+=$(jq -nc \

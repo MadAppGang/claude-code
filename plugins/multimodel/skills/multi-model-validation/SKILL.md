@@ -490,25 +490,17 @@ Message 2: Parallel Execution (ONLY Task calls - single message)
              Write detailed review to $SESSION_DIR/claude-review.md
              Return only brief summary."
   ---
-  Task: codex-code-reviewer PROXY_MODE: x-ai/grok-code-fast-1
-    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
-             Write detailed review to $SESSION_DIR/grok-review.md
-             Return only brief summary."
+  Bash: claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/grok-review.md 2>$SESSION_DIR/grok-stderr.log
   ---
-  Task: codex-code-reviewer PROXY_MODE: qwen/qwen3-coder:free
-    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
-             Write detailed review to $SESSION_DIR/qwen-coder-review.md
-             Return only brief summary."
+  Bash: claudish --agent dev:researcher --model qwen/qwen3-coder:free --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/qwen-coder-review.md 2>$SESSION_DIR/qwen-stderr.log
   ---
-  Task: codex-code-reviewer PROXY_MODE: openai/gpt-5.1-codex
-    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
-             Write detailed review to $SESSION_DIR/gpt5-review.md
-             Return only brief summary."
+  Bash: claudish --agent dev:researcher --model openai/gpt-5.1-codex --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/gpt5-review.md 2>$SESSION_DIR/gpt5-stderr.log
   ---
-  Task: codex-code-reviewer PROXY_MODE: mistralai/devstral-2512:free
-    Prompt: "Review $SESSION_DIR/code-context.md for security issues.
-             Write detailed review to $SESSION_DIR/devstral-review.md
-             Return only brief summary."
+  Bash: claudish --agent dev:researcher --model mistralai/devstral-2512:free --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/devstral-review.md 2>$SESSION_DIR/devstral-stderr.log
 
   All 5 models execute simultaneously (5x parallelism!)
 
@@ -673,173 +665,82 @@ Do NOT consolidate until ALL tasks complete:
 
 ---
 
-### Pattern 3: Proxy Mode Implementation
+### Pattern 3: External Model Invocation via Bash+claudish
 
-**PROXY_MODE Directive:**
+**How External Models Are Invoked:**
 
-External AI models are invoked via the PROXY_MODE directive in agent prompts:
+External AI models are invoked **deterministically** via Bash+claudish CLI. The orchestrator
+calls claudish directly — no LLM delegation needed. This is 100% reliable.
 
-```
-Task: codex-code-reviewer PROXY_MODE: x-ai/grok-code-fast-1
-  Prompt: "Review code for security issues..."
-```
-
-**Agent Behavior:**
-
-When an agent sees PROXY_MODE, it:
-
-```
-1. Detects PROXY_MODE directive in incoming prompt
-2. Extracts model name (e.g., "x-ai/grok-code-fast-1")
-3. Extracts actual task (everything after PROXY_MODE line)
-4. Constructs claudish command:
-   printf '%s' "AGENT_PROMPT" | claudish --model x-ai/grok-code-fast-1 --stdin --quiet
-5. Executes SYNCHRONOUSLY (blocking, waits for full response)
-6. Captures full output
-7. Writes detailed results to file (ai-docs/grok-review.md)
-8. Returns BRIEF summary only (2-5 sentences)
+```bash
+# Pattern: Bash tool with run_in_background
+claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet \
+  < $SESSION_DIR/prompt.md > $SESSION_DIR/grok-result.md 2>$SESSION_DIR/grok-stderr.log; \
+  echo $? > $SESSION_DIR/grok.exit
 ```
 
-**Critical: Blocking Execution**
-
-External model calls MUST be **synchronous (blocking)** so the agent waits for completion:
-
-```
-✅ CORRECT - Blocking (Synchronous):
-  RESULT=$(printf '%s' "$PROMPT" | claudish --model grok --stdin --quiet)
-  echo "$RESULT" > ai-docs/grok-review.md
-  echo "Grok review complete. See ai-docs/grok-review.md"
-
-❌ WRONG - Background (Asynchronous):
-  printf '%s' "$PROMPT" | claudish --model grok --stdin --quiet &
-  echo "Grok review started..."  # Agent returns immediately, review not done!
-```
-
-**Why Blocking Matters:**
-
-If agents return before external models complete, the orchestrator will:
-- Think all reviews are done (they're not)
-- Try to consolidate partial results (missing data)
-- Present incomplete results to user (bad experience)
+**Required Flags:**
+- `--agent` — Specifies specialized agent (e.g., `dev:researcher`)
+- `--model` — The external model ID
+- `--stdin` — Read prompt from stdin
+- `--quiet` — Clean output for file capture
 
 **Output Strategy:**
 
-Agents write **full detailed output to file** and return **brief summary only**:
+Claudish writes full output to the redirect file. The orchestrator reads results after completion:
 
 ```
-Full Output (ai-docs/grok-review.md):
+Full Output ($SESSION_DIR/grok-result.md):
   "# Code Review by Grok
-
    ## Security Issues
-
    ### CRITICAL: SQL Injection in User Search
-   The search endpoint constructs SQL queries using string concatenation...
-   [500 more lines of detailed analysis]"
+   [full detailed analysis]"
 
-Brief Summary (returned to orchestrator):
-  "Grok review complete. Found 3 CRITICAL, 5 HIGH, 12 MEDIUM issues.
-   See ai-docs/grok-review.md for details."
+Verification:
+  Exit code ($SESSION_DIR/grok.exit): 0
+  Stderr ($SESSION_DIR/grok-stderr.log): (empty = success)
 ```
-
-**Why Brief Summaries:**
-
-- Orchestrator doesn't need full 500-line review in context
-- Full review is in file for consolidation agent
-- Keeps orchestrator context clean (context efficiency)
 
 **Auto-Approve Behavior:**
 
-Claudish auto-approves by default (non-interactive mode for scripting). Use `--no-auto-approve` only if you need interactive confirmation:
+Claudish auto-approves by default (non-interactive mode for scripting):
 
 ```
 ✅ CORRECT - Auto-approve is default, no flag needed:
-  claudish --model grok --stdin --quiet
+  claudish --agent dev:researcher --model grok --stdin --quiet
 
-⚠️ Interactive mode (requires user input, avoid in agents):
-  claudish --model grok --stdin --quiet --no-auto-approve
-  # Prompts user for approval - don't use inside agents!
+⚠️ Interactive mode (requires user input, avoid in automation):
+  claudish --agent dev:researcher --model grok --stdin --quiet --no-auto-approve
 ```
 
-### PROXY_MODE-Enabled Agents Reference
+### Agent Selection for --agent Flag
 
-**CRITICAL**: Only these agents support PROXY_MODE. Using other agents (like `general-purpose`) will NOT work correctly.
+| Task Type | Recommended Agent | Alternatives |
+|-----------|------------------|--------------|
+| Investigation/Research | `dev:researcher` | `dev:debugger` |
+| Code Review | `agentdev:reviewer` | `frontend:reviewer` |
+| Architecture | `dev:architect` | `frontend:architect` |
+| Implementation | `dev:developer` | `frontend:developer` |
+| Testing | `dev:test-architect` | `frontend:test-architect` |
+| DevOps | `dev:devops` | — |
+| UI/Design | `dev:ui` | `frontend:designer` |
 
-#### Supported Agents by Plugin
-
-**agentdev plugin (3 agents)**
-
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| `reviewer` | `agentdev:reviewer` | Implementation quality reviews |
-| `architect` | `agentdev:architect` | Design plan reviews |
-| `developer` | `agentdev:developer` | Implementation with external models |
-
-**frontend plugin (8 agents)**
-
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| `plan-reviewer` | `frontend:plan-reviewer` | Architecture plan validation |
-| `reviewer` | `frontend:reviewer` | Code reviews |
-| `architect` | `frontend:architect` | Architecture design |
-| `designer` | `frontend:designer` | Design reviews |
-| `developer` | `frontend:developer` | Full-stack implementation |
-| `ui-developer` | `frontend:ui-developer` | UI implementation reviews |
-| `css-developer` | `frontend:css-developer` | CSS architecture & styling |
-| `test-architect` | `frontend:test-architect` | Testing strategy & implementation |
-
-**seo plugin (5 agents)**
-
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| `editor` | `seo:editor` | SEO content reviews |
-| `writer` | `seo:writer` | Content generation |
-| `analyst` | `seo:analyst` | Analysis tasks |
-| `researcher` | `seo:researcher` | Research & data gathering |
-| `data-analyst` | `seo:data-analyst` | Data analysis & insights |
-
-**Total: 18 PROXY_MODE-enabled agents**
-
-#### How to Check if an Agent Supports PROXY_MODE
-
-Look for `<proxy_mode_support>` in the agent's definition file:
+### Correct Pattern Example
 
 ```bash
-grep -l "proxy_mode_support" plugins/*/agents/*.md
-```
-
-#### Common Mistakes
-
-| ❌ WRONG | ✅ CORRECT | Why |
-|----------|-----------|-----|
-| `subagent_type: "general-purpose"` | `subagent_type: "agentdev:reviewer"` | general-purpose has no PROXY_MODE |
-| `subagent_type: "Explore"` | `subagent_type: "agentdev:architect"` | Explore is for exploration, not reviews |
-| Prompt: "Run claudish with model X" | Prompt: "PROXY_MODE: model-x\n\n[task]" | Don't tell agent to run claudish, use directive |
-
-#### Correct Pattern Example
-
-```typescript
-// ✅ CORRECT: Use PROXY_MODE-enabled agent with directive
-Task({
-  subagent_type: "agentdev:reviewer",
-  description: "Grok design review",
-  run_in_background: true,
-  prompt: `PROXY_MODE: x-ai/grok-code-fast-1
-
-Review the design plan at ai-docs/feature-design.md
-
-Focus on:
-1. Completeness
-2. Missing considerations
-3. Potential issues
-4. Implementation risks`
+# ✅ CORRECT: External model via Bash+claudish (deterministic)
+Bash({
+  command: "claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet < session/prompt.md > session/grok-result.md 2>session/grok-stderr.log; echo $? > session/grok.exit",
+  description: "Run Grok review via claudish",
+  run_in_background: true
 })
 
-// ❌ WRONG: Using general-purpose and instructing to run claudish
+# ✅ CORRECT: Internal model via Task
 Task({
-  subagent_type: "general-purpose",
-  description: "Grok design review",
-  prompt: `Review using Grok via claudish:
-  npx claudish --model x-ai/grok-code-fast-1 ...`
+  subagent_type: "dev:researcher",
+  description: "Internal Claude review",
+  run_in_background: true,
+  prompt: "Review the design plan...\n\nWrite to: session/internal-result.md"
 })
 ```
 
@@ -1985,17 +1886,14 @@ Message 3: Parallel Execution (Task only - single message)
     Prompt: "Review $SESSION_DIR/code-context.md.
              Write to $SESSION_DIR/claude-review.md"
   ---
-  Task: codex-code-reviewer PROXY_MODE: x-ai/grok-code-fast-1
-    Prompt: "Review $SESSION_DIR/code-context.md.
-             Write to $SESSION_DIR/grok-review.md"
+  Bash: claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/grok-review.md
   ---
-  Task: codex-code-reviewer PROXY_MODE: qwen/qwen3-coder:free
-    Prompt: "Review $SESSION_DIR/code-context.md.
-             Write to $SESSION_DIR/qwen-coder-review.md"
+  Bash: claudish --agent dev:researcher --model qwen/qwen3-coder:free --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/qwen-coder-review.md
   ---
-  Task: codex-code-reviewer PROXY_MODE: mistralai/devstral-2512:free
-    Prompt: "Review $SESSION_DIR/code-context.md.
-             Write to $SESSION_DIR/devstral-review.md"
+  Bash: claudish --agent dev:researcher --model mistralai/devstral-2512:free --stdin --quiet
+    < $SESSION_DIR/review-prompt.md > $SESSION_DIR/devstral-review.md
 
   All 4 execute simultaneously!
 
@@ -2051,10 +1949,10 @@ Message 1: Preparation
   (same as Example 1)
 
 Message 2: Parallel Execution
-  Task: senior-code-reviewer (embedded)
-  Task: PROXY_MODE grok (external)
-  Task: PROXY_MODE gemini (external)
-  Task: PROXY_MODE gpt-5-codex (external)
+  Task: senior-code-reviewer (internal)
+  Bash: claudish --agent dev:researcher --model grok (external)
+  Bash: claudish --agent dev:researcher --model gemini (external)
+  Bash: claudish --agent dev:researcher --model gpt-5-codex (external)
 
 Message 3: Error Recovery (error-recovery skill)
   results = await Promise.allSettled([...]);

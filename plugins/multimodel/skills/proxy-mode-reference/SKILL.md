@@ -1,13 +1,13 @@
 ---
 name: proxy-mode-reference
-version: 1.2.0
-description: Reference guide for using PROXY_MODE with external AI models. Use when running multi-model reviews, understanding which agents support PROXY_MODE, or debugging external model integration issues. Includes routing prefixes for MiniMax, Kimi, GLM direct APIs.
-keywords: [proxy-mode, external-models, multi-model, claudish, routing-prefixes, minimax, kimi, glm, gemini, openai, agent-support]
+version: 2.0.0
+description: Reference guide for using external AI models via claudish CLI. Use when running multi-model reviews, understanding how /team invokes external models, or debugging external model integration issues. Includes routing prefixes for MiniMax, Kimi, GLM direct APIs.
+keywords: [external-models, multi-model, claudish, routing-prefixes, minimax, kimi, glm, gemini, openai, bash-claudish]
 plugin: multimodel
-updated: 2026-01-20
+updated: 2026-02-11
 ---
 
-# PROXY_MODE Reference Guide
+# External Models via Claudish CLI — Reference Guide
 
 ## ⚠️ Learn and Reuse Model Preferences
 
@@ -24,17 +24,41 @@ cat .claude/multimodel-team.json 2>/dev/null
 
 ---
 
-## What is PROXY_MODE?
+## How External Models Work
 
-PROXY_MODE is a directive that tells an agent to delegate its task to an external AI model via Claudish.
+External models are invoked **deterministically** via the claudish CLI. The orchestrator
+(e.g., `/team` command) calls claudish directly through Bash — no LLM delegation needed.
 
-## How It Works
+```
+Orchestrator → Bash(claudish --model {MODEL_ID} --agent {AGENT} --stdin) → External Model
+```
 
-1. **Orchestrator** launches Task with PROXY_MODE-enabled agent
-2. **Agent** detects `PROXY_MODE: {model}` at start of prompt
-3. **Agent** extracts model ID and actual task
-4. **Agent** runs `claudish --model {model}` with the task
-5. **Agent** returns external model's response
+This approach is 100% reliable because it's a direct CLI invocation, not a prompt-based delegation.
+
+## Invoking External Models
+
+### From /team Command (Automatic)
+
+The `/team` command handles this automatically:
+- **Internal models** → Task(dev:researcher)
+- **External models** → Bash(claudish --agent dev:researcher --model {MODEL_ID} --stdin)
+
+### Direct CLI Usage
+
+```bash
+# Pattern
+claudish --agent {PLUGIN}:{AGENT} --model {MODEL_ID} --stdin --quiet < prompt-file.md > result.md
+
+# Examples
+claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet < task.md > grok-result.md
+claudish --agent dev:debugger --model google/gemini-3-pro-preview --stdin --quiet < task.md > gemini-result.md
+```
+
+**Required flags:**
+- `--agent` — Specifies the specialized agent for the task
+- `--model` — The external model to use
+- `--stdin` — Read prompt from stdin (for large prompts)
+- `--quiet` — Suppress log messages (for clean output capture)
 
 ## Multi-Backend Routing
 
@@ -79,198 +103,78 @@ OpenRouter model IDs may collide with routing prefixes. Check the prefix table a
 | `moonshotai/*` | `kimi/*` or `moonshot/` | Kimi Direct API |
 | `z-ai/glm-*` | `glm/*` or `zhipu/*` | GLM Direct API |
 
-**Workaround for collisions:**
-1. Use collision-free OpenRouter models (recommended for simplicity)
-2. Use direct API prefix for cost savings (e.g., `oai/gpt-4o` instead of `openai/gpt-4o`)
-3. Set up the corresponding API key for direct access
-
-## The PROXY_MODE Directive
-
-Format:
-```
-PROXY_MODE: {model_id}
-
-{actual task}
-```
-
-Example:
-```
-PROXY_MODE: x-ai/grok-code-fast-1
-
-Review the architecture plan at ai-docs/plan.md
-```
-
-## Approach Selection
-
-**Preference Order:**
-1. ✅ **First**: Use PROXY_MODE if agent supports it (see Supported Agents below)
-2. ✅ **Fallback**: Use Bash + CLI if agent lacks PROXY_MODE support
-
-## Alternative: Bash + CLI (Works with ANY Agent)
-
-Use the CLI directly when an agent doesn't support PROXY_MODE:
-
-```bash
-# Pattern
-echo "{PROMPT}" | npx claudish --agent {PLUGIN}:{AGENT} --model {MODEL_ID} --stdin --quiet
-
-# Examples
-echo "Research React hooks" | npx claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet
-echo "Debug this error" | npx claudish --agent dev:debugger --model google/gemini-3-pro-preview --stdin --quiet
-```
-
-This approach works with **ALL agents**, not just PROXY_MODE-enabled ones.
-
 ---
 
-## Supported Agents (for PROXY_MODE Directive)
+## Agent Selection for --agent Flag
 
-**Total: 25+ PROXY_MODE-enabled agents across 4 plugins**
+| Task Type | Recommended Agent | Alternatives |
+|-----------|------------------|--------------|
+| Investigation/Research | `dev:researcher` | `dev:debugger` |
+| Code Review | `agentdev:reviewer` | `frontend:reviewer` |
+| Architecture | `dev:architect` | `frontend:architect` |
+| Implementation | `dev:developer` | `frontend:developer` |
+| Testing | `dev:test-architect` | `frontend:test-architect` |
+| DevOps | `dev:devops` | — |
+| UI/Design | `dev:ui` | `frontend:designer` |
 
-### agentdev plugin (3 agents)
+## Correct Usage Patterns
 
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| reviewer | `agentdev:reviewer` | Implementation quality reviews |
-| architect | `agentdev:architect` | Design plan reviews |
-| developer | `agentdev:developer` | Implementation with external models |
+### Single External Model
 
-### frontend plugin (8 agents)
+```bash
+claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet < task.md > result.md
+```
 
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| plan-reviewer | `frontend:plan-reviewer` | Architecture plan validation |
-| reviewer | `frontend:reviewer` | Code reviews |
-| architect | `frontend:architect` | Architecture design |
-| designer | `frontend:designer` | Design reviews |
-| developer | `frontend:developer` | Full-stack implementation |
-| ui-developer | `frontend:ui-developer` | UI implementation reviews |
-| css-developer | `frontend:css-developer` | CSS architecture & styling |
-| test-architect | `frontend:test-architect` | Testing strategy & implementation |
+### Parallel External Models (in /team)
 
-### seo plugin (5 agents)
+```bash
+# All launched in a single message with run_in_background: true
+Bash("claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet < vote-prompt.md > grok-result.md 2>grok-stderr.log; echo $? > grok.exit")
+Bash("claudish --agent dev:researcher --model google/gemini-3-pro-preview --stdin --quiet < vote-prompt.md > gemini-result.md 2>gemini-stderr.log; echo $? > gemini.exit")
+```
 
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| editor | `seo:editor` | SEO content reviews |
-| writer | `seo:writer` | Content generation |
-| analyst | `seo:analyst` | Analysis tasks |
-| researcher | `seo:researcher` | Research & data gathering |
-| data-analyst | `seo:data-analyst` | Data analysis & insights |
+### Verifying Results
 
-### dev plugin (7 agents)
+```bash
+# Check exit code
+cat grok.exit  # 0 = success
 
-| Agent | subagent_type | Best For |
-|-------|---------------|----------|
-| researcher | `dev:researcher` | Research and exploration |
-| developer | `dev:developer` | Implementation tasks |
-| debugger | `dev:debugger` | Error analysis and debugging |
-| devops | `dev:devops` | Infrastructure and DevOps |
-| architect | `dev:architect` | Architecture design |
-| test-architect | `dev:test-architect` | Test strategy and design |
-| ui | `dev:ui` | UI/UX design reviews |
+# Check output size
+wc -c < grok-result.md  # Should be >50 bytes
+
+# Check stderr for errors
+cat grok-stderr.log
+```
 
 ## Common Mistakes
 
-### Mistake 1: Using general-purpose (THE #1 FAILURE MODE)
-
-> **⚠️ CRITICAL:** `general-purpose` **DOES NOT** support PROXY_MODE.
-> It will **silently run Claude Sonnet** instead of the external model.
-> The response will look normal, but no external model was called.
-> This produces fake "diverse perspectives" from a single model.
-
-```typescript
-// ❌ WRONG - SILENTLY RUNS CLAUDE SONNET
-Task({
-  subagent_type: "general-purpose",
-  prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\nReview this code..."
-})
-// Response comes from Claude Sonnet, NOT Grok!
-```
-
-**Fix A (preferred):** Use a PROXY_MODE-enabled agent:
-```typescript
-Task({
-  subagent_type: "dev:researcher",  // ← Supports PROXY_MODE
-  prompt: "PROXY_MODE: x-ai/grok-code-fast-1\n\nReview this code..."
-})
-```
-
-**Fix B (fallback):** Use the Bash + CLI approach with `--agent` flag:
-```bash
-echo "Your task" | npx claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin --quiet
-```
-
-### Mistake 2: Instructing agent to run claudish
-
-```typescript
-// ❌ WRONG
-Task({
-  subagent_type: "general-purpose",
-  prompt: "Run claudish with model X to review..."
-})
-```
-
-The agent doesn't know the claudish pattern. Use PROXY_MODE instead.
-
-### Mistake 3: Wrong prompt format
-
-```typescript
-// ❌ WRONG - PROXY_MODE must be first line
-Task({
-  subagent_type: "agentdev:reviewer",
-  prompt: "Please review this plan.
-PROXY_MODE: grok..."
-})
-```
-
-The directive must be at the START of the prompt.
-
-## Correct Usage Pattern
-
-```typescript
-// ✅ CORRECT
-Task({
-  subagent_type: "agentdev:reviewer",
-  description: "Grok review",
-  run_in_background: true,
-  prompt: `PROXY_MODE: x-ai/grok-code-fast-1
-
-Review the implementation at path/to/file.ts
-
-Focus on:
-1. Code quality
-2. Error handling
-3. Performance
-4. Security`
-})
-```
-
-## Checking Agent Support
-
-To verify if an agent supports PROXY_MODE:
+### Mistake 1: Missing --agent flag
 
 ```bash
-# Find agents with PROXY_MODE support
-grep -l "proxy_mode_support" plugins/*/agents/*.md
+# ❌ WRONG - no agent specialization
+claudish --model x-ai/grok-code-fast-1 --stdin < task.md
 
-# Check specific agent
-grep "proxy_mode_support" plugins/agentdev/agents/reviewer.md
+# ✅ CORRECT
+claudish --agent dev:researcher --model x-ai/grok-code-fast-1 --stdin < task.md
+```
+
+### Mistake 2: Not capturing exit code
+
+```bash
+# ❌ WRONG - no way to detect failures
+claudish --agent dev:researcher --model grok --stdin < task.md > result.md
+
+# ✅ CORRECT - capture exit code
+claudish --agent dev:researcher --model grok --stdin < task.md > result.md 2>stderr.log; echo $? > result.exit
 ```
 
 ## Troubleshooting
 
-### "Agent didn't use external model"
+### "claudish: command not found"
+**Fix:** `npm install -g claudish`
 
-**Cause:** Agent doesn't support PROXY_MODE
-**Fix:** Use a PROXY_MODE-enabled agent (see table above)
+### "OPENROUTER_API_KEY not set"
+**Fix:** `export OPENROUTER_API_KEY=your-key`
 
-### "Got Claude response instead of Grok response"
-
-**Cause:** `general-purpose` or other non-PROXY_MODE agent was used
-**Fix:** Switch to `agentdev:reviewer` or similar
-
-### "PROXY_MODE directive in output"
-
-**Cause:** Agent treated directive as content, not instruction
-**Fix:** Use correct agent; ensure directive is first line
+### Non-zero exit code
+**Fix:** Check stderr log for error details. Common causes: rate limits, invalid model ID, API key issues.

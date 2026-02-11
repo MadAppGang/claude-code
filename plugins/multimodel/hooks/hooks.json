@@ -1,5 +1,5 @@
 {
-  "description": "Multi-model orchestration enforcement - blocks PROXY_MODE violations and enforces claudish --agent usage",
+  "description": "Multi-model orchestration enforcement - enforces claudish --agent usage and /team workflow rules",
   "hooks": {
     "PreToolUse": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-proxy-mode.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-team-rules.sh\"",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-proxy-mode.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-team-rules.sh\"",
             "timeout": 10
           }
         ]

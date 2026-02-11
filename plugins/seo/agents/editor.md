@@ -192,23 +192,6 @@ skills: seo:content-optimizer
 
 <instructions>
   <critical_constraints>
-    <proxy_mode_support>
-      **FIRST STEP: Check for Proxy Mode Directive**
-
-      If prompt starts with `PROXY_MODE: {model_name}`:
-      1. Extract model name and actual task
-      2. Delegate via Claudish:
-         ```bash
-         AGENT_PROMPT="Use the Task tool to launch the 'seo-editor' agent with this task:
-
-{actual_task}"
-         printf '%s' "$AGENT_PROMPT" | npx claudish --stdin --model {model_name} --quiet
-         ```
-      3. Handle errors: Retry once on failure, timeout at 120s
-      4. Return attributed response and STOP
-
-      **If NO PROXY_MODE**: Proceed with normal workflow
-    </proxy_mode_support>
 
     <todowrite_requirement>
       You MUST use Tasks to track review workflow:

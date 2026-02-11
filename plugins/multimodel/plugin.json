@@ -1,7 +1,7 @@
 {
   "name": "multimodel",
-  "version": "2.3.0",
-  "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.3.0: Rewrote /team with <critical_override> for 100% agent selection, added PROXY_MODE enforcement hooks, agent-enforcement skill, resolve-agents pre-processor.",
+  "version": "2.4.0",
+  "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.4.0: Removed PROXY_MODE (67% failure rate). External models now use deterministic Bash+claudish CLI. Updated /team command, hooks, and all skills.",
   "author": "MadAppGang",
   "license": "MIT",
   "homepage": "https://github.com/MadAppGang/claude-code",
@@ -37,7 +37,6 @@
     "task-orchestration",
     "error-recovery",
     "model-tracking-protocol",
-    "proxy-mode-reference",
     "session-isolation",
     "task-external-models",
     "hooks-system",

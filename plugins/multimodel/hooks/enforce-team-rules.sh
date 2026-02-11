@@ -1,14 +1,14 @@
 #!/bin/bash
 set -u
 # ============================================================================
-# enforce-proxy-mode.sh
+# enforce-team-rules.sh
 # PreToolUse hook that blocks orchestration violations in /team workflows
 #
 # Intercepted tools: Task, Bash
 # Protocol: reads JSON from stdin, writes JSON to fd3 (or stdout)
 #
 # Rules enforced:
-#   1. PROXY_MODE in Task prompt requires PROXY_MODE-enabled agent
+#   1. /team Task calls must use dev:researcher agent (vote template detection)
 #   2. claudish Bash calls must include --agent flag
 #   3. Session files must not use /tmp/ paths
 #
@@ -27,20 +27,6 @@ if [ -z "${TOOL_NAME}" ]; then
   echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
   exit 0
 fi
-
-# --------------------------------------------------------------------------
-# PROXY_MODE-enabled agents list (must match resolve-agents.sh)
-# Synced with plugins/multimodel/skills/proxy-mode-reference/SKILL.md
-# --------------------------------------------------------------------------
-PROXY_AGENTS="dev:researcher dev:developer dev:debugger dev:architect dev:test-architect dev:devops dev:ui agentdev:reviewer agentdev:architect agentdev:developer frontend:plan-reviewer frontend:reviewer frontend:architect frontend:designer frontend:developer frontend:ui-developer frontend:css-developer frontend:test-architect seo:analyst seo:editor seo:writer seo:researcher seo:data-analyst"
-
-is_proxy_agent() {
-  local agent="$1"
-  for pa in ${PROXY_AGENTS}; do
-    [ "${agent}" = "${pa}" ] && return 0
-  done
-  return 1
-}
 
 # --------------------------------------------------------------------------
 # Helper: output allow/deny decision
@@ -68,26 +54,10 @@ if [ "${TOOL_NAME}" = "Task" ]; then
   SUBAGENT=$(echo "${INPUT}" | jq -r '.tool_input.subagent_type // empty' 2>/dev/null || true)
   PROMPT=$(echo "${INPUT}" | jq -r '.tool_input.prompt // empty' 2>/dev/null || true)
 
-  # Only enforce on prompts that contain PROXY_MODE (scopes to /team usage)
-  # Check both the jq-expanded prompt AND the raw input string
-  HAS_PROXY=false
-  if echo "${PROMPT}" | grep -qi "PROXY_MODE"; then
-    HAS_PROXY=true
-  elif echo "${INPUT}" | grep -qi "PROXY_MODE"; then
-    HAS_PROXY=true
-  fi
-
-  if [ "${HAS_PROXY}" = true ]; then
-    # RULE 1: PROXY_MODE requires a compatible agent
-    if [ -n "${SUBAGENT}" ] && ! is_proxy_agent "${SUBAGENT}"; then
-      deny "BLOCKED: PROXY_MODE used with incompatible agent '${SUBAGENT}'. Use dev:researcher as subagent_type."
-    fi
-  fi
-
-  # RULE 1b: /team workflow enforcement (detect by vote block pattern in prompt)
+  # RULE 1: /team workflow enforcement (detect by vote block pattern in prompt)
   if echo "${PROMPT}" | grep -q "Team Vote: Independent Review Request\|VERDICT:.*APPROVE\|Required Vote Format"; then
     if [ -n "${SUBAGENT}" ] && [ "${SUBAGENT}" != "dev:researcher" ]; then
-      deny "BLOCKED: /team workflow must use subagent_type 'dev:researcher', not '${SUBAGENT}'. The agent for /team is always dev:researcher."
+      deny "BLOCKED: /team workflow must use subagent_type 'dev:researcher', not '${SUBAGENT}'. The agent for /team internal models is always dev:researcher."
     fi
   fi
 

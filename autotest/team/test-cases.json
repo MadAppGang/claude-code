@@ -1,9 +1,9 @@
 {
   "meta": {
-    "description": "Test cases for /multimodel:team command orchestration. Verifies correct Task call construction: agent selection, PROXY_MODE placement, parallel launch, model alias resolution, vote template, session dir, and no pre-digestion.",
-    "version": "1.0.0",
-    "created": "2026-02-10",
-    "notes": "Tests the ORCHESTRATOR layer only (what Task calls does /team create?). Uses 120s timeout since we only need the first response. Sub-agents may start but we don't need them to complete."
+    "description": "Test cases for /multimodel:team command orchestration. Verifies correct model invocation: internal via Task(dev:researcher), external via Bash(claudish). Tests parallel launch, session dir, vote template, no pre-digestion, and model verification.",
+    "version": "2.0.0",
+    "created": "2026-02-11",
+    "notes": "v2.0.0: PROXY_MODE removed. External models now use deterministic Bash+claudish. Tests verify Bash calls with --agent, --model, --stdin flags, exit code capture, and output redirection."
   },
   "model_aliases": {
     "grok": "x-ai/grok-code-fast-1",
@@ -16,37 +16,39 @@
   "test_cases": [
     {
       "id": "team-agent-internal",
-      "description": "Internal-only model should use dev:researcher agent",
+      "description": "Internal-only model should use Task with dev:researcher agent, no Bash claudish",
       "prompt": "/multimodel:team --models internal --no-memory Review the plugin.json structure in the dev plugin",
       "checks": {
         "task_agent_is": "dev:researcher",
         "task_min_count": 1,
-        "no_proxy_mode_for_internal": true,
+        "no_proxy_mode_in_tasks": true,
         "has_vote_template": true
       },
       "tags": ["agent-selection", "internal"]
     },
     {
       "id": "team-agent-external",
-      "description": "External model should use dev:researcher with PROXY_MODE",
+      "description": "External model should use Bash+claudish (not Task with PROXY_MODE)",
       "prompt": "/multimodel:team --models grok --no-memory Review the plugin.json structure in the dev plugin",
       "checks": {
-        "task_agent_is": "dev:researcher",
-        "task_min_count": 1,
-        "has_proxy_mode": true,
-        "proxy_mode_first_line": true,
-        "proxy_mode_model_contains": "grok"
+        "bash_has_claudish": true,
+        "bash_claudish_model_contains": "grok",
+        "bash_claudish_has_agent": true,
+        "bash_claudish_has_stdin": true,
+        "no_proxy_mode_in_tasks": true
       },
-      "tags": ["agent-selection", "proxy-mode", "external"]
+      "tags": ["agent-selection", "external", "bash-claudish"]
     },
     {
       "id": "team-parallel-mixed",
-      "description": "Mixed internal+external should launch parallel Tasks with correct PROXY_MODE",
+      "description": "Mixed internal+external: internal=Task, external=Bash+claudish, all parallel",
       "prompt": "/multimodel:team --models internal,grok --no-memory Check if CLAUDE.md has proper formatting",
       "checks": {
+        "internal_uses_task": true,
+        "external_uses_bash": true,
+        "bash_has_claudish": true,
         "task_agent_is": "dev:researcher",
-        "task_min_count": 2,
-        "has_proxy_mode": true,
+        "bash_run_in_background": true,
         "run_in_background": true
       },
       "tags": ["parallel", "mixed-models"]
@@ -73,40 +75,44 @@
     },
     {
       "id": "team-multi-external",
-      "description": "Multiple external models should all get PROXY_MODE with correct model IDs",
+      "description": "Multiple external models should all use Bash+claudish with correct model IDs",
       "prompt": "/multimodel:team --models grok,gemini --no-memory Review the multimodel plugin structure",
       "checks": {
-        "task_agent_is": "dev:researcher",
-        "task_min_count": 2,
-        "has_proxy_mode": true,
-        "proxy_mode_first_line": true,
-        "run_in_background": true
+        "bash_has_claudish": true,
+        "bash_min_count": 2,
+        "bash_claudish_has_agent": true,
+        "bash_claudish_has_stdin": true,
+        "bash_run_in_background": true,
+        "no_proxy_mode_in_tasks": true,
+        "no_proxy_mode_in_bash": true
       },
-      "tags": ["multi-external", "proxy-mode"]
+      "tags": ["multi-external", "bash-claudish"]
     },
     {
       "id": "team-model-alias-grok",
-      "description": "Alias 'grok' should resolve to full model ID in PROXY_MODE",
+      "description": "Alias 'grok' should resolve to model containing 'grok' in Bash claudish command",
       "prompt": "/multimodel:team --models grok --no-memory Check plugin version numbers",
       "checks": {
-        "proxy_mode_model_contains": "grok",
-        "task_agent_is": "dev:researcher"
+        "bash_claudish_model_contains": "grok",
+        "bash_has_claudish": true,
+        "bash_claudish_has_agent": true
       },
       "tags": ["model-alias"]
     },
     {
       "id": "team-model-alias-gemini",
-      "description": "Alias 'gemini' should resolve to full model ID in PROXY_MODE",
+      "description": "Alias 'gemini' should resolve to model containing 'gemini' in Bash claudish command",
       "prompt": "/multimodel:team --models gemini --no-memory Check plugin version numbers",
       "checks": {
-        "proxy_mode_model_contains": "gemini",
-        "task_agent_is": "dev:researcher"
+        "bash_claudish_model_contains": "gemini",
+        "bash_has_claudish": true,
+        "bash_claudish_has_agent": true
       },
       "tags": ["model-alias"]
     },
     {
       "id": "team-vote-template",
-      "description": "Task prompts should contain the vote template with required format",
+      "description": "Internal Task prompts should contain the vote template with required format",
       "prompt": "/multimodel:team --models internal --no-memory Evaluate if the README has all required sections",
       "checks": {
         "has_vote_template": true,
@@ -117,14 +123,67 @@
     },
     {
       "id": "team-background-launch",
-      "description": "All model Task calls should use run_in_background for parallel execution",
+      "description": "All model calls (Task and Bash) should use run_in_background for parallel execution",
       "prompt": "/multimodel:team --models internal,grok --no-memory Review code quality of plugin.json files",
       "checks": {
         "run_in_background": true,
-        "task_min_count": 2,
+        "bash_run_in_background": true,
         "task_agent_is": "dev:researcher"
       },
       "tags": ["parallel", "background"]
+    },
+    {
+      "id": "team-bash-claudish-flags",
+      "description": "Claudish Bash command should have all required flags: --agent, --stdin, --quiet, output redirect",
+      "prompt": "/multimodel:team --models grok --no-memory Quick review of README",
+      "checks": {
+        "bash_has_claudish": true,
+        "bash_claudish_has_agent": true,
+        "bash_claudish_has_stdin": true,
+        "bash_claudish_has_output_redirect": true
+      },
+      "tags": ["bash-claudish", "flags"]
+    },
+    {
+      "id": "team-exit-code-capture",
+      "description": "Bash claudish command should capture exit code to .exit file",
+      "prompt": "/multimodel:team --models grok --no-memory Check formatting of CLAUDE.md",
+      "checks": {
+        "bash_has_claudish": true,
+        "bash_claudish_captures_exit": true
+      },
+      "tags": ["bash-claudish", "exit-code"]
+    },
+    {
+      "id": "team-no-proxy-mode",
+      "description": "PROXY_MODE should be completely absent from all Task prompts and Bash commands",
+      "prompt": "/multimodel:team --models internal,grok --no-memory Review plugin structure",
+      "checks": {
+        "no_proxy_mode_in_tasks": true,
+        "no_proxy_mode_in_bash": true
+      },
+      "tags": ["no-proxy-mode"]
+    },
+    {
+      "id": "team-vote-prompt-file",
+      "description": "Orchestrator should write vote prompt to a file before launching external models",
+      "prompt": "/multimodel:team --models grok --no-memory Quick check on plugin versions",
+      "checks": {
+        "vote_prompt_file_written": true,
+        "bash_has_claudish": true
+      },
+      "tags": ["vote-prompt-file"]
+    },
+    {
+      "id": "team-verification-reads",
+      "description": "After model runs complete, orchestrator should read .exit and result files",
+      "prompt": "/multimodel:team --models internal,grok --no-memory Review CLAUDE.md formatting",
+      "checks": {
+        "has_post_verification_reads": true,
+        "internal_uses_task": true,
+        "external_uses_bash": true
+      },
+      "tags": ["verification"]
     }
   ]
 }

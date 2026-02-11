@@ -3,11 +3,12 @@ name: team
 description: |
   Multi-model blind voting system with project memory. Runs tasks across AI models in parallel,
   collects independent votes (APPROVE/REJECT), and presents aggregated verdicts with performance tracking.
+  Internal models use Task (dev:researcher). External models use Bash (claudish --model).
   Examples: "/team Review auth implementation", "/team --models grok,gemini Check API security",
   "/team --threshold unanimous Validate migration plan"
 allowed-tools: Read, Write, Bash, Task, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep, AskUserQuestion
 model: opus
-skills: multimodel:task-external-models, multimodel:proxy-mode-reference
+skills: multimodel:task-external-models
 args:
   - name: task
     description: The task to submit to the team (can be omitted for interactive mode)
@@ -16,7 +17,7 @@ args:
     description: Comma-separated model IDs to override stored preferences
     required: false
   - name: --agent
-    description: Specific agent to use (overrides default dev:researcher)
+    description: Specific agent to use for internal Task (overrides default dev:researcher)
     required: false
   - name: --threshold
     description: Vote threshold for approval (default 50%, use "unanimous" for 100%, "supermajority" for 67%)
@@ -34,24 +35,6 @@ args:
   </mission>
 </role>
 
-<critical_override>
-  THIS COMMAND OVERRIDES THE CLAUDE.md TASK ROUTING TABLE FOR AGENT SELECTION.
-
-  The CLAUDE.md routing table maps task types to agents (e.g., architecture → dev:architect,
-  research → dev:researcher). IGNORE that table for this command. The /team command has its
-  own agent selection rule:
-
-  ALWAYS use subagent_type: "dev:researcher" for EVERY Task() call.
-
-  WHY: dev:researcher is the ONLY agent that correctly handles PROXY_MODE for external models.
-  All other agents (dev:architect, dev:developer, dev:debugger, code-analysis:detective,
-  general-purpose) either silently ignore PROXY_MODE and run Claude Sonnet, or do not have
-  PROXY_MODE support at all. Using them means the external model (Grok, Gemini, etc.) is
-  NEVER actually called.
-
-  The ONLY exception: user explicitly passed --agent to override.
-</critical_override>
-
 <instructions>
   Execute ALL 4 steps below in a SINGLE response. Do NOT pause, ask for confirmation,
   present options, or wait for user input between steps. Go from Step 1 directly to Step 2
@@ -60,12 +43,12 @@ args:
   <mandatory_rules>
     FOUR HARD REQUIREMENTS - violating any one makes the entire workflow fail:
 
-    1. AGENT SELECTION (OVERRIDES CLAUDE.md):
-       subagent_type for EVERY Task() call MUST be "dev:researcher".
-       NOT dev:architect. NOT dev:developer. NOT code-analysis:detective. NOT general-purpose.
-       Only "dev:researcher". This is because ONLY dev:researcher has PROXY_MODE support.
-       Other agents silently run Claude Sonnet instead of the requested external model.
-       Exception: user explicitly passed --agent to override.
+    1. MODEL EXECUTION METHODS:
+       - **Internal models** (model ID = "internal"): Use Task(subagent_type: "dev:researcher")
+       - **External models** (any other model ID): Use Bash(claudish --model {MODEL_ID})
+       Internal models run inside Claude's agent system. External models are invoked
+       deterministically via claudish CLI — no LLM compliance needed.
+       Exception: user explicitly passed --agent to override the internal agent.
 
     2. NON-INTERACTIVE EXECUTION:
        After Step 1, go DIRECTLY to Step 2, then Step 3, then Step 4.
@@ -77,12 +60,12 @@ args:
     3. NO PRE-SOLVING:
        For investigation tasks, pass the RAW question to models.
        You do NOT Read files, Grep code, or Glob directories to gather context BEFORE
-       launching the Task calls. The models do their own investigation.
+       launching the model calls. The models do their own investigation.
        You MAY Read the preferences file and check claudish availability (setup tasks only).
 
     4. PARALLEL LAUNCH:
-       When there are 2+ models, ALL Task() calls MUST be in a SINGLE message with
-       run_in_background: true on every Task call. This ensures parallel execution.
+       When there are 2+ models, ALL model calls (Task and Bash) MUST be in a SINGLE
+       message with run_in_background: true on every call. This ensures parallel execution.
        For a single model, run_in_background is optional.
   </mandatory_rules>
 
@@ -119,12 +102,15 @@ args:
 
     i. Write task description to `{SESSION_DIR}/task.md`.
 
+    j. Write the vote prompt to `{SESSION_DIR}/vote-prompt.md` using the Write tool.
+       This file will be piped to claudish for external models.
+
     Go directly to Step 2 now. DO NOT pause or ask for confirmation.
   </step_1>
 
   <step_2 name="Launch Models">
     Build the vote prompt using the template below, then launch ALL models in a SINGLE
-    message using parallel Task calls. REMEMBER: subagent_type is ALWAYS "dev:researcher".
+    message. Internal models use Task, external models use Bash+claudish.
 
     For the internal model (model ID = "internal"):
     ```
@@ -136,34 +122,46 @@ args:
     })
     ```
 
-    For each external model:
+    For each external model (deterministic Bash+claudish):
     ```
-    Task({
-      subagent_type: "dev:researcher",
-      description: "{Model Name} vote",
-      run_in_background: true,
-      prompt: "PROXY_MODE: {MODEL_ID}\n\n{VOTE_PROMPT}\n\nWrite your complete analysis and vote to: {SESSION_DIR}/{model-slug}-result.md"
+    Bash({
+      command: "claudish --agent dev:researcher --model {MODEL_ID} --stdin --quiet < {SESSION_DIR}/vote-prompt.md > {SESSION_DIR}/{model-slug}-result.md 2>{SESSION_DIR}/{model-slug}-stderr.log; echo $? > {SESSION_DIR}/{model-slug}.exit",
+      description: "Run {Model Name} vote via claudish",
+      run_in_background: true
     })
     ```
 
-    PROXY_MODE goes on the FIRST LINE of the prompt string, followed by a blank line.
-    subagent_type is "dev:researcher" for ALL models (internal AND external).
+    Where {model-slug} is the model ID with slashes replaced by dashes (e.g., "x-ai-grok-code-fast-1").
+
+    All model calls (Task + Bash) are launched in a SINGLE message for parallel execution.
     run_in_background is true when launching 2+ models.
   </step_2>
 
-  <step_3 name="Collect and Parse Votes">
-    a. Wait for all Task calls to complete (timeout: 180s).
+  <step_3 name="Collect, Verify, and Parse Votes">
+    a. Wait for all model calls to complete (timeout: 180s).
 
-    b. Read each result file from the session directory.
+    b. Verify each model execution:
 
-    c. Parse vote blocks using regex:
+       For each external model:
+         i.   Read {model-slug}.exit — expect "0"
+         ii.  Check {model-slug}-result.md exists and has >50 bytes
+         iii. If exit != 0: Read {model-slug}-stderr.log for error details
+         iv.  Record: model, method ("claudish"), status (OK/FAILED), output_size, exit_code, error_msg
+
+       For internal model:
+         i.   Check Task completed successfully
+         ii.  Read internal-result.md
+         iii. Record: model, method ("Task"), status (OK/FAILED), output_size
+
+    c. Build verification summary.
+       If any external model failed: prefix results with "WORKFLOW DEVIATION" warning.
+       Only parse votes from models that succeeded.
+
+    d. Parse vote blocks from successful results using regex:
        ```
        /```vote\s*\n([\s\S]*?)\n\s*```/
        ```
        Extract: VERDICT, CONFIDENCE, SUMMARY, KEY_ISSUES
-
-    d. Verify model identity: check if response metadata shows the expected model.
-       If claude-sonnet appears when an external model was expected, flag it.
 
     e. Calculate verdict:
        - Count APPROVE and REJECT (exclude ABSTAIN from denominator)
@@ -175,17 +173,19 @@ args:
   </step_3>
 
   <step_4 name="Present Results">
-    a. Display verdict using the format in the formatting section below.
+    a. Display the Model Execution Verification table (see formatting section).
 
-    b. Show key issues ranked by how many models raised them.
+    b. Display verdict using the verdict format below.
 
-    c. Show dissenting opinions if votes differ.
+    c. Show key issues ranked by how many models raised them.
 
-    d. Update `ai-docs/llm-performance.json` if it exists.
+    d. Show dissenting opinions if votes differ.
 
-    e. Append to `.claude/multimodel-team.json` history.
+    e. Update `ai-docs/llm-performance.json` if it exists.
 
-    f. Save verdict to `{SESSION_DIR}/verdict.md`.
+    f. Append to `.claude/multimodel-team.json` history.
+
+    g. Save verdict to `{SESSION_DIR}/verdict.md`.
   </step_4>
 </instructions>
 
@@ -280,6 +280,19 @@ args:
 </knowledge>
 
 <formatting>
+  <verification_table>
+    ### Model Execution Verification
+
+    | Model | Method | Status | Output | Exit | Notes |
+    |-------|--------|--------|--------|------|-------|
+    | Internal (Claude) | Task | OK | 4.2KB | N/A | |
+    | x-ai/grok-code-fast-1 | claudish | OK | 3.8KB | 0 | |
+    | google/gemini-3-pro | claudish | FAILED | 0B | 1 | Rate limit exceeded |
+
+    External models verified: {ok_count}/{total_external} ({percent}%)
+    {If any failed: "WORKFLOW DEVIATION: {n} external model(s) failed — see stderr logs in session dir"}
+  </verification_table>
+
   <verdict_display>
     ## Team Verdict: {APPROVED|REJECTED|SPLIT|INCONCLUSIVE}
 

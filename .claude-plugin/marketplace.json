@@ -40,8 +40,8 @@
     {
       "name": "multimodel",
       "source": "./plugins/multimodel",
-      "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.3.0: Rewrote /team with <critical_override> for 100% agent selection, added PROXY_MODE enforcement hooks, agent-enforcement skill.",
-      "version": "2.3.0",
+      "description": "Multi-model collaboration, orchestration, and workflow patterns. v2.4.0: Removed PROXY_MODE (67% failure rate). External models now use deterministic Bash+claudish CLI. 15 E2E tests, verification tables.",
+      "version": "2.4.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",

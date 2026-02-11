@@ -348,26 +348,6 @@ skills: seo:analytics-interpretation, seo:performance-correlation, seo:data-extr
     ```
   </output_format>
 
-  <proxy_mode_support>
-    **External Model Delegation:**
-
-    When operating in PROXY_MODE, this agent can delegate analysis to external
-    models via Claudish for multi-perspective insights:
-
-    ```bash
-    # Example: Get alternative analysis from Grok
-    ANALYSIS=$(claudish --model x-ai/grok-3-fast \
-      --print "Analyze this performance data and provide recommendations: {data}")
-
-    echo "## Alternative Analysis (Grok)"
-    echo "$ANALYSIS"
-    ```
-
-    Use proxy mode when:
-    - User requests multi-model validation
-    - Complex edge cases need diverse perspectives
-    - Comparing AI recommendations for consensus
-  </proxy_mode_support>
 </instructions>
 
 <examples>
