@@ -1,17 +1,67 @@
 {
   "schemaVersion": "2.0.0",
-  "lastUpdated": "2026-01-30T15:30:00Z",
+  "lastUpdated": "2026-02-09T16:41:00Z",
   "defaultModels": [
     "x-ai/grok-code-fast-1",
     "google/gemini-3-pro-preview"
   ],
   "defaultThreshold": "majority",
-  "contextPreferences": {},
+  "contextPreferences": {
+    "research": [
+      "internal",
+      "x-ai/grok-code-fast-1",
+      "google/gemini-3-pro-preview"
+    ]
+  },
   "customAliases": {
     "gpt5-codex": "openai/gpt-5.2-codex",
     "glm": "z-ai/glm-4.7",
     "m2.5": "minimax/minimax-m2.5"
   },
-  "agentPreferences": {},
-  "history": []
+  "agentPreferences": {
+    "research": "code-analysis:detective"
+  },
+  "history": [
+    {
+      "sessionId": "team-20260209-045810-mcp",
+      "timestamp": "2026-02-09T04:58:10Z",
+      "task": "Investigate which plugins have MCP server configurations and compare their setup patterns",
+      "agent": "code-analysis:detective",
+      "models": [
+        "internal",
+        "x-ai/grok-code-fast-1",
+        "google/gemini-3-pro-preview"
+      ],
+      "verdict": "APPROVED",
+      "votes": {
+        "internal": "APPROVE",
+        "x-ai/grok-code-fast-1": "APPROVE",
+        "google/gemini-3-pro-preview": "APPROVE"
+      },
+      "duration": {
+        "internal": 137312,
+        "x-ai/grok-code-fast-1": 158972,
+        "google/gemini-3-pro-preview": 91964
+      }
+    },
+    {
+      "sessionId": "team-20260209-164059-skill-validation",
+      "timestamp": "2026-02-09T16:41:00Z",
+      "task": "Validate that the code-analysis plugin skill files all have proper SKILL.md format with description sections",
+      "agent": null,
+      "models": [
+        "internal",
+        "z-ai/glm-4.7"
+      ],
+      "verdict": "SPLIT",
+      "votes": {
+        "internal": "REJECT",
+        "z-ai/glm-4.7": "APPROVE"
+      },
+      "duration": {
+        "internal": 0,
+        "z-ai/glm-4.7": 11639
+      }
+    }
+  ]
 }
