@@ -73,7 +73,8 @@
     "./commands/doc.md",
     "./commands/learn.md",
     "./commands/setup.md",
-    "./commands/delegate.md"
+    "./commands/delegate.md",
+    "./commands/worktree.md"
   ],
   "outputStyles": [
     "./output-styles/self-improving.md"
@@ -115,6 +116,7 @@
     "./skills/discipline/test-driven-development",
     "./skills/discipline/systematic-debugging",
     "./skills/discipline/agent-coordination-discipline",
+    "./skills/discipline/worktree-lifecycle",
     "./skills/plugin-sdk-patterns",
     "./skills/audit",
     "./skills/optimize",

@@ -2,7 +2,7 @@
 name: feature
 description: 8-phase feature development with real validation loops
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__click, mcp__chrome-devtools__fill, mcp__chrome-devtools__new_page, mcp__chrome-devtools__select_page, mcp__chrome-devtools__list_pages
-skills: dev:context-detection, dev:universal-patterns, dev:phase-enforcement, orchestration:multi-model-validation, orchestration:quality-gates, orchestration:model-tracking-protocol
+skills: dev:context-detection, dev:universal-patterns, dev:phase-enforcement, dev:worktree-lifecycle, orchestration:multi-model-validation, orchestration:quality-gates, orchestration:model-tracking-protocol
 ---
 
 <role>
@@ -265,6 +265,43 @@ skills: dev:context-detection, dev:universal-patterns, dev:phase-enforcement, or
           ```
         </step>
         <step>Check Claudish availability: which claudish</step>
+        <step>
+          <worktree_option>
+            Ask about workspace isolation:
+
+            Use AskUserQuestion:
+              question: "Create an isolated worktree for this feature?"
+              header: "Workspace"
+              options:
+                - label: "No, work in current directory (Recommended)"
+                  description: "Faster setup, suitable for most features"
+                - label: "Yes, create isolated worktree"
+                  description: "Separate branch + workspace for safe experimentation"
+
+            Keyword auto-suggestion: If user's feature description contains
+            "experiment", "prototype", "risky", "breaking", "parallel", "isolate",
+            suggest worktree by making it the first option.
+
+            If user selects worktree:
+              1. Set BRANCH_NAME = "feature/${FEATURE_SLUG}"
+              2. Set WORKTREE_DIR = ".worktrees"
+              3. Follow the dev:worktree-lifecycle skill phases 1-5:
+                 - Pre-flight checks
+                 - Directory selection (use .worktrees/ default)
+                 - Creation with .gitignore safety
+                 - Setup (dependency install, baseline tests)
+                 - Handoff (store metadata)
+              4. Store worktree metadata in ${SESSION_PATH}/worktree-metadata.json
+              5. Set WORKTREE_PATH for all subsequent agent delegations
+              6. All dev:developer Task prompts include:
+                 "WORKTREE_PATH: ${WORKTREE_PATH}
+                  IMPORTANT: cd to WORKTREE_PATH before writing any code.
+                  Session artifacts stay in ${SESSION_PATH} (main worktree)."
+
+            If user selects current directory:
+              Continue as normal (no changes to existing behavior)
+          </worktree_option>
+        </step>
         <step>Mark PHASE 0 as completed</step>
       </steps>
       <quality_gate>Session created, SESSION_PATH set, validation directory created</quality_gate>
@@ -1252,6 +1289,25 @@ skills: dev:context-detection, dev:universal-patterns, dev:phase-enforcement, or
           - Display model performance statistics table
           - Show historical performance (from ai-docs/llm-performance.json)
           - Provide recommendations for future sessions
+        </step>
+        <step>
+          <worktree_cleanup>
+            If worktree was created (WORKTREE_PATH is set):
+              Use AskUserQuestion:
+                question: "Feature complete. What should I do with the worktree?"
+                header: "Cleanup"
+                options:
+                  - label: "Create PR from worktree branch"
+                    description: "Push branch, create PR, keep worktree until merged"
+                  - label: "Merge locally and clean up"
+                    description: "Merge to current branch, remove worktree"
+                  - label: "Keep worktree for now"
+                    description: "Leave worktree and branch as-is"
+                  - label: "Discard everything"
+                    description: "Delete branch and worktree (requires confirmation)"
+
+              Execute chosen option following dev:worktree-lifecycle Phase 6.
+          </worktree_cleanup>
         </step>
         <step>Present comprehensive summary to user (see completion_message template)</step>
         <step>Mark ALL task items as completed</step>

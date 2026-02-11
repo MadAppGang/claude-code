@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "description": "E2E integration tests for /dev:worktree command. Tests run via claude -p and verify transcript for correct tool usage.",
+    "version": "1.0.0",
+    "created": "2026-02-11",
+    "notes": "Tests the /dev:worktree command end-to-end: git operations, safety checks, output formatting. Uses 120s timeout per test."
+  },
+  "test_cases": [
+    {
+      "id": "worktree-list-01",
+      "description": "Run /dev:worktree list - should execute git worktree list via Bash",
+      "prompt": "/dev:worktree list",
+      "checks": {
+        "has_bash_command": "git worktree list",
+        "no_task_calls": true,
+        "output_contains": "worktree"
+      },
+      "tags": ["list", "basic"]
+    },
+    {
+      "id": "worktree-status-01",
+      "description": "Run /dev:worktree status - should show current branch and worktree info",
+      "prompt": "/dev:worktree status",
+      "checks": {
+        "has_bash_command_pattern": "git (worktree|branch|rev-parse)",
+        "no_task_calls": true
+      },
+      "tags": ["status", "basic"]
+    },
+    {
+      "id": "worktree-help-01",
+      "description": "Run /dev:worktree with no args - should show usage help",
+      "prompt": "/dev:worktree",
+      "checks": {
+        "output_contains_any": ["create", "list", "cleanup", "status"],
+        "no_task_calls": true
+      },
+      "tags": ["help", "usage"]
+    },
+    {
+      "id": "worktree-create-01",
+      "description": "Run /dev:worktree create test-feature - should create worktree with safety checks",
+      "prompt": "/dev:worktree create test-wt-e2e",
+      "checks": {
+        "has_bash_command_pattern": "git worktree add",
+        "has_bash_command_pattern_2": "git check-ignore|gitignore",
+        "output_contains": "worktree"
+      },
+      "tags": ["create", "safety"]
+    },
+    {
+      "id": "worktree-create-safety-01",
+      "description": "Run /dev:worktree create - should check gitignore and create worktree",
+      "prompt": "/dev:worktree create test-wt-safety",
+      "checks": {
+        "has_bash_command_pattern": "git worktree add",
+        "has_bash_command_pattern_2": "git (check-ignore|rev-parse)",
+        "output_contains": "worktree"
+      },
+      "tags": ["create", "safety"]
+    },
+    {
+      "id": "worktree-cleanup-list-01",
+      "description": "Run /dev:worktree cleanup - should list worktrees for selection",
+      "prompt": "/dev:worktree cleanup",
+      "checks": {
+        "has_bash_command_pattern": "git worktree list",
+        "output_contains_any": ["worktree", "cleanup", "remove"],
+        "no_task_calls": true
+      },
+      "tags": ["cleanup", "list"]
+    }
+  ]
+}

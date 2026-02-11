@@ -2,7 +2,7 @@
 name: implement
 description: Universal implementation command with optional real validation
 allowed-tools: Task, AskUserQuestion, Bash, Read, TaskCreate, TaskUpdate, TaskList, TaskGet, Glob, Grep, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__click, mcp__chrome-devtools__fill, mcp__chrome-devtools__new_page, mcp__chrome-devtools__select_page, mcp__chrome-devtools__list_pages
-skills: dev:context-detection, dev:universal-patterns, orchestration:task-orchestration
+skills: dev:context-detection, dev:universal-patterns, dev:worktree-lifecycle, orchestration:task-orchestration
 ---
 
 <role>
@@ -202,8 +202,34 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
           2. Bundled patterns (fallback guidance)
         </step>
 
-        <step name="1b_validation_criteria">
-          **STEP 1B: Validation Criteria (NEW)**
+        <step name="1b_workspace_option">
+          **STEP 1B: Workspace Option (NEW)**
+
+          <workspace_option>
+            Use AskUserQuestion alongside existing validation type question:
+
+            question: "Use isolated worktree for this implementation?"
+            header: "Workspace"
+            options:
+              - label: "No (Recommended)"
+                description: "Work in current directory - fast and simple"
+              - label: "Yes"
+                description: "Create worktree for isolated work"
+
+            If yes:
+              Follow dev:worktree-lifecycle skill with defaults:
+              - Use .worktrees/ directory (no directory selection dialog)
+              - Branch: "implement/${SESSION_SLUG}"
+              - Skip multi-stack detection (just detect primary stack)
+              - Store WORKTREE_PATH in session
+              - Add to developer agent prompts:
+                "WORKTREE_PATH: ${WORKTREE_PATH}
+                 cd to WORKTREE_PATH before writing code."
+          </workspace_option>
+        </step>
+
+        <step name="1c_validation_criteria">
+          **STEP 1C: Validation Criteria**
 
           Ask how to verify implementation (AskUserQuestion):
           ```yaml
@@ -246,8 +272,8 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
           ```
         </step>
 
-        <step name="1c_iteration_limits">
-          **STEP 1C: Iteration Limits (only if real validation selected)**
+        <step name="1d_iteration_limits">
+          **STEP 1D: Iteration Limits (only if real validation selected)**
 
           If validation type != "Unit tests only" AND != "Skip validation":
           ```yaml
@@ -269,8 +295,8 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
           Default for "Unit tests only": 2 attempts (hardcoded, no question)
         </step>
 
-        <step name="1d_tool_validation">
-          **STEP 1D: Tool Validation (only if browser test selected)**
+        <step name="1e_tool_validation">
+          **STEP 1E: Tool Validation (only if browser test selected)**
 
           If validation type == "Real browser test":
           ```
@@ -635,6 +661,21 @@ skills: dev:context-detection, dev:universal-patterns, orchestration:task-orches
           1. Accept and finalize
           2. Request changes
           3. Manual testing needed
+        </step>
+        <step>
+          <worktree_finalization>
+            If worktree was created (WORKTREE_PATH is set):
+              Use AskUserQuestion:
+                question: "Merge changes back and clean up worktree?"
+                header: "Cleanup"
+                options:
+                  - label: "Merge and clean up (Recommended)"
+                    description: "Merge worktree branch, remove worktree"
+                  - label: "Keep for later"
+                    description: "Leave worktree and branch as-is"
+
+              Follow dev:worktree-lifecycle Phase 6 for cleanup.
+          </worktree_finalization>
         </step>
         <step>Mark ALL tasks as completed</step>
       </steps>

@@ -79,3 +79,9 @@ tools/claudeup-gui/ai-docs/sessions
 node_modules 
 tools/autopilot-server/data
 test-workspace
+
+# Test results (ephemeral)
+autotest/*/results/
+
+# Git worktrees (isolated development environments)
+.worktrees/

@@ -1,0 +1,136 @@
+{
+  "version": "1.0.0",
+  "description": "Functional tests for git worktree lifecycle operations. Tests the actual git commands that the dev:worktree-lifecycle skill will use.",
+  "test_suites": {
+    "lifecycle": {
+      "description": "Full worktree lifecycle: create → setup → work → cleanup",
+      "tests": [
+        {
+          "id": "lifecycle-01",
+          "description": "Create worktree with new branch, verify it exists, clean up",
+          "tags": ["basic", "create", "cleanup"]
+        },
+        {
+          "id": "lifecycle-02",
+          "description": "Create worktree, make commits, verify branch has commits, clean up",
+          "tags": ["basic", "work", "commits"]
+        },
+        {
+          "id": "lifecycle-03",
+          "description": "Create worktree, install deps (if package.json exists), run baseline tests",
+          "tags": ["setup", "deps", "baseline"]
+        }
+      ]
+    },
+    "preflight": {
+      "description": "Pre-flight checks before worktree creation",
+      "tests": [
+        {
+          "id": "preflight-01",
+          "description": "Detect existing branch and prevent duplicate worktree",
+          "tags": ["conflict", "branch"]
+        },
+        {
+          "id": "preflight-02",
+          "description": "Detect existing worktree path and prevent overwrite",
+          "tags": ["conflict", "path"]
+        },
+        {
+          "id": "preflight-03",
+          "description": "Verify .gitignore check works (git check-ignore)",
+          "tags": ["gitignore", "safety"]
+        },
+        {
+          "id": "preflight-04",
+          "description": "Auto-fix missing .gitignore entry for .worktrees/",
+          "tags": ["gitignore", "autofix"]
+        }
+      ]
+    },
+    "directory": {
+      "description": "Directory organization and selection patterns",
+      "tests": [
+        {
+          "id": "dir-01",
+          "description": "Create .worktrees/ hidden directory pattern",
+          "tags": ["directory", "hidden"]
+        },
+        {
+          "id": "dir-02",
+          "description": "Create worktrees/ visible directory pattern",
+          "tags": ["directory", "visible"]
+        },
+        {
+          "id": "dir-03",
+          "description": "Detect existing worktree directory automatically",
+          "tags": ["directory", "detect"]
+        }
+      ]
+    },
+    "cleanup": {
+      "description": "Cleanup and error recovery scenarios",
+      "tests": [
+        {
+          "id": "cleanup-01",
+          "description": "Clean removal with git worktree remove (not rm -rf)",
+          "tags": ["cleanup", "proper"]
+        },
+        {
+          "id": "cleanup-02",
+          "description": "Handle uncommitted changes during cleanup",
+          "tags": ["cleanup", "dirty"]
+        },
+        {
+          "id": "cleanup-03",
+          "description": "Prune stale worktree metadata after manual directory removal",
+          "tags": ["cleanup", "prune"]
+        },
+        {
+          "id": "cleanup-04",
+          "description": "CWD safety - can't remove worktree while inside it",
+          "tags": ["cleanup", "cwd"]
+        }
+      ]
+    },
+    "multiworktree": {
+      "description": "Multiple worktree scenarios",
+      "tests": [
+        {
+          "id": "multi-01",
+          "description": "Create two worktrees for different branches simultaneously",
+          "tags": ["parallel", "multiple"]
+        },
+        {
+          "id": "multi-02",
+          "description": "Prevent same branch checked out in two worktrees",
+          "tags": ["conflict", "branch-lock"]
+        },
+        {
+          "id": "multi-03",
+          "description": "git worktree list shows all active worktrees",
+          "tags": ["list", "status"]
+        }
+      ]
+    },
+    "edge_cases": {
+      "description": "Edge cases and error recovery",
+      "tests": [
+        {
+          "id": "edge-01",
+          "description": "Branch with slashes in name (feature/auth/login)",
+          "tags": ["naming", "slashes"]
+        },
+        {
+          "id": "edge-02",
+          "description": "Worktree from specific commit (detached HEAD)",
+          "tags": ["detached", "commit"]
+        },
+        {
+          "id": "edge-03",
+          "description": "Worktree survives across git operations (fetch, pull)",
+          "tags": ["resilience", "fetch"]
+        }
+      ]
+    }
+  }
+}
