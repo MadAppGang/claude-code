@@ -1,6 +1,6 @@
 {
   "name": "seo",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. Features autonomous keyword research, quality-gate progression, E-E-A-T self-assessment, and data-driven performance analysis. Includes interactive /seo:start entry point, content optimization, technical audits, and analytics integrations (GA4, GSC).",
   "author": {
     "name": "Jack Rudenko",

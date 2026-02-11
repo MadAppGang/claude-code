@@ -1,6 +1,6 @@
 {
   "name": "agentdev",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Create, implement, and review Claude Code agents and commands with multi-model validation, LLM performance tracking, and session-based artifact isolation. Full-cycle development workflow with design, implementation, and quality review agents. Session isolation prevents file collisions across workflows.",
   "author": "MadAppGang",
   "license": "MIT",

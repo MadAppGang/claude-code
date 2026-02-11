@@ -212,16 +212,16 @@ Key distinction: If the task asks to IMPLEMENT/CREATE/BUILD → `dev:developer`.
 **Detailed Release Notes:** See [RELEASES.md](./RELEASES.md) for comprehensive release documentation
 
 **Current Versions:**
-- Multimodel Plugin: **v2.4.0** (2026-02-10)
+- Multimodel Plugin: **v2.4.0** (2026-02-12)
 - Frontend Plugin: **v3.15.0** (2026-02-10)
-- Code Analysis Plugin: **v2.15.0** (2026-01-11)
+- Code Analysis Plugin: **v3.2.1** (2026-02-12)
 - Bun Backend Plugin: **v1.5.2** (2025-11-26)
-- Agent Development Plugin: **v1.4.0** (2026-01-05)
-- SEO Plugin: **v1.5.1** (2026-01-08)
+- Agent Development Plugin: **v1.5.1** (2026-02-12)
+- SEO Plugin: **v1.6.1** (2026-02-12)
 - Video Editing Plugin: **v1.0.1** (2026-01-06)
 - Nanobanana Plugin: **v2.2.3** (2026-01-08)
 - Conductor Plugin: **v2.0.1** (2026-01-06)
-- Dev Plugin: **v1.30.0** (2026-02-10)
+- Dev Plugin: **v1.31.1** (2026-02-12)
 - Claudish CLI: See https://github.com/MadAppGang/claudish (separate repository)
 
 **Latest Changes (Code Analysis v2.15.0):**
@@ -235,13 +235,13 @@ Key distinction: If the task asks to IMPLEMENT/CREATE/BUILD → `dev:developer`.
 - Multimodel: `plugins/multimodel/v2.4.0`
 - Frontend: `plugins/frontend/v3.15.0`
 - Bun: `plugins/bun/v1.5.2`
-- Code Analysis: `plugins/code-analysis/v2.15.0`
-- Agent Development: `plugins/agentdev/v1.3.0`
-- SEO: `plugins/seo/v1.5.1`
+- Code Analysis: `plugins/code-analysis/v3.2.1`
+- Agent Development: `plugins/agentdev/v1.5.1`
+- SEO: `plugins/seo/v1.6.1`
 - Video Editing: `plugins/video-editing/v1.0.1`
 - Nanobanana: `plugins/nanobanana/v2.2.3`
 - Conductor: `plugins/conductor/v2.0.1`
-- Dev: `plugins/dev/v1.30.0`
+- Dev: `plugins/dev/v1.31.1`
 - Use correct tag format when releasing: `plugins/{plugin-name}/vX.Y.Z`
 
 **⚠️ RELEASE CHECKLIST (ALL 3 REQUIRED):**

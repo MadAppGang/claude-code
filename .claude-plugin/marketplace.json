@@ -14,8 +14,8 @@
     {
       "name": "code-analysis",
       "source": "./plugins/code-analysis",
-      "description": "Deep code investigation with claudemem. v3.2.0: Added explicit name: fields to commands for prefix-free invocation. v3.0.0: ENRICHMENT MODE - hooks enhance native tools with AST context instead of blocking.",
-      "version": "3.2.0",
+      "description": "Deep code investigation with claudemem. v3.2.1: Updated claudish-usage skill for Bash+claudish architecture (PROXY_MODE removed). v3.0.0: ENRICHMENT MODE.",
+      "version": "3.2.1",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -69,8 +69,8 @@
     {
       "name": "agentdev",
       "source": "./plugins/agentdev",
-      "description": "Create, implement, and review Claude Code agents and commands with multi-model validation, LLM performance tracking, and session-based artifact isolation. v1.5.0: Added explicit name: fields to commands for prefix-free invocation (/develop instead of /agentdev:develop). Full-cycle workflow: design → review → implement → iterate.",
-      "version": "1.5.0",
+      "description": "Create, implement, and review Claude Code agents and commands with multi-model validation, LLM performance tracking, and session-based artifact isolation. v1.5.1: Removed proxy_mode_support from agents, updated patterns skill for Bash+claudish.",
+      "version": "1.5.1",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -94,8 +94,8 @@
     {
       "name": "seo",
       "source": "./plugins/seo",
-      "description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.6.0: Added explicit name: fields to commands for prefix-free invocation (/seo instead of /seo:start). Features E-E-A-T self-assessment, keyword research, content optimization, technical audits, and analytics integrations (GA4, GSC).",
-      "version": "1.6.0",
+      "description": "Highly autonomous SEO toolkit (~80% autonomy) with AUTO GATEs, self-correction loops, and multi-model validation. v1.6.1: Removed proxy_mode_support from all 5 agents. Features E-E-A-T self-assessment, keyword research, content optimization, technical audits.",
+      "version": "1.6.1",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -191,8 +191,8 @@
     {
       "name": "dev",
       "source": "./plugins/dev",
-      "description": "Universal development assistant with real skill discovery. v1.31.0: Added /dev:worktree command and worktree-lifecycle skill for isolated git worktree development. Integrated into /dev:feature and /dev:implement. 46 skills.",
-      "version": "1.31.0",
+      "description": "Universal development assistant with real skill discovery. v1.31.1: Removed proxy_mode_support from all 8 agents (PROXY_MODE replaced by Bash+claudish). 46 skills.",
+      "version": "1.31.1",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",

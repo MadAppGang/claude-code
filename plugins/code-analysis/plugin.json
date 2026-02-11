@@ -1,6 +1,6 @@
 {
   "name": "code-analysis",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Deep code investigation with claudemem. v3.1.0: Added investigate skill for keyword-based routing and enhanced documentation. v3.0.0: ENRICHMENT MODE - hooks now enhance native tools with AST context instead of blocking.",
   "author": {
     "name": "Jack Rudenko",

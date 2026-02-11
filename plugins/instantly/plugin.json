@@ -1,6 +1,6 @@
 {
   "name": "instantly",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Cold email outreach toolkit with Instantly.ai MCP integration. Features campaign analytics, sequence building, A/B testing, lead management, and auto-optimization. ~75% autonomy with user confirmation for sending operations.",
   "author": {
     "name": "Jack Rudenko",
