@@ -560,8 +560,11 @@ export async function removeInstalledPluginVersion(
 	const settings = await readSettings(projectPath);
 	if (settings.installedPluginVersions) {
 		delete settings.installedPluginVersions[pluginId];
-		await writeSettings(settings, projectPath);
 	}
+	if (settings.enabledPlugins) {
+		delete settings.enabledPlugins[pluginId];
+	}
+	await writeSettings(settings, projectPath);
 
 	// Remove from installed_plugins.json registry
 	await removeFromInstalledPluginsRegistry(

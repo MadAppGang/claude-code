@@ -1,6 +1,6 @@
 {
   "name": "claudeup",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "TUI tool for managing Claude Code plugins, MCPs, and configuration",
   "type": "module",
   "main": "src/main.tsx",

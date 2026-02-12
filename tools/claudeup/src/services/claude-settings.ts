@@ -225,7 +225,11 @@ export async function enablePlugin(
 ): Promise<void> {
 	const settings = await readSettings(projectPath);
 	settings.enabledPlugins = settings.enabledPlugins || {};
-	settings.enabledPlugins[pluginId] = enabled;
+	if (enabled) {
+		settings.enabledPlugins[pluginId] = true;
+	} else {
+		delete settings.enabledPlugins[pluginId];
+	}
 	await writeSettings(settings, projectPath);
 }
 
@@ -258,7 +262,11 @@ export async function enableLocalPlugin(
 ): Promise<void> {
 	const settings = await readLocalSettings(projectPath);
 	settings.enabledPlugins = settings.enabledPlugins || {};
-	settings.enabledPlugins[pluginId] = enabled;
+	if (enabled) {
+		settings.enabledPlugins[pluginId] = true;
+	} else {
+		delete settings.enabledPlugins[pluginId];
+	}
 	await writeLocalSettings(settings, projectPath);
 }
 
@@ -432,7 +440,11 @@ export async function enableGlobalPlugin(
 ): Promise<void> {
 	const settings = await readGlobalSettings();
 	settings.enabledPlugins = settings.enabledPlugins || {};
-	settings.enabledPlugins[pluginId] = enabled;
+	if (enabled) {
+		settings.enabledPlugins[pluginId] = true;
+	} else {
+		delete settings.enabledPlugins[pluginId];
+	}
 	await writeGlobalSettings(settings);
 }
 

@@ -2,20 +2,12 @@
   "enabledPlugins": {
     "agentdev@mag-claude-plugins": true,
     "code-analysis@mag-claude-plugins": true,
-    "agent-sdk-dev@claude-code-plugins": false,
-    "commit-commands@claude-code-plugins": false,
-    "explanatory-output-style@claude-code-plugins": false,
-    "learning-output-style@claude-code-plugins": false,
-    "ralph-wiggum@claude-code-plugins": false,
-    "feature-dev@claude-code-plugins": false,
     "dev@mag-claude-plugins": true,
     "multimodel@mag-claude-plugins": true,
-    "learning-output-style@claude-plugins-official": false,
     "explanatory-output-style@claude-plugins-official": true,
     "ralph-loop@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "claude-code-setup@claude-plugins-official": true,
-    "plugin-dev@claude-code-plugins": false,
     "superpowers@claude-plugins-official": true,
     "plugin-dev@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true,
@@ -28,12 +20,6 @@
       "source": {
         "source": "github",
         "repo": "anthropics/claude-code"
-      }
-    },
-    "mag-claude-plugins": {
-      "source": {
-        "source": "github",
-        "repo": "MadAppGang/claude-code"
       }
     }
   },
