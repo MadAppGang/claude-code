@@ -202,6 +202,19 @@ if [ -n "$CWD" ] && cd "$CWD" 2>/dev/null && git rev-parse --git-dir >/dev/null 
   fi
 fi
 
+# ── Worktree marker fallback (survives context compaction) ──
+if [ -z "$WORKTREE_NAME" ] && [ -n "$SESSION_ID" ]; then
+  MARKER_FILE="$HOME/.claude/.statusline-worktree-${SESSION_ID}"
+  if [ -f "$MARKER_FILE" ] && command -v jq >/dev/null 2>&1; then
+    WT_NAME=$(jq -r '.worktree_name // empty' "$MARKER_FILE" 2>/dev/null)
+    WT_BRANCH=$(jq -r '.branch // empty' "$MARKER_FILE" 2>/dev/null)
+    if [ -n "$WT_NAME" ]; then
+      WORKTREE_NAME="$WT_NAME"
+      [ -n "$WT_BRANCH" ] && BRANCH="$WT_BRANCH"
+    fi
+  fi
+fi
+
 # ── Context bar ───────────────────────────────────────────
 BAR_WIDTH=$CTX_BAR_WIDTH
 CTX_F=$((PCT * BAR_WIDTH / 100))

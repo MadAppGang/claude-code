@@ -234,8 +234,8 @@
     {
       "name": "statusline",
       "source": "./plugins/statusline",
-      "description": "Colorful statusline with worktree awareness, plan limits with reset countdowns, token counts, compaction detection, and customizable themes. v1.3.0: Compaction warning ⚡ at 80%+, per-session token cache.",
-      "version": "1.3.0",
+      "description": "Colorful statusline with worktree awareness, plan limits with reset countdowns, token counts, compaction detection, and customizable themes. v1.4.0: Session-pinned worktree marker survives context compaction.",
+      "version": "1.4.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",

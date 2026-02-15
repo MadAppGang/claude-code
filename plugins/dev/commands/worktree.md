@@ -49,6 +49,18 @@ skills: dev:worktree-lifecycle
     7. Execute Phase 5: Handoff
        - Display worktree information
        - Show path, branch, stacks, test results
+    8. Write worktree context marker for statusline persistence
+       - Get Claude Code session ID (if available from environment or session context)
+       - Write marker file to `~/.claude/.statusline-worktree-{SESSION_ID}`:
+         ```json
+         {
+           "worktree_path": ".worktrees/{slug}",
+           "branch": "{branch-name}",
+           "worktree_name": "{slug}"
+         }
+         ```
+       - This marker survives context compaction and ensures the statusline
+         continues showing worktree info after long-running operations
 
     Output format:
     ```
@@ -119,6 +131,8 @@ skills: dev:worktree-lifecycle
              - Discard changes
              - Abort cleanup
        - Remove worktree with `git worktree remove`
+       - Remove statusline worktree marker: `rm -f ~/.claude/.statusline-worktree-*`
+         (clean all markers for this project to avoid stale files)
        - Optionally delete branch (only if merged)
 
     Safety checks:

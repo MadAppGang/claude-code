@@ -152,6 +152,17 @@ cd "$WORKTREE_PATH"
 if [ -f .gitmodules ]; then
   git submodule update --init --recursive
 fi
+
+# 7. Write statusline worktree marker (persists across compaction)
+if [ -n "$SESSION_ID" ]; then
+  cat > "$HOME/.claude/.statusline-worktree-${SESSION_ID}" <<MARKER_EOF
+{
+  "worktree_path": "$WORKTREE_PATH",
+  "branch": "$BRANCH",
+  "worktree_name": "$(basename "$WORKTREE_PATH")"
+}
+MARKER_EOF
+fi
 ```
 
 **Error handling**: If `git worktree add` fails, clean up any partial state and report the error to user.
@@ -344,6 +355,11 @@ fi
 jq '.status = "removed" | .removedAt = "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"' \
   "${SESSION_PATH}/worktree-metadata.json" > "${SESSION_PATH}/worktree-metadata.json.tmp"
 mv "${SESSION_PATH}/worktree-metadata.json.tmp" "${SESSION_PATH}/worktree-metadata.json"
+
+# 8. Remove statusline worktree marker
+if [ -n "$SESSION_ID" ]; then
+  rm -f "$HOME/.claude/.statusline-worktree-${SESSION_ID}"
+fi
 ```
 
 **Error handling during cleanup:**
@@ -354,6 +370,7 @@ mv "${SESSION_PATH}/worktree-metadata.json.tmp" "${SESSION_PATH}/worktree-metada
 | Uncommitted changes | `git status --porcelain` not empty | Ask user: commit/stash/discard |
 | Worktree in use | `git worktree remove` fails | Ask: force removal with `--force`? |
 | Branch not merged | `git branch -d` fails | Ask: keep branch or force delete? |
+| Stale marker file | Marker exists but worktree removed | Auto-cleaned by statusline (marker ignored if worktree gone) |
 
 ## Error Recovery
 
