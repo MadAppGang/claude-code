@@ -146,12 +146,23 @@ countdown() {
   fi
 }
 
+# Format token count as human-readable (e.g., 184320 → 184k)
+fmt_tokens() {
+  local t=$1
+  [ -z "$t" ] || [ "$t" = "null" ] || [ "$t" -eq 0 ] 2>/dev/null && return
+  local k=$((t / 1000))
+  printf "%dk" "$k"
+}
+
 # ── Extract session data ──────────────────────────────────
 MODEL=$(echo "$input" | jq -r '.model.display_name // "unknown"')
 COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
 PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
 CWD=$(echo "$input" | jq -r '.cwd // ""')
 DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
+CTX_USED_TOKENS=$(echo "$input" | jq -r '.context_window.current_usage.input_tokens // 0')
+CTX_MAX_TOKENS=$(echo "$input" | jq -r '.context_window.context_window_size // 0')
+TOTAL_INPUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
 
 # ── Shorten model name ────────────────────────────────────
 case "$MODEL" in
@@ -288,9 +299,32 @@ if [ "$SHOW_DURATION" = "true" ]; then
   append_section "${C_MAGENTA}${DURATION}${R}"
 fi
 
-# Context bar — █ filled, ░ empty
+# Context bar — █ filled, ░ empty, with token count and compaction detection
 if [ "$SHOW_CONTEXT_BAR" = "true" ]; then
   CTX_SECTION="${BAR_COLOR}$(repeat_char "$CTX_F" '█')${C_GRAY}$(repeat_char "$CTX_E" '░')${R} ${BAR_COLOR}${PCT}%%${R}"
+
+  # Token count (e.g., 90k/200k) — dim, secondary info
+  CTX_USED_FMT=$(fmt_tokens "$CTX_USED_TOKENS")
+  CTX_MAX_FMT=$(fmt_tokens "$CTX_MAX_TOKENS")
+  if [ -n "$CTX_USED_FMT" ] && [ -n "$CTX_MAX_FMT" ]; then
+    CTX_SECTION="${CTX_SECTION} ${C_GRAY}${D}${CTX_USED_FMT}/${CTX_MAX_FMT}${R}"
+  fi
+
+  # Compaction detection — compare total_input_tokens with cached value
+  TOKEN_CACHE="$HOME/.claude/.statusline-token-cache"
+  COMPACTED=""
+  if [ "$TOTAL_INPUT_TOKENS" -gt 0 ] 2>/dev/null; then
+    PREV_TOKENS=$(cat "$TOKEN_CACHE" 2>/dev/null || echo 0)
+    if [ "$PREV_TOKENS" -gt 0 ] && [ "$TOTAL_INPUT_TOKENS" -lt "$PREV_TOKENS" ]; then
+      COMPACTED=1
+    fi
+    echo "$TOTAL_INPUT_TOKENS" > "$TOKEN_CACHE"
+  fi
+
+  if [ -n "$COMPACTED" ]; then
+    CTX_SECTION="${CTX_SECTION} ${C_MAGENTA}${B}⟳${R}"
+  fi
+
   append_section "$CTX_SECTION"
 fi
 

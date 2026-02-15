@@ -43,7 +43,7 @@ All fields are optional. Missing fields use defaults shown above.
 | `worktree` | Orange (bold) | `wt:name` — only shown when inside a linked worktree |
 | `cost` | Yellow | Cumulative session cost in USD |
 | `duration` | Magenta | Session duration in minutes/seconds |
-| `context_bar` | Green→Red gradient | Visual bar showing context window usage |
+| `context_bar` | Green→Red gradient | Visual bar + token count (90k/200k) + compaction indicator (⟳) |
 | `plan_limits` | Teal→Red gradient | Dual bar: top=5h, bottom=7d plan usage with reset countdowns |
 
 ### Plan Limits Bar Characters
@@ -61,7 +61,24 @@ After each percentage, a countdown shows when the limit resets:
 - `↻3d12h` — resets in 3 days 12 hours
 - `↻now` — resetting now
 
-Example: `█▄▄------- 5h:18%↻1h40m 7d:35%↻3d12h`
+Example: `█▄▄------- 5h:18% ↻1h40m 7d:35% ↻3d12h`
+
+### Context Bar Token Count
+
+After the percentage, a dim token count shows current/max context usage:
+
+- `45% 90k/200k` — 90k tokens used out of 200k window
+- `72% 144k/200k` — approaching limit
+- Only shown when Claude Code provides token data in stdin
+
+### Compaction Detection
+
+A bold magenta `⟳` appears after the token count when auto-compaction is detected:
+
+- `25% 50k/200k ⟳` — compaction just happened (tokens dropped)
+- The indicator appears for one render only, then disappears
+- Detection works by caching `total_input_tokens` between renders; a drop means compaction occurred
+- Cache file: `~/.claude/.statusline-token-cache`
 
 ## Themes
 

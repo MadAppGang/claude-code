@@ -234,8 +234,8 @@
     {
       "name": "statusline",
       "source": "./plugins/statusline",
-      "description": "Colorful statusline with worktree awareness, plan limit bars with reset countdowns, and customizable sections/themes. v1.0.0: Initial release.",
-      "version": "1.0.0",
+      "description": "Colorful statusline with worktree awareness, plan limits with reset countdowns, token counts, compaction detection, and customizable themes. v1.1.0: Token counts and compaction detection.",
+      "version": "1.1.0",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
