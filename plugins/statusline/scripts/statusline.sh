@@ -162,6 +162,7 @@ CWD=$(echo "$input" | jq -r '.cwd // ""')
 DURATION_MS=$(echo "$input" | jq -r '.cost.total_duration_ms // 0')
 CTX_MAX_TOKENS=$(echo "$input" | jq -r '.context_window.context_window_size // 0')
 TOTAL_INPUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+SESSION_ID=$(echo "$input" | jq -r '.session_id // ""')
 
 # ── Shorten model name ────────────────────────────────────
 case "$MODEL" in
@@ -315,19 +316,11 @@ if [ "$SHOW_CONTEXT_BAR" = "true" ]; then
   fi
 
   # Compaction detection — compare total_input_tokens with cached value
-  # Per-project cache (keyed by CWD hash) to avoid cross-session false positives
-  CWD_HASH=$(printf '%s' "$CWD" | cksum | cut -d' ' -f1)
-  TOKEN_CACHE="$HOME/.claude/.statusline-token-cache-${CWD_HASH}"
+  # Per-session cache (keyed by session_id) to avoid cross-session false positives
   COMPACTED=""
-  if [ "$TOTAL_INPUT_TOKENS" -gt 0 ] 2>/dev/null; then
-    PREV_TOKENS=0
-    if [ -f "$TOKEN_CACHE" ]; then
-      # Ignore stale cache (>5 min old = likely a different session)
-      CACHE_AGE=$(( $(date +%s) - $(stat -f %m "$TOKEN_CACHE" 2>/dev/null || echo 0) ))
-      if [ "$CACHE_AGE" -lt 300 ]; then
-        PREV_TOKENS=$(cat "$TOKEN_CACHE" 2>/dev/null || echo 0)
-      fi
-    fi
+  if [ -n "$SESSION_ID" ] && [ "$TOTAL_INPUT_TOKENS" -gt 0 ] 2>/dev/null; then
+    TOKEN_CACHE="$HOME/.claude/.statusline-token-cache-${SESSION_ID}"
+    PREV_TOKENS=$(cat "$TOKEN_CACHE" 2>/dev/null || echo 0)
     if [ "$PREV_TOKENS" -gt 0 ] && [ "$TOTAL_INPUT_TOKENS" -lt "$PREV_TOKENS" ]; then
       COMPACTED=1
     fi
@@ -336,6 +329,11 @@ if [ "$SHOW_CONTEXT_BAR" = "true" ]; then
 
   if [ -n "$COMPACTED" ]; then
     CTX_SECTION="${CTX_SECTION} ${C_MAGENTA}${B}⟳${R}"
+  fi
+
+  # Compaction warning — ⚡ when context is critically high (≥80%)
+  if [ "$PCT" -ge 80 ] 2>/dev/null; then
+    CTX_SECTION="${CTX_SECTION} ${C_RED}${B}⚡${R}"
   fi
 
   append_section "$CTX_SECTION"
