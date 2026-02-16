@@ -19,7 +19,6 @@
     "audio",
     "editing"
   ],
-  "category": "media",
   "agents": [
     "./agents/video-processor.md",
     "./agents/transcriber.md",

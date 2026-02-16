@@ -19,7 +19,6 @@
     "feedback-loop",
     "multi-agent"
   ],
-  "category": "automation",
   "agents": [
     "./agents/task-executor.md",
     "./agents/proof-generator.md",

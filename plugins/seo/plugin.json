@@ -19,7 +19,6 @@
     "search-console",
     "performance-analysis"
   ],
-  "category": "content",
   "dependencies": {
     "orchestration@mag-claude-plugins": "^0.5.0"
   },

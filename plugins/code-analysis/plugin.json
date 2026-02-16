@@ -23,7 +23,6 @@
     "enrichment",
     "context-enhancement"
   ],
-  "category": "development",
   "hooks": "./hooks/hooks.json",
   "mcpServers": "./.mcp.json",
   "agents": [

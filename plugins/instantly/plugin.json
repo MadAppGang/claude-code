@@ -19,7 +19,6 @@
     "deliverability",
     "sales-automation"
   ],
-  "category": "productivity",
   "dependencies": {
     "orchestration@mag-claude-plugins": "^0.8.0"
   },

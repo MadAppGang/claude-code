@@ -16,7 +16,6 @@
     "customization",
     "themes"
   ],
-  "category": "utility",
   "commands": [
     "./commands/install.md",
     "./commands/uninstall.md",

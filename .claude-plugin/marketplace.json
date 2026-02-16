@@ -12,6 +12,56 @@
   },
   "plugins": [
     {
+      "name": "bun",
+      "source": "./plugins/bun",
+      "description": "Production-ready TypeScript backend development with Bun runtime. Includes specialized agents for backend development, API design, Apidog synchronization, and DevOps.",
+      "version": "1.6.1",
+      "author": {
+        "name": "Jack Rudenko",
+        "email": "i@madappgang.com",
+        "company": "MadAppGang"
+      },
+      "category": "development",
+      "keywords": [
+        "bun",
+        "typescript",
+        "backend",
+        "hono",
+        "prisma",
+        "biome",
+        "docker",
+        "aws-ecs",
+        "api",
+        "apidog",
+        "openapi",
+        "testing"
+      ],
+      "strict": true
+    },
+    {
+      "name": "frontend",
+      "source": "./plugins/frontend",
+      "description": "Comprehensive frontend development toolkit with TypeScript, React 19, Vite, TanStack Router & Query v5, shadcn/ui. Features multi-model code review, browser debugging, and Chrome DevTools MCP integration.",
+      "version": "3.15.1",
+      "author": {
+        "name": "Jack Rudenko",
+        "email": "i@madappgang.com",
+        "company": "MadAppGang"
+      },
+      "category": "development",
+      "keywords": [
+        "frontend",
+        "typescript",
+        "react",
+        "vite",
+        "tanstack",
+        "testing",
+        "architecture",
+        "ui-testing"
+      ],
+      "strict": true
+    },
+    {
       "name": "code-analysis",
       "source": "./plugins/code-analysis",
       "description": "Deep code investigation with claudemem. v3.2.2: Updated for claudish v4.5.1 (--agent flag removed). v3.0.0: ENRICHMENT MODE.",
@@ -250,6 +300,54 @@
         "customization",
         "themes",
         "reset-countdown"
+      ],
+      "strict": true
+    },
+    {
+      "name": "instantly",
+      "source": "./plugins/instantly",
+      "description": "Cold email outreach toolkit with Instantly.ai MCP integration. Features campaign analytics, sequence building, A/B testing, lead management, and auto-optimization.",
+      "version": "1.0.2",
+      "author": {
+        "name": "Jack Rudenko",
+        "email": "i@madappgang.com",
+        "company": "MadAppGang"
+      },
+      "category": "productivity",
+      "keywords": [
+        "instantly",
+        "cold-email",
+        "outreach",
+        "email-campaigns",
+        "lead-generation",
+        "ab-testing",
+        "email-sequences",
+        "deliverability",
+        "sales-automation"
+      ],
+      "strict": true
+    },
+    {
+      "name": "autopilot",
+      "source": "./plugins/autopilot",
+      "description": "Autonomous task execution with Linear integration. Picks tasks from Linear, routes to appropriate agents, generates proof-of-work artifacts, and handles feedback loops.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Jack Rudenko",
+        "email": "i@madappgang.com",
+        "company": "MadAppGang"
+      },
+      "category": "automation",
+      "keywords": [
+        "autopilot",
+        "autonomous",
+        "linear",
+        "task-execution",
+        "proof-of-work",
+        "webhook",
+        "state-machine",
+        "feedback-loop",
+        "multi-agent"
       ],
       "strict": true
     }

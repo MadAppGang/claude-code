@@ -22,7 +22,6 @@
     "openapi",
     "testing"
   ],
-  "category": "development",
   "agents": [
     "./agents/backend-developer.md",
     "./agents/api-architect.md",
