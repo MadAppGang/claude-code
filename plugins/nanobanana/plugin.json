@@ -16,7 +16,6 @@
     "image-editing",
     "style-transfer"
   ],
-  "category": "media",
   "agents": [
     "./agents/style-manager.md",
     "./agents/image-generator.md"

@@ -18,7 +18,6 @@
     "architecture",
     "ui-testing"
   ],
-  "category": "development",
   "agents": [
     "./agents/developer.md",
     "./agents/architect.md",
