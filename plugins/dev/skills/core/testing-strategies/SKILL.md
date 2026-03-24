@@ -1,19 +1,6 @@
 ---
 name: testing-strategies
-version: 1.0.0
-description: Use when writing tests, setting up test frameworks, implementing mocking strategies, or establishing testing best practices (unit, integration, E2E) across any technology stack.
-keywords:
-  - testing
-  - unit tests
-  - integration tests
-  - E2E testing
-  - mocking
-  - test coverage
-  - test-driven development
-  - TDD
-  - test pyramid
-plugin: dev
-updated: 2026-01-20
+description: "Implements the test pyramid (unit/integration/E2E) with AAA pattern, provides mocking strategies (stubs, spies, fakes), and establishes coverage targets by code criticality. Use when writing tests, setting up test frameworks, implementing mocks, or defining testing best practices across any technology stack."
 ---
 
 # Universal Testing Strategies

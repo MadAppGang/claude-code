@@ -1,3 +1,8 @@
+---
+name: claudish-integration
+description: "Guides agents on querying Claudish for OpenRouter model recommendations. Use when building commands that need external AI model selection, creating proxy mode agents, or implementing multi-model validation workflows."
+---
+
 # Claudish Integration Skill
 
 **Version:** 1.0.0

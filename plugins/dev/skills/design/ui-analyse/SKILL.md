@@ -1,10 +1,6 @@
 ---
 name: ui-analyse
-version: 2.0.0
-description: |
-  UI visual analysis patterns using Gemini 3 Pro Preview multimodal capabilities.
-  Analysis-only - no code changes. Use dev:ui-implement for applying improvements.
-  Includes provider detection, prompting patterns, and severity guidelines.
+description: "Performs visual UI analysis using Gemini multimodal capabilities, detects usability issues with severity scoring, and audits WCAG accessibility compliance. Use when reviewing screenshots, conducting accessibility audits, or comparing implementation against design references."
 ---
 
 # UI Analysis Skill

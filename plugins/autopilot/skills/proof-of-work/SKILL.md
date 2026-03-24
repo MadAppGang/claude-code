@@ -1,200 +1,90 @@
 ---
 name: proof-of-work
-description: Proof artifact generation patterns for task validation. Covers screenshots, test results, deployments, and confidence scoring.
-version: 0.1.0
-tags: [proof, validation, screenshots, tests, deployment]
-keywords: [proof, artifact, screenshot, test, deployment, confidence, validation]
+description: "Generates validation artifacts (screenshots, test results, coverage reports) after task completion and calculates confidence scores for auto-approval decisions. Supports bug fix, feature, and UI change proof types. Use when validating task completion or determining if work can be auto-approved."
 ---
-plugin: autopilot
-updated: 2026-01-20
 
 # Proof-of-Work
 
-**Version:** 0.1.0
-**Purpose:** Generate validation artifacts for autonomous task completion
-**Status:** Phase 1
+Generates verifiable artifacts that demonstrate task completion and calculates confidence scores to determine whether tasks can be auto-approved or need manual review.
 
-## When to Use
+## Workflow
 
-Use this skill when you need to:
-- Generate proof artifacts after task completion
-- Capture screenshots for UI verification
-- Parse and report test results
-- Calculate confidence scores for task validation
-- Determine if a task can be auto-approved
+1. **Determine proof type** based on task classification (bug fix, feature, or UI change)
+2. **Collect artifacts** - run tests, capture screenshots, check coverage, verify build
+3. **Calculate confidence score** using the weighted scoring algorithm
+4. **Generate proof summary** in markdown format for Linear comments
+5. **Return approval decision** based on confidence thresholds
 
-## Overview
+## Required Artifacts by Task Type
 
-Proof-of-work is the mechanism that validates task completion. Every finished task must include verifiable artifacts that demonstrate the work was done correctly.
+| Artifact | Bug Fix | Feature | UI Change |
+|----------|---------|---------|-----------|
+| Git diff | Required | - | - |
+| Test results | Required | Required | - |
+| Regression test | Required | - | - |
+| Coverage report | - | Required (>=80%) | - |
+| Build output | - | Required | - |
+| Desktop screenshot (1920x1080) | - | - | Required |
+| Mobile screenshot (375x667) | - | - | Required |
+| Tablet screenshot (768x1024) | - | - | Required |
+| Accessibility score | - | - | Required (>=80) |
+| Deployment URL | Optional | Optional | Optional |
 
-## Proof Types by Task
-
-### Bug Fix Proof
-
-| Artifact | Required | Purpose |
-|----------|----------|---------|
-| Git diff | Yes | Show minimal, focused changes |
-| Test results | Yes | All tests passing |
-| Regression test | Yes | Specific test for the bug |
-| Error log (before/after) | Optional | Visual evidence |
-
-### Feature Proof
-
-| Artifact | Required | Purpose |
-|----------|----------|---------|
-| Screenshots | Yes | Visual verification |
-| Test results | Yes | Functionality works |
-| Coverage report | Yes | >= 80% coverage |
-| Build output | Yes | Builds successfully |
-| Deployment URL | Optional | Live demo |
-
-### UI Change Proof
-
-| Artifact | Required | Purpose |
-|----------|----------|---------|
-| Desktop screenshot | Yes | 1920x1080 view |
-| Mobile screenshot | Yes | 375x667 view |
-| Tablet screenshot | Yes | 768x1024 view |
-| Accessibility score | Yes | >= 80 Lighthouse |
-| Visual regression | Optional | BackstopJS diff |
-
-## Screenshot Capture
-
-**Playwright Pattern:**
+## Confidence Scoring Algorithm
 
 ```typescript
-import { chromium } from 'playwright';
-
-async function captureScreenshots(url: string, outputDir: string) {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  // Desktop
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto(url);
-  await page.waitForLoadState('networkidle');
-  await page.screenshot({
-    path: `${outputDir}/desktop.png`,
-    fullPage: true,
-  });
-
-  // Mobile
-  await page.setViewportSize({ width: 375, height: 667 });
-  await page.goto(url);
-  await page.waitForLoadState('networkidle');
-  await page.screenshot({
-    path: `${outputDir}/mobile.png`,
-    fullPage: true,
-  });
-
-  // Tablet
-  await page.setViewportSize({ width: 768, height: 1024 });
-  await page.goto(url);
-  await page.waitForLoadState('networkidle');
-  await page.screenshot({
-    path: `${outputDir}/tablet.png`,
-    fullPage: true,
-  });
-
-  await browser.close();
-}
-```
-
-## Confidence Scoring
-
-**Algorithm:**
-
-```typescript
-interface ProofArtifacts {
-  testResults?: { passed: number; total: number };
-  buildSuccessful?: boolean;
-  lintErrors?: number;
-  screenshots?: string[];
-  testCoverage?: number;
-  performanceScore?: number;
-}
-
 function calculateConfidence(artifacts: ProofArtifacts): number {
   let score = 0;
-
-  // Tests (40 points)
-  if (artifacts.testResults) {
-    if (artifacts.testResults.passed === artifacts.testResults.total) {
-      score += 40;
-    }
-  }
-
-  // Build (20 points)
-  if (artifacts.buildSuccessful) {
-    score += 20;
-  }
-
-  // Coverage (20 points)
-  if (artifacts.testCoverage) {
-    if (artifacts.testCoverage >= 80) score += 20;
-    else if (artifacts.testCoverage >= 60) score += 15;
-    else if (artifacts.testCoverage >= 40) score += 10;
-    else score += 5;
-  }
-
-  // Screenshots (10 points)
-  if (artifacts.screenshots) {
-    if (artifacts.screenshots.length >= 3) score += 10;
-    else if (artifacts.screenshots.length >= 1) score += 5;
-  }
-
-  // Lint (10 points)
-  if (artifacts.lintErrors === 0) {
-    score += 10;
-  }
-
+  // Tests: 40 points (all must pass)
+  if (artifacts.testResults?.passed === artifacts.testResults?.total) score += 40;
+  // Build: 20 points
+  if (artifacts.buildSuccessful) score += 20;
+  // Coverage: 20 points (>=80% full marks, >=60% partial)
+  if (artifacts.testCoverage >= 80) score += 20;
+  else if (artifacts.testCoverage >= 60) score += 15;
+  // Screenshots: 10 points (3+ full marks)
+  if (artifacts.screenshots?.length >= 3) score += 10;
+  else if (artifacts.screenshots?.length >= 1) score += 5;
+  // Lint: 10 points (zero errors)
+  if (artifacts.lintErrors === 0) score += 10;
   return score;
 }
 ```
 
 ## Confidence Thresholds
 
-| Confidence | Action |
-|------------|--------|
+| Score | Action |
+|-------|--------|
 | >= 95% | Auto-approve (In Review -> Done) |
 | 80-94% | Manual review required |
-| < 80% | Validation failed, iterate |
+| < 80% | Validation failed, must iterate |
 
-## Proof Summary Template
+## Screenshot Capture Pattern
 
-```markdown
-# Proof of Work
+```typescript
+import { chromium } from 'playwright';
 
-**Task**: {issue_id}
-**Type**: {task_type}
-**Confidence**: {score}%
+async function captureScreenshots(url: string, outputDir: string) {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newContext().then(ctx => ctx.newPage());
 
-## Test Results
-- Total: {total}
-- Passed: {passed}
-- Failed: {failed}
-- Coverage: {coverage}%
-
-## Build
-- Status: {status}
-- Duration: {duration}
-
-## Screenshots
-- Desktop: proof/desktop.png
-- Mobile: proof/mobile.png
-- Tablet: proof/tablet.png
-
-## Artifacts
-- test-results.txt
-- coverage.json
-- build-output.txt
+  for (const [name, width, height] of [
+    ['desktop', 1920, 1080],
+    ['mobile', 375, 667],
+    ['tablet', 768, 1024],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto(url);
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: `${outputDir}/${name}.png`, fullPage: true });
+  }
+  await browser.close();
+}
 ```
 
 ## Examples
 
-### Example 1: Feature Proof Generation
-
+### Full confidence proof
 ```typescript
 const proof = {
   testResults: { passed: 15, total: 15 },
@@ -203,32 +93,25 @@ const proof = {
   screenshots: ['desktop.png', 'mobile.png', 'tablet.png'],
   testCoverage: 85,
 };
-
-const confidence = calculateConfidence(proof);
-// 40 (tests) + 20 (build) + 20 (coverage) + 10 (screenshots) + 10 (lint) = 100%
+calculateConfidence(proof); // 40+20+20+10+10 = 100% → auto-approve
 ```
 
-### Example 2: Partial Proof
-
+### Partial proof requiring iteration
 ```typescript
 const proof = {
-  testResults: { passed: 12, total: 15 },  // Some failing
+  testResults: { passed: 12, total: 15 },  // some failing
   buildSuccessful: true,
   lintErrors: 2,
   screenshots: ['desktop.png'],
   testCoverage: 65,
 };
-
-const confidence = calculateConfidence(proof);
-// 0 (tests fail) + 20 (build) + 15 (coverage) + 5 (1 screenshot) + 0 (lint errors) = 40%
-// Result: Validation failed, must iterate
+calculateConfidence(proof); // 0+20+15+5+0 = 40% → validation failed, iterate
 ```
 
-## Best Practices
+## Verification
 
-- Always capture screenshots for UI work
-- Run full test suite, not just affected tests
-- Include coverage report for features
-- Build must pass before any proof is valid
-- Store proofs in session directory for debugging
-- Generate proof summary in markdown for Linear comments
+After generating proof, confirm:
+- [ ] All required artifacts for the task type are present
+- [ ] Confidence score calculated correctly
+- [ ] Proof summary generated in markdown format
+- [ ] Approval decision matches threshold table

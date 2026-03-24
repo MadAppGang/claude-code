@@ -1,9 +1,7 @@
 ---
 name: gemini-api
-description: Google Gemini 3 Pro Image API reference. Covers text-to-image, editing, reference images, aspect ratios, and error handling.
+description: "Google Gemini 3 Pro Image API reference for text-to-image generation, image editing, and reference-based styling. Covers API key setup, CLI flags, aspect ratios, error codes, and retry behavior. Use when generating images with Gemini, configuring image generation parameters, or troubleshooting API errors."
 ---
-plugin: nanobanana
-updated: 2026-01-20
 
 # Gemini Image API Reference
 
@@ -40,11 +38,8 @@ uv run python main.py output.png "A minimal 3D cube"
 | 1:1 | Social media, icons |
 | 3:4 | Portrait photos |
 | 4:3 | Traditional photos |
-| 4:5 | Instagram portrait |
-| 5:4 | Landscape photos |
-| 9:16 | Mobile, stories |
 | 16:9 | YouTube, desktop |
-| 21:9 | Cinematic, ultrawide |
+| 9:16 | Mobile, stories |
 
 ## CLI Flags
 
@@ -61,33 +56,18 @@ uv run python main.py output.png "A minimal 3D cube"
 
 | Code | Meaning | Recovery |
 |------|---------|----------|
-| `SUCCESS` | Operation completed | N/A |
 | `API_KEY_MISSING` | GEMINI_API_KEY not set | Export the variable |
-| `FILE_NOT_FOUND` | Referenced file missing | Check path |
-| `INVALID_INPUT` | Bad prompt or argument | Fix input |
 | `RATE_LIMITED` | Too many requests | Wait, uses auto-retry |
-| `NETWORK_ERROR` | Connection failed | Check network, auto-retry |
-| `API_ERROR` | Gemini API error | Check logs |
 | `CONTENT_POLICY` | Blocked prompt | Adjust content |
-| `TIMEOUT` | Request timed out | Retry |
-| `PARTIAL_FAILURE` | Some batch items failed | Check individual results |
+| `NETWORK_ERROR` | Connection failed | Check network, auto-retry |
 
 ## Retry Behavior
 
-The script automatically retries on transient errors:
-- Rate limits (429)
-- Server errors (502, 503)
-- Connection timeouts
-- Network errors
+Automatically retries on rate limits (429), server errors (502, 503), and connection timeouts using exponential backoff (1s, 2s, 4s, 8s). Configure max retries with `--max-retries` (default: 3).
 
-Retry uses exponential backoff: 1s, 2s, 4s, 8s, etc.
-Maximum retries configurable with `--max-retries` (default: 3)
+## Notes
 
-## Best Practices
-
-1. **Prompts**: Be specific about style, lighting, composition
-2. **Styles**: Use markdown templates for consistent results
-3. **References**: Provide visual examples for style matching
-4. **Batch**: Generate variations to pick the best
-5. **Iteration**: Edit results to refine
-6. **Retries**: Increase `--max-retries` for unreliable connections
+- Be specific about style, lighting, and composition in prompts
+- Use markdown style templates for consistent results
+- Provide visual reference images for style matching
+- Increase `--max-retries` for unreliable connections

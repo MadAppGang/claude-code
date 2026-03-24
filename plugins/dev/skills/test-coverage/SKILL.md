@@ -1,11 +1,6 @@
 ---
 name: test-coverage
-description: On-demand test coverage analysis. Use when identifying untested code, finding test gaps, measuring coverage metrics, or improving test quality. Trigger keywords - "test coverage", "coverage report", "untested code", "test gaps", "missing tests", "coverage metrics".
-version: 0.1.0
-tags: [dev, testing, coverage, quality, gaps]
-keywords: [test-coverage, coverage, gaps, untested, metrics, testing, quality]
-plugin: dev
-updated: 2026-01-28
+description: "Measures line, branch, and function coverage metrics, identifies untested critical code paths prioritized by risk, and generates gap analysis reports with specific test recommendations. Use when measuring coverage, finding test gaps before deployment, or identifying untested security-critical code."
 ---
 
 # Test Coverage Skill

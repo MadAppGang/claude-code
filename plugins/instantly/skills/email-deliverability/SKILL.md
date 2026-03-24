@@ -1,16 +1,20 @@
 ---
 name: email-deliverability
-version: 1.0.0
-description: Email deliverability best practices and troubleshooting
+description: "Diagnose and fix email deliverability issues by auditing DNS records, sender reputation, content quality, and list hygiene. Use when bounce rates spike, emails land in spam, or warming up a new sending domain."
 ---
-plugin: instantly
-updated: 2026-01-20
 
 # Email Deliverability
 
-## Deliverability Fundamentals
+## Workflow
 
-### Key Metrics
+1. **Check health metrics** -- assess bounce rate, spam complaints, inbox placement, sender score
+2. **Audit technical setup** -- verify SPF, DKIM, and DMARC records
+3. **Evaluate content quality** -- scan for spam triggers in copy and formatting
+4. **Assess list quality** -- verify email addresses and remove bad contacts
+5. **Troubleshoot issues** -- match symptoms to known patterns and remediate
+6. **Verify fixes** -- confirm metrics return to healthy thresholds
+
+## Step 1: Check Health Metrics
 
 | Metric | Healthy | Warning | Critical |
 |--------|---------|---------|----------|
@@ -19,59 +23,27 @@ updated: 2026-01-20
 | Inbox Placement | >95% | 80-95% | <80% |
 | Sender Score | >80 | 60-80 | <60 |
 
-### Deliverability Components
+Deliverability formula: Sender Reputation (40%) + Content Quality (30%) + Technical Setup (20%) + List Quality (10%).
+
+## Step 2: Audit Technical Setup
+
+| Record | Purpose | How to Check |
+|--------|---------|--------------|
+| SPF | Authorize sending servers | `nslookup -type=TXT domain` |
+| DKIM | Email signature verification | Check in email headers |
+| DMARC | Policy for failed checks | `nslookup -type=TXT _dmarc.domain` |
+
+Required DNS settings for Instantly:
 
 ```
-DELIVERABILITY =
-  Sender Reputation (40%)
-  + Content Quality (30%)
-  + Technical Setup (20%)
-  + List Quality (10%)
+SPF:   v=spf1 include:_spf.instantly.ai ~all
+DKIM:  Configure via Instantly dashboard
+DMARC: v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com
 ```
 
-## Sender Reputation
+## Step 3: Evaluate Content Quality
 
-### Warm-Up Schedule
-
-| Day | Emails/Day | Total Sent |
-|-----|------------|------------|
-| 1-7 | 10-20 | 70-140 |
-| 8-14 | 30-50 | 280-490 |
-| 15-21 | 75-100 | 805-1190 |
-| 22-28 | 150-200 | 1855-2590 |
-| 29+ | Scale gradually | - |
-
-### Reputation Signals
-
-| Positive Signals | Negative Signals |
-|------------------|------------------|
-| Opens | Spam complaints |
-| Replies | Hard bounces |
-| Clicks | Low engagement |
-| Forwards | Unsubscribes |
-| Non-spam marking | Spam trap hits |
-
-## Content Quality
-
-### Spam Filter Triggers
-
-**High-Risk Words:**
-```
-FREE, GUARANTEE, WINNER, CASH, PRIZE
-URGENT, ACT NOW, LIMITED TIME
-Click here, Click below, Don't miss
-Make money, Extra income, Work from home
-```
-
-**Formatting Red Flags:**
-- ALL CAPS in subject or body
-- Multiple exclamation marks!!!
-- Colored fonts
-- Excessive links (>1)
-- Images (especially in cold email)
-- Attachments
-
-### Safe Practices
+**Spam trigger words to avoid:** FREE, GUARANTEE, WINNER, URGENT, ACT NOW, Click here, LIMITED TIME.
 
 | Do | Don't |
 |----|-------|
@@ -79,103 +51,66 @@ Make money, Extra income, Work from home
 | Single link (if any) | Multiple CTAs |
 | Conversational tone | Salesy language |
 | Short sentences | Long paragraphs |
-| Proper grammar | Typos and errors |
+| Proper grammar | ALL CAPS or !!! |
 
-## Technical Setup
+## Step 4: Assess List Quality
 
-### Required DNS Records
+| Verification Level | Bounce Rate Reduction |
+|--------------------|----------------------|
+| Syntax check | 5-10% |
+| Domain check | 10-20% |
+| Mailbox check | 20-40% |
+| Engagement check | 5-15% |
 
-| Record | Purpose | Status Check |
-|--------|---------|--------------|
-| SPF | Authorize sending servers | `nslookup -type=TXT domain` |
-| DKIM | Email signature verification | Check in email headers |
-| DMARC | Policy for failed checks | `nslookup -type=TXT _dmarc.domain` |
+Hygiene rules: Remove hard bounces and unsubscribes immediately. Remove soft bounces after 3 attempts. Re-verify full list every 3 months.
 
-### Recommended Settings
+## Step 5: Troubleshoot by Symptom
 
-```
-SPF: v=spf1 include:_spf.instantly.ai ~all
-DKIM: Configure via Instantly dashboard
-DMARC: v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com
-```
-
-## List Quality
-
-### Email Verification
-
-| Verification Level | Description | Bounce Rate |
-|--------------------|-------------|-------------|
-| Syntax check | Valid format | Reduces 5-10% |
-| Domain check | Valid domain | Reduces 10-20% |
-| Mailbox check | Exists | Reduces 20-40% |
-| Engagement check | Active | Reduces 5-15% |
-
-### List Hygiene
-
-| Practice | Frequency | Impact |
-|----------|-----------|--------|
-| Remove hard bounces | Immediately | Critical |
-| Remove soft bounces | After 3 attempts | High |
-| Remove unsubscribes | Immediately | Critical |
-| Re-verify list | Every 3 months | Medium |
-
-## Troubleshooting
-
-### High Bounce Rate (>5%)
-
-**Diagnosis Steps:**
-1. Check bounce types (hard vs soft)
-2. Identify source (specific list segment?)
-3. Verify emails before adding to campaign
-
-**Remediation:**
+**High Bounce Rate (>5%):**
 1. Pause campaign immediately
-2. Remove all hard bounces
-3. Re-verify remaining list
-4. Resume with verified emails only
+2. Separate hard vs soft bounces
+3. Remove all hard bounces
+4. Re-verify remaining list
+5. Resume with verified emails only
 
-### Low Open Rate (<15%)
+**Low Open Rate (<15%):**
+1. Check sender score at senderscore.org
+2. Send test emails to Gmail/Outlook -- check spam folder
+3. If landing in spam: start reputation recovery (see below)
+4. If inbox: A/B test subject lines
 
-**Possible Causes:**
-1. Poor sender reputation
-2. Landing in spam/promotions
-3. Bad subject lines
-4. Wrong send time
-
-**Diagnosis:**
-1. Check sender score
-2. Send test emails to Gmail/Outlook
-3. Review recent changes to sending
-
-### Spam Complaints (>0.1%)
-
-**Immediate Actions:**
+**Spam Complaints (>0.1%):**
 1. Pause campaign
-2. Review targeting (wrong ICP?)
-3. Check email frequency
-4. Review unsubscribe visibility
+2. Review targeting -- wrong ICP?
+3. Add clear unsubscribe link
+4. Improve list sourcing and qualification
 
-**Long-term:**
-1. Improve list sourcing
-2. Better qualification
-3. Add clear opt-out
+## Warm-Up Schedule for New Domains
 
-## Recovery Playbook
+| Day | Emails/Day | Cumulative |
+|-----|------------|------------|
+| 1-7 | 10-20 | ~140 |
+| 8-14 | 30-50 | ~490 |
+| 15-21 | 75-100 | ~1,190 |
+| 22-28 | 150-200 | ~2,590 |
+| 29+ | Scale gradually | -- |
 
-### Reputation Recovery
+## Reputation Recovery Playbook
 
 | Day | Action | Expected Outcome |
 |-----|--------|------------------|
-| 1-3 | Pause all sending | Stop damage |
+| 1-3 | Pause all sending | Stop further damage |
 | 4-7 | Remove problem addresses | Clean list |
-| 8-14 | Warm up from scratch | Rebuild slowly |
+| 8-14 | Warm up from scratch | Rebuild reputation |
 | 15-21 | Monitor metrics closely | Catch issues early |
 | 22+ | Gradually scale | Sustainable growth |
 
-### Blacklist Removal
+For blacklist removal: check MXToolbox, fix root cause, request removal, wait 24-72 hours, re-check.
 
-1. Identify which blacklists (MXToolbox)
-2. Fix underlying issue first
-3. Request removal from each list
-4. Wait 24-72 hours
-5. Re-check and repeat if needed
+## Validation Checklist
+
+- [ ] SPF, DKIM, and DMARC records all pass verification
+- [ ] Bounce rate below 2%
+- [ ] Spam complaint rate below 0.1%
+- [ ] Test email reaches inbox (not spam) on Gmail and Outlook
+- [ ] Warm-up completed before scaling volume

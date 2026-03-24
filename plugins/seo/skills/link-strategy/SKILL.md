@@ -1,105 +1,60 @@
 ---
-plugin: seo
-updated: 2026-01-20
 name: link-strategy
-description: Internal linking strategy and anchor text optimization patterns. Use when planning internal links or optimizing site structure.
+description: "Audit internal links, optimize anchor text, and build topic clusters to improve site authority and rankings. Use when planning internal links, fixing orphan pages, or restructuring site architecture."
 ---
-plugin: seo
-updated: 2026-01-20
 
 # Link Strategy
 
-## When to Use
+## Workflow
 
-- Planning internal linking structure
-- Optimizing anchor text
-- Building topic clusters
-- Improving site architecture
+1. **Audit existing links** -- inventory current internal links and identify gaps
+2. **Find orphan pages** -- locate pages with zero internal links pointing to them
+3. **Fix broken links** -- test all internal links and remove or repair broken ones
+4. **Optimize anchor text** -- replace generic anchors with keyword-rich descriptions
+5. **Build topic clusters** -- group related content into pillar-cluster structures
+6. **Verify improvements** -- confirm new links are crawlable and passing authority
 
-## Internal Linking Principles
+## Step 1: Internal Linking Principles
 
-### 1. Link from High to Low Authority
-- Homepage -> Category Pages -> Individual Posts
-- Old established pages -> New pages
-- High-traffic pages -> Pages you want to rank
+| Principle | Rule | Example |
+|-----------|------|---------|
+| Link high to low authority | Homepage → Category → Post | Established pages link to new pages |
+| Descriptive anchor text | Use target keyword naturally | Good: "SEO keyword research guide" Bad: "click here" |
+| Contextual placement | Body content links > nav links | Link within relevant paragraphs |
+| Reasonable density | 3-5 internal links per 1000 words | Avoid 100+ links on one page |
 
-### 2. Use Descriptive Anchor Text
-- Good: "SEO keyword research guide"
-- Bad: "click here", "read more"
-- Include target keyword naturally
+## Step 2: Identify Orphan Pages
 
-### 3. Link Contextually
-- Links within body content > Navigation links
-- Relevant context around link
-- Natural reading flow
+Orphan pages have no internal links pointing to them. To find them:
 
-### 4. Maintain Reasonable Link Count
-- 3-5 internal links per 1000 words
-- Avoid excessive linking (100+ links)
-- Focus on most relevant pages
+1. Use Glob to collect all internal link targets across the site
+2. Compare against sitemap or page inventory
+3. Pages not in the link target list are orphans
+4. Add links from topically relevant content to each orphan
 
-## Topic Cluster Model
+## Step 3: Anchor Text Optimization
 
-```
-PILLAR PAGE: "Content Marketing" (broad, high volume)
-    |
-    +-- Supporting Article: "Content Marketing Strategy"
-    |   (links to and from pillar)
-    |
-    +-- Supporting Article: "Content Marketing Examples"
-    |   (links to and from pillar)
-    |
-    +-- Supporting Article: "Content Marketing Tools"
-        (links to and from pillar)
-```
-
-**Benefits:**
-- Establishes topical authority
-- Passes PageRank efficiently
-- Improves user navigation
-- Signals content relationships
-
-## Anchor Text Optimization
-
-### Anchor Text Types
-
-| Type | Example | When to Use |
-|------|---------|-------------|
-| Exact Match | "SEO tools" | Sparingly (1-2x per page) |
+| Type | Example | Usage |
+|------|---------|-------|
+| Exact Match | "SEO tools" | Sparingly, 1-2x per page |
 | Partial Match | "best SEO tools for startups" | Primary usage |
 | Branded | "SEMrush" | Brand mentions |
-| Generic | "click here" | Avoid if possible |
-| Naked URL | "https://example.com" | Occasional |
+| Generic | "click here" | Avoid |
 
-### Best Practices
-- Vary anchor text naturally
-- Use target keyword in some anchors
-- Avoid over-optimization (100% exact match)
-- Make text descriptive and clickable
+Rule: Vary anchor text naturally. Never use 100% exact match anchors for the same target.
 
-## Link Audit Process
+## Step 4: Build Topic Clusters
 
-1. **Inventory existing links**
-   - Use Glob to find all internal links
-   - Map current link structure
+```
+PILLAR: "Content Marketing" (broad, high volume keyword)
+  ├── Supporting: "Content Marketing Strategy" (links to/from pillar)
+  ├── Supporting: "Content Marketing Examples" (links to/from pillar)
+  └── Supporting: "Content Marketing Tools" (links to/from pillar)
+```
 
-2. **Identify orphan pages**
-   - Pages with no internal links
-   - Add links from relevant content
+Benefits: establishes topical authority, passes PageRank efficiently, improves user navigation, signals content relationships to search engines.
 
-3. **Find broken links**
-   - Test all internal links
-   - Fix or remove broken ones
-
-4. **Optimize anchor text**
-   - Replace generic anchors
-   - Add keyword-rich descriptions
-
-5. **Build topic clusters**
-   - Group related content
-   - Implement pillar-cluster model
-
-## Output Format
+## Step 5: Generate Linking Plan
 
 ```markdown
 ## Internal Linking Plan
@@ -112,17 +67,42 @@ PILLAR PAGE: "Content Marketing" (broad, high volume)
 1. **From**: {source_page}
    - **Anchor**: {anchor_text}
    - **Context**: {surrounding_sentence}
-   - **Priority**: HIGH/MEDIUM/LOW
+   - **Priority**: HIGH
 
 2. **From**: {source_page}
    - **Anchor**: {anchor_text}
    - **Context**: {surrounding_sentence}
-   - **Priority**: HIGH/MEDIUM/LOW
+   - **Priority**: MEDIUM
 
-### Topic Cluster Structure
-
+### Topic Cluster
 PILLAR: {main_topic_page}
 - Supporting: {page1}
 - Supporting: {page2}
-- Supporting: {page3}
 ```
+
+## Example: Auditing a Blog
+
+```
+Site: example.com/blog (45 posts)
+
+Audit results:
+- 8 orphan pages found (no internal links)
+- 12 generic anchors ("click here", "read more")
+- 3 broken internal links (404s)
+
+Actions taken:
+1. Added links to 8 orphan pages from related posts
+2. Replaced 12 generic anchors with keyword-rich text
+3. Fixed 2 broken links, removed 1 (page deleted)
+4. Created 3 topic clusters around pillar pages
+
+Expected impact: +15-25% crawl coverage, improved rankings for cluster topics
+```
+
+## Validation Checklist
+
+- [ ] All orphan pages now have at least one internal link
+- [ ] No broken internal links remain (all 404s fixed or removed)
+- [ ] Generic anchors replaced with descriptive, keyword-relevant text
+- [ ] Each topic cluster has bidirectional links between pillar and supporting pages
+- [ ] No page exceeds 100 internal links

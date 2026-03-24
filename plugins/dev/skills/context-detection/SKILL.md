@@ -1,19 +1,6 @@
 ---
 name: context-detection
-version: 1.1.0
-description: Use when detecting project technology stack from files/configs/directory structure, auto-loading framework-specific skills, or analyzing multi-stack fullstack projects (e.g., React + Go).
-keywords:
-  - context detection
-  - stack detection
-  - technology stack
-  - project analysis
-  - auto-detection
-  - framework detection
-  - skill discovery
-plugin: dev
-updated: 2026-02-03
-used_by: stack-detector agent, all dev commands
-allowed-tools: Bash(node *)
+description: "Detects project technology stacks from config files, directory structure, and file extensions, then auto-loads matching framework-specific skills. Use when analyzing project structure, detecting multi-stack fullstack setups (e.g., React + Go), or mapping stacks to quality checks."
 ---
 
 # Context Detection Skill

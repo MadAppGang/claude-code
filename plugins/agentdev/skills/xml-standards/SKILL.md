@@ -1,9 +1,7 @@
 ---
 name: xml-standards
-description: XML tag structure patterns for Claude Code agents and commands. Use when designing or implementing agents to ensure proper XML structure following Anthropic best practices.
+description: "Specifies XML tag structure patterns (role, expertise, constraints, workflow) for Claude Code agents and commands following Anthropic best practices. Provides required and optional tag schemas with nesting rules. Use when designing agent prompts, implementing XML-structured commands, or validating agent tag compliance."
 ---
-plugin: agentdev
-updated: 2026-01-20
 
 # XML Tag Standards
 

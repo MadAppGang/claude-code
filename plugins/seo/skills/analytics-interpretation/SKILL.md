@@ -1,25 +1,20 @@
 ---
-plugin: seo
-updated: 2026-01-20
 name: analytics-interpretation
-description: Interpret GA4 and GSC data with benchmarks, status indicators, and actionable insights
+description: "Interpret GA4 and GSC data by comparing metrics against benchmarks, diagnosing cross-source patterns, and calculating content health scores. Use when analyzing content performance or explaining analytics to stakeholders."
 ---
-plugin: seo
-updated: 2026-01-20
 
 # Analytics Interpretation
 
-## When to Use
+## Workflow
 
-- Analyzing content performance reports
-- Understanding traffic patterns
-- Interpreting search console data
-- Making data-driven content decisions
-- Explaining metrics to stakeholders
+1. **Collect GA4 and GSC metrics** -- gather engagement and search performance data
+2. **Compare against benchmarks** -- classify each metric as Good, Warning, or Poor
+3. **Cross-reference signals** -- combine GA4 engagement with GSC search data for diagnosis
+4. **Calculate health score** -- compute weighted content health score (0-100)
+5. **Detect anomalies** -- flag significant week-over-week changes
+6. **Generate report** -- produce executive summary with prioritized actions
 
-## Metric Benchmarks
-
-### Google Analytics 4 (GA4)
+## Step 1: GA4 Benchmarks
 
 | Metric | Good | Warning | Poor | Action When Poor |
 |--------|------|---------|------|------------------|
@@ -29,124 +24,48 @@ updated: 2026-01-20
 | Scroll Depth | >75% | 50-75% | <50% | Add visual breaks, improve structure |
 | Pages/Session | >2.5 | 1.5-2.5 | <1.5 | Improve internal linking |
 
-### Google Search Console (GSC)
+## Step 2: GSC Benchmarks
 
 | Metric | Good | Warning | Poor | Action When Poor |
 |--------|------|---------|------|------------------|
 | CTR | >5% | 2-5% | <2% | Improve title/meta description |
 | Avg Position | 1-3 | 4-10 | >10 | Strengthen content, build links |
 | Impressions Trend | Growing | Stable | Declining | Refresh content, target new keywords |
-| Mobile Usability | PASS | - | FAIL | Fix mobile issues immediately |
 | Core Web Vitals | GOOD | NEEDS_IMPROVEMENT | POOR | Optimize performance |
 
-## Interpreting Combined Signals
+## Step 3: Cross-Source Diagnosis
+
+| GSC Signal | GA4 Signal | Diagnosis | Action |
+|------------|------------|-----------|--------|
+| High impressions | Low clicks | Title/meta mismatch | Rewrite meta description |
+| High CTR | High bounce | Content doesn't deliver | Align content with search intent |
+| Low CTR | High engagement | Hidden gem | Improve snippet to get more clicks |
+| Growing impressions | Stable clicks | Ranking improving | Optimize CTR while momentum builds |
 
 ### Traffic Quality Matrix
 
-```
-                    High Engagement
-                          │
-           ┌──────────────┼──────────────┐
-           │  HIDDEN GEM  │   STAR       │
-           │  Low traffic │   High traffic│
-           │  High quality│   High quality│
-           │  → Promote   │   → Maintain  │
-Low ───────┼──────────────┼──────────────┼─── High
-Traffic    │              │              │   Traffic
-           │  UNDERPERFORM│   LEAKY      │
-           │  Low traffic │   High traffic│
-           │  Low quality │   Low quality │
-           │  → Rework    │   → Optimize  │
-           └──────────────┼──────────────┘
-                          │
-                    Low Engagement
-```
+| Quadrant | Traffic | Engagement | Action |
+|----------|---------|------------|--------|
+| STAR | High | High | Maintain, replicate pattern |
+| HIDDEN GEM | Low | High | Promote via internal links and social |
+| LEAKY | High | Low | Optimize content quality |
+| UNDERPERFORMER | Low | Low | Rework or consolidate |
 
-### Search Intent Alignment
-
-| GSC Signal | GA4 Signal | Interpretation |
-|------------|------------|----------------|
-| High impressions | Low clicks | Title/meta mismatch with intent |
-| High CTR | High bounce | Content doesn't deliver on promise |
-| Low CTR | High engagement (when clicked) | Hidden gem, improve snippet |
-| Growing impressions | Stable clicks | Ranking improving, CTR opportunity |
-
-## Score Calculation Methodology
-
-### Content Health Score (0-100)
+## Step 4: Calculate Health Score
 
 ```
-health_score = (
-    engagement_score × 0.30 +
-    seo_score × 0.30 +
-    ranking_score × 0.20 +
-    trend_score × 0.20
-)
+health_score = engagement_score * 0.30 + seo_score * 0.30 + ranking_score * 0.20 + trend_score * 0.20
 ```
 
-**Component Calculations:**
+| Score | Rating | Action |
+|-------|--------|--------|
+| 90-100 | Excellent | Maintain, minor tweaks |
+| 75-89 | Good | Optimize weak areas |
+| 60-74 | Fair | Address key issues |
+| 40-59 | Poor | Major revision needed |
+| 0-39 | Critical | Complete overhaul |
 
-```
-engagement_score = normalize(
-    time_on_page_score × 0.4 +
-    bounce_rate_score × 0.3 +
-    scroll_depth_score × 0.3
-)
-
-seo_score = normalize(
-    ctr_score × 0.4 +
-    position_score × 0.4 +
-    impressions_growth × 0.2
-)
-
-ranking_score = normalize(
-    avg_position × 0.5 +
-    visibility_score × 0.3 +
-    keyword_coverage × 0.2
-)
-
-trend_score = normalize(
-    traffic_trend × 0.4 +
-    ranking_trend × 0.3 +
-    engagement_trend × 0.3
-)
-```
-
-### Score Interpretation
-
-| Score | Rating | Status | Action |
-|-------|--------|--------|--------|
-| 90-100 | Excellent | Performing optimally | Maintain, minor tweaks |
-| 75-89 | Good | Solid performance | Optimize weak areas |
-| 60-74 | Fair | Room for improvement | Address key issues |
-| 40-59 | Poor | Underperforming | Major revision needed |
-| 0-39 | Critical | Failing | Complete overhaul |
-
-## Trend Analysis
-
-### Week-over-Week Comparison
-
-```markdown
-| Metric | This Week | Last Week | Change | Status |
-|--------|-----------|-----------|--------|--------|
-| Sessions | 1,245 | 1,180 | +5.5% | ↑ GROWING |
-| Avg Position | 4.2 | 4.8 | +0.6 | ↑ IMPROVING |
-| CTR | 2.8% | 2.6% | +0.2pp | ↑ IMPROVING |
-| Bounce Rate | 42% | 38% | +4pp | ↓ DECLINING |
-```
-
-### Interpreting Trends
-
-| Trend Pattern | Interpretation | Recommended Action |
-|---------------|----------------|-------------------|
-| ↑↑↑ All metrics up | Content gaining momentum | Double down, create related content |
-| ↑↓↑ Mixed signals | Transition period | Monitor closely, identify cause |
-| ↓↓↓ All metrics down | Content declining | Urgent refresh needed |
-| →→→ All flat | Plateau reached | Experiment with new angles |
-
-## Anomaly Detection
-
-### Significant Change Thresholds
+## Step 5: Detect Anomalies
 
 | Metric | Significant Change | Alert Level |
 |--------|-------------------|-------------|
@@ -155,33 +74,9 @@ trend_score = normalize(
 | Position | ±5 positions | HIGH |
 | Bounce Rate | ±10pp WoW | MEDIUM |
 
-### Common Anomaly Causes
+Common causes: sudden traffic drop (algorithm update, technical issue), CTR spike (SERP feature win), position fluctuation (Google testing), engagement drop (content staleness).
 
-| Anomaly | Possible Causes |
-|---------|-----------------|
-| Sudden traffic drop | Algorithm update, technical issue, competitor |
-| CTR spike | SERP feature win, seasonal interest |
-| Position fluctuation | Google testing, competitor changes |
-| Engagement drop | Content staleness, UX issue |
-
-## Output Templates
-
-### Metric Summary Card
-
-```markdown
-## {Metric Name}
-
-**Current Value**: {value}
-**Benchmark**: {benchmark}
-**Status**: {GOOD|WARNING|POOR}
-**Trend**: {↑|→|↓} ({change}% vs last period)
-
-**Interpretation**: {1-2 sentence explanation}
-
-**Recommended Action**: {specific action if needed}
-```
-
-### Executive Summary
+## Step 6: Generate Report
 
 ```markdown
 ## Content Performance Summary
@@ -193,11 +88,30 @@ trend_score = normalize(
 - {positive finding 2}
 
 ### Concerns
-- {issue 1}
-- {issue 2}
+- {issue 1} -- {metric}: {value} vs benchmark {benchmark}
 
 ### Priority Actions
 1. {highest priority action}
 2. {second priority action}
 3. {third priority action}
 ```
+
+## Example: Interpreting a Blog Post
+
+```
+URL: /blog/seo-guide
+GA4: Avg Time 4:12 (GOOD), Bounce 35% (GOOD), Scroll 82% (GOOD)
+GSC: CTR 1.8% (POOR), Position 6.2 (WARNING), Impressions +15% WoW
+
+Diagnosis: HIDDEN GEM -- strong engagement but low CTR
+Health Score: 90*0.30 + 40*0.30 + 55*0.20 + 70*0.20 = 64 (Fair)
+Priority Action: Rewrite title tag and meta description to improve CTR
+```
+
+## Validation Checklist
+
+- [ ] Both GA4 and GSC data collected for the same date range
+- [ ] Each metric classified against correct benchmark tier
+- [ ] Cross-source signals checked for contradictions
+- [ ] Health score calculated with all four components
+- [ ] Anomalies flagged if any metric exceeds change thresholds
