@@ -1,18 +1,6 @@
 ---
 name: rust
-version: 1.0.0
-description: Use when building Axum applications, implementing type-safe handlers, working with SQLx, setting up error handling with thiserror, or writing Rust backend services.
-keywords:
-  - Rust
-  - Axum
-  - SQLx
-  - tokio
-  - async
-  - type safety
-  - backend
-  - thiserror
-plugin: dev
-updated: 2026-01-20
+description: "Provides Axum application templates with SQLx type-safe queries, thiserror-based error handling that implements IntoResponse, repository patterns with async Tokio runtime, and integration test setup. Use when building Rust backends, implementing Axum handlers, designing SQLx models, or writing Rust API tests."
 ---
 
 # Rust Backend Patterns

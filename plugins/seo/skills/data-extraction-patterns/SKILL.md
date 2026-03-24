@@ -1,29 +1,23 @@
 ---
-plugin: seo
-updated: 2026-01-20
 name: data-extraction-patterns
-description: Common patterns for extracting analytics data from GA4 and GSC with API handling
+description: "Extract and combine analytics data from GA4 and GSC APIs using parallel fetching, caching, rate-limit handling, and graceful degradation. Use when building data pipelines or fetching metrics for SEO analysis."
 ---
-plugin: seo
-updated: 2026-01-20
 
 # Data Extraction Patterns
 
-## When to Use
+## Workflow
 
-- Setting up analytics data pipelines
-- Combining data from multiple sources
-- Handling API rate limits and errors
-- Caching frequently accessed data
-- Building data collection workflows
+1. **Configure API connections** -- identify GA4 property ID and GSC site URL
+2. **Fetch data in parallel** -- issue GA4 and GSC requests simultaneously
+3. **Handle errors and rate limits** -- retry with exponential backoff on 429s
+4. **Cache results** -- store responses for the session to avoid redundant calls
+5. **Merge into unified model** -- combine sources into a single JSON structure
+6. **Degrade gracefully** -- produce partial reports when a source is unavailable
 
-## API Reference
+## Step 1: GA4 API Reference
 
-### Google Analytics 4 (GA4)
+MCP Server: `mcp-server-google-analytics`
 
-**MCP Server**: `mcp-server-google-analytics`
-
-**Key Operations**:
 ```
 get_report({
   propertyId: "properties/123456789",
@@ -33,29 +27,12 @@ get_report({
 })
 ```
 
-**Useful Metrics**:
-| Metric | Description | Use Case |
-|--------|-------------|----------|
-| screenPageViews | Total page views | Traffic volume |
-| sessions | User sessions | Visitor count |
-| averageSessionDuration | Avg time in session | Engagement |
-| bounceRate | Single-page visits | Content quality |
-| engagementRate | Engaged sessions % | True engagement |
-| scrolledUsers | Users who scrolled | Content consumption |
+Key metrics: `screenPageViews`, `sessions`, `averageSessionDuration`, `bounceRate`, `engagementRate`, `scrolledUsers`. Key dimensions: `pagePath`, `date`, `sessionSource`, `deviceCategory`.
 
-**Useful Dimensions**:
-| Dimension | Description |
-|-----------|-------------|
-| pagePath | URL path |
-| date | Date (for trending) |
-| sessionSource | Traffic source |
-| deviceCategory | Desktop/mobile/tablet |
+## Step 2: GSC API Reference
 
-### Google Search Console (GSC)
+MCP Server: `mcp-server-gsc`
 
-**MCP Server**: `mcp-server-gsc`
-
-**Key Operations**:
 ```
 search_analytics({
   siteUrl: "https://example.com",
@@ -64,316 +41,91 @@ search_analytics({
   dimensions: ["query", "page"],
   rowLimit: 1000
 })
-
-get_url_inspection({
-  siteUrl: "https://example.com",
-  inspectionUrl: "https://example.com/page"
-})
 ```
 
-**Available Metrics**:
-| Metric | Description | Use Case |
-|--------|-------------|----------|
-| clicks | Total clicks from search | Traffic from Google |
-| impressions | Times shown in results | Visibility |
-| ctr | Click-through rate | Snippet effectiveness |
-| position | Average ranking | SEO success |
+Key metrics: `clicks`, `impressions`, `ctr`, `position`. Key dimensions: `query`, `page`, `country`, `device`, `date`.
 
-**Dimensions**:
-| Dimension | Description |
-|-----------|-------------|
-| query | Search query |
-| page | Landing page URL |
-| country | User country |
-| device | Desktop/mobile/tablet |
-| date | Date (for trending) |
+## Step 3: Parallel Fetching
 
-## Parallel Execution Pattern
+Issue all MCP calls in a single message for simultaneous execution:
 
-### Optimal Data Fetch (All Sources)
-
-```markdown
-## Parallel Data Fetch Pattern
-
-When fetching from multiple sources, issue all requests in a SINGLE message
-for parallel execution:
-
-┌─────────────────────────────────────────────────────────────────┐
-│  MESSAGE 1: Parallel Data Requests                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  [MCP Call 1]: google-analytics.get_report(...)                 │
-│  [MCP Call 2]: google-search-console.search_analytics(...)      │
-│                                                                  │
-│  → All execute simultaneously                                    │
-│  → Results return when all complete                              │
-│  → ~2x faster than sequential                                    │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+```
+Message 1 (parallel):
+  [MCP Call 1]: google-analytics.get_report(...)
+  [MCP Call 2]: google-search-console.search_analytics(...)
+  → Both execute simultaneously, ~2x faster than sequential
 ```
 
-### Sequential (When Needed)
+Use sequential fetching only when one call depends on another's result (e.g., fetch page list first, then details per page).
 
-Some operations require sequential execution:
-
-```markdown
-## Sequential Pattern (Dependencies)
-
-When one request depends on another's result:
-
-┌─────────────────────────────────────────────────────────────────┐
-│  MESSAGE 1: Get list of pages                                   │
-│  → Returns: ["/page1", "/page2", "/page3"]                      │
-├─────────────────────────────────────────────────────────────────┤
-│  MESSAGE 2: Get details for each page                           │
-│  → Uses page list from Message 1                                │
-│  → Can parallelize within this message                          │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Rate Limiting
-
-### API Rate Limits
+## Step 4: Rate Limits and Retry
 
 | API | Limit | Strategy |
 |-----|-------|----------|
-| GA4 | 10 QPS per property | Batch dimensions |
+| GA4 | 10 QPS per property | Batch dimensions in one call |
 | GSC | 1,200 requests/min | Paginate large exports |
 
-### Retry Pattern
+Retry pattern: on HTTP 429, wait 5s, then double delay on each retry, max 3 attempts.
 
-```bash
-#!/bin/bash
-# Retry with exponential backoff
+## Step 5: Caching
 
-MAX_RETRIES=3
-RETRY_DELAY=5
+Cache responses per session with a 1-hour TTL. Key format: `{source}_{url}_{dateRange}`. Check cache before every API call; save response after successful fetch.
 
-fetch_with_retry() {
-    local url="$1"
-    local attempt=1
-
-    while [ $attempt -le $MAX_RETRIES ]; do
-        response=$(curl -s -w "%{http_code}" -o /tmp/response.json "$url")
-        http_code="${response: -3}"
-
-        if [ "$http_code" = "200" ]; then
-            cat /tmp/response.json
-            return 0
-        elif [ "$http_code" = "429" ]; then
-            echo "Rate limited, waiting ${RETRY_DELAY}s..." >&2
-            sleep $RETRY_DELAY
-            RETRY_DELAY=$((RETRY_DELAY * 2))
-        else
-            echo "Error: HTTP $http_code" >&2
-            return 1
-        fi
-
-        attempt=$((attempt + 1))
-    done
-
-    echo "Max retries exceeded" >&2
-    return 1
-}
-```
-
-## Caching Pattern
-
-### Session-Based Cache
-
-```bash
-# Cache structure
-SESSION_PATH="/tmp/seo-performance-20251227-143000-example"
-CACHE_DIR="${SESSION_PATH}/cache"
-CACHE_TTL=3600  # 1 hour in seconds
-
-mkdir -p "$CACHE_DIR"
-
-# Cache key generation
-cache_key() {
-    echo "$1" | md5sum | cut -d' ' -f1
-}
-
-# Check cache
-get_cached() {
-    local key=$(cache_key "$1")
-    local cache_file="${CACHE_DIR}/${key}.json"
-
-    if [ -f "$cache_file" ]; then
-        local age=$(($(date +%s) - $(stat -f%m "$cache_file" 2>/dev/null || stat -c%Y "$cache_file")))
-        if [ $age -lt $CACHE_TTL ]; then
-            cat "$cache_file"
-            return 0
-        fi
-    fi
-    return 1
-}
-
-# Save to cache
-save_cache() {
-    local key=$(cache_key "$1")
-    local cache_file="${CACHE_DIR}/${key}.json"
-    cat > "$cache_file"
-}
-
-# Usage
-CACHE_KEY="ga4_${URL}_${DATE_RANGE}"
-if ! RESULT=$(get_cached "$CACHE_KEY"); then
-    RESULT=$(fetch_from_api)
-    echo "$RESULT" | save_cache "$CACHE_KEY"
-fi
-```
-
-## Date Range Standardization
-
-### Common Date Ranges
-
-```bash
-# Standard date range calculations
-TODAY=$(date +%Y-%m-%d)
-
-case "$RANGE" in
-    "7d")
-        START_DATE=$(date -v-7d +%Y-%m-%d 2>/dev/null || date -d "7 days ago" +%Y-%m-%d)
-        ;;
-    "30d")
-        START_DATE=$(date -v-30d +%Y-%m-%d 2>/dev/null || date -d "30 days ago" +%Y-%m-%d)
-        ;;
-    "90d")
-        START_DATE=$(date -v-90d +%Y-%m-%d 2>/dev/null || date -d "90 days ago" +%Y-%m-%d)
-        ;;
-    "mtd")
-        START_DATE=$(date +%Y-%m-01)
-        ;;
-    "ytd")
-        START_DATE=$(date +%Y-01-01)
-        ;;
-esac
-
-END_DATE="$TODAY"
-```
-
-### API-Specific Formats
-
-| API | Format | Example |
-|-----|--------|---------|
-| GA4 | Relative or ISO | "30daysAgo", "2025-12-01" |
-| GSC | ISO 8601 | "2025-12-01" |
-
-## Graceful Degradation
-
-### Data Source Fallback
-
-```markdown
-## Fallback Strategy
-
-When a data source is unavailable:
-
-┌─────────────────────────────────────────────────────────────────┐
-│  PRIMARY SOURCE      │  FALLBACK           │  LAST RESORT       │
-├──────────────────────┼─────────────────────┼────────────────────┤
-│  GA4 traffic data    │  GSC clicks         │  Estimate from GSC │
-│  GSC search perf     │  Manual SERP check  │  WebSearch SERP    │
-│  CWV (CrUX)          │  PageSpeed API      │  Lighthouse CLI    │
-└──────────────────────┴─────────────────────┴────────────────────┘
-```
-
-### Partial Data Output
-
-```markdown
-## Analysis Report (Partial Data)
-
-### Data Availability
-
-| Source | Status | Impact |
-|--------|--------|--------|
-| GA4 | NOT CONFIGURED | Missing engagement metrics |
-| GSC | AVAILABLE | Full search data |
-
-### Analysis Notes
-
-This analysis is based on limited data sources:
-- Search performance metrics are complete (GSC)
-- Engagement metrics unavailable (no GA4)
-
-**Recommendation**: Configure GA4 for complete analysis.
-Run `/setup-analytics` to add Google Analytics.
-```
-
-## Unified Data Model
-
-### Combined Output Structure
+## Step 6: Unified Output Model
 
 ```json
 {
   "metadata": {
     "url": "https://example.com/page",
     "fetchedAt": "2025-12-27T14:30:00Z",
-    "dateRange": {
-      "start": "2025-11-27",
-      "end": "2025-12-27"
-    }
+    "dateRange": { "start": "2025-11-27", "end": "2025-12-27" }
   },
   "sources": {
     "ga4": {
       "available": true,
-      "metrics": {
-        "pageViews": 2450,
-        "avgTimeOnPage": 222,
-        "bounceRate": 38.2,
-        "engagementRate": 64.5
-      }
+      "metrics": { "pageViews": 2450, "bounceRate": 38.2, "engagementRate": 64.5 }
     },
     "gsc": {
       "available": true,
-      "metrics": {
-        "impressions": 15200,
-        "clicks": 428,
-        "ctr": 2.82,
-        "avgPosition": 4.2
-      },
-      "topQueries": [
-        {"query": "seo guide", "clicks": 156, "position": 4}
-      ]
+      "metrics": { "impressions": 15200, "clicks": 428, "ctr": 2.82, "avgPosition": 4.2 }
     }
   },
-  "computed": {
-    "healthScore": 72,
-    "status": "GOOD"
-  }
+  "computed": { "healthScore": 72, "status": "GOOD" }
 }
 ```
 
-## Error Handling
+## Graceful Degradation
 
-### Common Errors
+| Primary Source | Fallback | Last Resort |
+|----------------|----------|-------------|
+| GA4 traffic data | GSC clicks | Estimate from GSC impressions * CTR |
+| GSC search perf | Manual SERP check | WebSearch SERP |
+| CWV (CrUX) | PageSpeed API | Lighthouse CLI |
+
+When a source is unavailable, note it in the report and recommend configuring the missing source.
+
+## Error Handling
 
 | Error | Cause | Resolution |
 |-------|-------|------------|
-| 401 Unauthorized | Invalid/expired credentials | Re-run /setup-analytics |
-| 403 Forbidden | Missing permissions | Check API access in console |
-| 429 Too Many Requests | Rate limit | Wait and retry with backoff |
+| 401 Unauthorized | Invalid credentials | Re-run /setup-analytics |
+| 403 Forbidden | Missing permissions | Grant Viewer role in GA4 Admin |
+| 429 Too Many Requests | Rate limit hit | Retry with exponential backoff |
 | 404 Not Found | Invalid property/site | Verify IDs in configuration |
-| 500 Server Error | API issue | Retry later, check status page |
 
-### Error Output Pattern
+## Date Range Reference
 
-```markdown
-## Data Fetch Error
+| API | Format | Example |
+|-----|--------|---------|
+| GA4 | Relative or ISO | "30daysAgo", "2025-12-01" |
+| GSC | ISO 8601 only | "2025-12-01" |
 
-**Source**: Google Analytics 4
-**Error**: 403 Forbidden
-**Message**: "User does not have sufficient permissions for this property"
+Common ranges: `7d`, `30d`, `90d`, `mtd` (month-to-date), `ytd` (year-to-date).
 
-### Troubleshooting Steps
+## Validation Checklist
 
-1. Verify Service Account email in GA4 Admin
-2. Ensure "Viewer" role is granted
-3. Check Analytics Data API is enabled
-4. Wait 5 minutes for permission propagation
-
-### Workaround
-
-Proceeding with available data sources (GSC).
-GA4 engagement metrics will not be included in this analysis.
-```
+- [ ] GA4 property ID and GSC site URL configured correctly
+- [ ] Parallel fetch used when requests are independent
+- [ ] Cache checked before each API call
+- [ ] Error responses handled with retry or fallback
+- [ ] Partial data reports note which sources are missing

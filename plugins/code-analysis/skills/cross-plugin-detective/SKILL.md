@@ -1,266 +1,61 @@
 ---
 name: cross-plugin-detective
-description: Use when integrating detective skills across plugins. Maps agent roles to appropriate detective skills (developer → developer-detective, architect → architect-detective). Reference this to connect agents with claudemem investigation capabilities.
-updated: 2026-01-20
-keywords: cross-plugin, detective, agent-mapping, claudemem, integration
-allowed-tools: Bash, Task, Read, AskUserQuestion
+description: "Maps agent roles to appropriate detective skills (developer-detective, architect-detective, tester-detective, debugger-detective, ultrathink-detective) for cross-plugin integration. Use when connecting agents from other plugins to claudemem investigation capabilities or deciding which detective to reference in agent frontmatter."
 ---
 
 # Cross-Plugin Detective Integration
 
-**Version:** 1.0.0
-**Purpose:** Connect ANY agent to the appropriate detective skill based on role
+Connects any agent across plugins to the appropriate detective skill based on its role, ensuring all code investigation uses claudemem indexed memory exclusively.
 
-## ⛔ CORE PRINCIPLE: INDEXED MEMORY ONLY
+## Workflow
 
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   ALL DETECTIVE SKILLS USE claudemem (INDEXED MEMORY) EXCLUSIVELY            ║
-║                                                                              ║
-║   When ANY agent references a detective skill, they MUST:                    ║
-║   ❌ NEVER use grep, find, rg, Glob tool, Grep tool                         ║
-║   ✅ ALWAYS use claudemem search "query"                                    ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
+1. **Identify the agent's primary role** — implementing, designing, testing, debugging, or reviewing.
+2. **Select the matching detective** from the mapping table below.
+3. **Add the skill reference** to the agent's frontmatter: `skills: code-analysis:<detective-name>`.
+4. **Verify the agent uses claudemem** — never grep, find, Glob, or Grep tools for code discovery.
 
----
+## Agent-to-Detective Mapping
 
-## Agent-to-Skill Mapping
+| Agent Role | Detective Skill | Primary Focus |
+|------------|----------------|---------------|
+| Developer agents | `code-analysis:developer-detective` | Implementation, data flow, callers/callees |
+| Architect agents | `code-analysis:architect-detective` | System design, layers, PageRank analysis |
+| Tester agents | `code-analysis:tester-detective` | Coverage analysis, test quality |
+| Debugger agents | `code-analysis:debugger-detective` | Root cause analysis, call chains |
+| Reviewer agents | `code-analysis:ultrathink-detective` | Comprehensive multi-perspective audit |
 
-### Frontend Plugin Agents
+## Example: Adding Detective to a Frontend Agent
 
-| Agent | Should Use Skill | Purpose |
-|-------|-----------------|---------|
-| `typescript-frontend-dev` | `code-analysis:developer-detective` | Find implementations, trace data flow |
-| `frontend-architect` | `code-analysis:architect-detective` | Analyze architecture, design patterns |
-| `test-architect` | `code-analysis:tester-detective` | Coverage analysis, test quality |
-| `senior-code-reviewer` | `code-analysis:ultrathink-detective` | Comprehensive code review |
-| `ui-developer` | `code-analysis:developer-detective` | Find UI implementations |
-| `designer` | `code-analysis:architect-detective` | Understand component structure |
-| `plan-reviewer` | `code-analysis:architect-detective` | Review architecture plans |
-
-### Bun Backend Plugin Agents
-
-| Agent | Should Use Skill | Purpose |
-|-------|-----------------|---------|
-| `backend-developer` | `code-analysis:developer-detective` | Find implementations, trace data flow |
-| `api-architect` | `code-analysis:architect-detective` | API architecture analysis |
-| `apidog` | `code-analysis:developer-detective` | Find API implementations |
-
-### Code Analysis Plugin Agents
-
-| Agent | Should Use Skill | Purpose |
-|-------|-----------------|---------|
-| `codebase-detective` | All detective skills | Full investigation capability |
-
-### Any Other Plugin
-
-| Agent Role | Should Use Skill |
-|------------|-----------------|
-| Any "developer" agent | `code-analysis:developer-detective` |
-| Any "architect" agent | `code-analysis:architect-detective` |
-| Any "tester" agent | `code-analysis:tester-detective` |
-| Any "reviewer" agent | `code-analysis:ultrathink-detective` |
-| Any "debugger" agent | `code-analysis:debugger-detective` |
-
----
-
-## How to Reference Skills in Agent Frontmatter
-
-### Example: Developer Agent
 ```yaml
 ---
-name: my-developer-agent
+name: typescript-frontend-dev
 description: Implements features
 skills: code-analysis:developer-detective
 ---
 
-# My Developer Agent
-
-When investigating code, use the developer-detective skill.
-This gives you access to indexed memory search via claudemem.
-
-## Investigation Pattern
-
-Before implementing:
-1. Check claudemem status: `claudemem status`
-2. Search for related code: `claudemem search "feature I'm implementing"`
-3. Read specific files from results
-4. NEVER use grep or find for discovery
+# Investigation Pattern
+# 1. claudemem status
+# 2. claudemem search "feature I'm implementing"
+# 3. Read specific file:line from results
+# 4. NEVER use grep or find for discovery
 ```
 
-### Example: Architect Agent
-```yaml
----
-name: my-architect-agent
-description: Designs architecture
-skills: code-analysis:architect-detective
----
+**Verification:** Confirm the agent's frontmatter includes the correct `skills:` reference and that investigation code uses `claudemem` commands.
 
-# My Architect Agent
+## Plugin Dependency
 
-When analyzing architecture, use the architect-detective skill.
-
-## Architecture Discovery
-
-1. Check claudemem status: `claudemem status`
-2. Search for patterns: `claudemem search "service layer architecture"`
-3. Map dependencies: `claudemem search "import dependency injection"`
-4. NEVER use grep or find for discovery
-```
-
-### Example: Multi-Skill Agent
-```yaml
----
-name: comprehensive-reviewer
-description: Reviews all aspects
-skills: code-analysis:ultrathink-detective, code-analysis:tester-detective
----
-```
-
----
-
-## Skill Selection Decision Tree
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     WHICH DETECTIVE SKILL TO USE?                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  What is the agent's PRIMARY focus?                                         │
-│                                                                             │
-│  ├── IMPLEMENTING code / Finding where to change                            │
-│  │   └── Use: developer-detective                                           │
-│  │                                                                          │
-│  ├── DESIGNING architecture / Understanding patterns                        │
-│  │   └── Use: architect-detective                                           │
-│  │                                                                          │
-│  ├── TESTING / Coverage analysis / Quality                                  │
-│  │   └── Use: tester-detective                                              │
-│  │                                                                          │
-│  ├── DEBUGGING / Finding root cause                                         │
-│  │   └── Use: debugger-detective                                            │
-│  │                                                                          │
-│  └── COMPREHENSIVE analysis / Technical debt / Audit                        │
-│      └── Use: ultrathink-detective                                          │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Integration Examples
-
-### Example 1: Frontend Developer Agent Needing to Find Code
-
-```typescript
-// In frontend plugin's typescript-frontend-dev agent:
-
-// ❌ WRONG - Never do this
-Grep({ pattern: "UserService", type: "ts" });
-Glob({ pattern: "**/user*.ts" });
-
-// ✅ CORRECT - Use indexed memory via developer-detective skill
-// The skill teaches the agent to use:
-claudemem search "UserService implementation methods"
-```
-
-### Example 2: Backend Architect Analyzing API Structure
-
-```typescript
-// In bun plugin's api-architect agent:
-
-// ❌ WRONG - Never do this
-find . -name "*.controller.ts"
-grep -r "router\." . --include="*.ts"
-
-// ✅ CORRECT - Use indexed memory via architect-detective skill
-claudemem search "API controller endpoint handler"
-claudemem search "router pattern REST GraphQL"
-```
-
-### Example 3: Test Architect Finding Coverage Gaps
-
-```typescript
-// In frontend plugin's test-architect agent:
-
-// ❌ WRONG - Never do this
-Glob({ pattern: "**/*.test.ts" });
-Grep({ pattern: "describe" });
-
-// ✅ CORRECT - Use indexed memory via tester-detective skill
-claudemem search "test coverage describe spec"
-claudemem search "mock stub test assertion"
-```
-
----
-
-## Skill Inheritance Pattern
-
-When an agent needs code investigation, it should:
-
-1. **Reference the appropriate detective skill in frontmatter**
-2. **Follow the skill's INDEXED MEMORY ONLY requirement**
-3. **Use claudemem for ALL code discovery**
-4. **NEVER fall back to grep/find/Glob/Grep tools**
-
-```yaml
----
-name: any-agent-that-needs-investigation
-skills: code-analysis:developer-detective  # or architect/tester/debugger/ultrathink
----
-
-# This agent inherits:
-# - INDEXED MEMORY requirement (claudemem only)
-# - Role-specific search patterns
-# - Output format guidance
-# - FORBIDDEN: grep, find, Glob, Grep tools
-```
-
----
-
-## Plugin Dependencies
-
-If your plugin has agents that need code investigation, add this dependency:
+Add to your plugin's `plugin.json` to ensure detective skills are available:
 
 ```json
 {
-  "name": "your-plugin",
   "dependencies": {
     "code-analysis@mag-claude-plugins": "^1.6.0"
   }
 }
 ```
 
-This ensures:
-- claudemem skills are available
-- Detective skills are accessible via `code-analysis:*` prefix
-- Agents can reference skills in frontmatter
+## Notes
 
----
-
-## Summary: The Golden Rule
-
-```
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                                                                              ║
-║   ANY AGENT + CODE INVESTIGATION = claudemem ONLY                            ║
-║                                                                              ║
-║   Developer agents → code-analysis:developer-detective                       ║
-║   Architect agents → code-analysis:architect-detective                       ║
-║   Tester agents    → code-analysis:tester-detective                          ║
-║   Debugger agents  → code-analysis:debugger-detective                        ║
-║   Reviewer agents  → code-analysis:ultrathink-detective                      ║
-║                                                                              ║
-║   grep/find/Glob/Grep = FORBIDDEN (always, everywhere, no exceptions)        ║
-║                                                                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-```
-
----
-
-**Maintained by:** MadAppGang
-**Plugin:** code-analysis
-**Last Updated:** December 2025
+- All detective skills require claudemem indexed memory — grep/find/Glob/Grep are forbidden for semantic queries
+- Multi-skill agents can reference multiple detectives: `skills: code-analysis:ultrathink-detective, code-analysis:tester-detective`
+- Direct detective usage and /analyze command remain unchanged

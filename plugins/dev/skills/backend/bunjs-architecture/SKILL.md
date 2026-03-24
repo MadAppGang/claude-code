@@ -1,18 +1,6 @@
 ---
 name: bunjs-architecture
-version: 1.0.0
-description: Use when implementing clean architecture (routes/controllers/services/repositories), establishing camelCase conventions, designing Prisma schemas, or planning structured workflows for Bun.js applications. See bunjs for basics, bunjs-production for deployment.
-keywords:
-  - clean architecture
-  - layered architecture
-  - camelCase
-  - naming conventions
-  - Prisma schema
-  - repository pattern
-  - separation of concerns
-  - code organization
-plugin: dev
-updated: 2026-01-20
+description: "Implements clean layered architecture (routes/controllers/services/repositories) for Bun.js TypeScript backends, enforces camelCase conventions end-to-end, and provides Prisma schema templates with Zod validation. Use when structuring Bun.js applications, designing database schemas, or establishing coding conventions."
 ---
 
 # Bun.js Clean Architecture Patterns

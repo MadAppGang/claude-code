@@ -1,180 +1,60 @@
 ---
-plugin: seo
-updated: 2026-01-20
 name: performance-correlation
-description: Correlate content attributes with GA4 and GSC metrics to identify performance drivers
+description: "Correlate content changes with GA4 and GSC metric movements to identify performance drivers and build optimization hypotheses. Use when diagnosing why metrics changed or planning content optimizations."
 ---
-plugin: seo
-updated: 2026-01-20
 
 # Performance Correlation
 
-## When to Use
+## Workflow
 
-- Connecting content changes to metric changes
-- Identifying what drives performance
-- Building optimization hypotheses
-- A/B test analysis
-- Content audit findings
+1. **Match symptoms to patterns** -- identify which cross-source pattern applies
+2. **Gather evidence** -- collect supporting data from GA4, GSC, and competitor analysis
+3. **Log content changes** -- maintain a timeline of modifications
+4. **Map metric responses** -- correlate metric shifts to specific changes
+5. **Rate confidence** -- assess cause-effect reliability
+6. **Build hypothesis** -- propose next optimization with success criteria
 
-## Cross-Source Correlation Patterns
+## Step 1: Pattern Library
 
-### Pattern Library
+### Pattern 1: High Impressions + Low CTR + Good Position (3-7)
 
-#### Pattern 1: High Impressions + Low CTR + Good Position
+**Diagnosis**: Title/meta description not compelling enough.
 
-```
-GSC: Impressions ↑ | CTR ↓ | Position 3-7
-GA4: N/A (users don't click)
-```
+Actions: Rewrite title with power words/numbers/year, add benefit-driven meta description, target featured snippet. Expected impact: +50-100% CTR.
 
-**Diagnosis**: Title/meta description not compelling enough
+### Pattern 2: High CTR + Low Engagement (high bounce, low time on page)
 
-**Evidence Needed**:
-- Compare your snippet to competitors in positions 1-2
-- Check for SERP features stealing attention
-- Analyze query intent match
+**Diagnosis**: Content doesn't match search intent or promise.
 
-**Recommended Actions**:
-1. Rewrite title with power words, numbers, or year
-2. Add compelling meta description with clear benefit
-3. Target featured snippet if applicable
+Actions: Align opening with search intent, deliver value in first 100 words, add table of contents. Expected impact: -20-30% bounce rate, +50% time on page.
 
-**Expected Impact**: +50-100% CTR improvement possible
+### Pattern 3: High Engagement + Low Rankings
 
----
-plugin: seo
-updated: 2026-01-20
+**Diagnosis**: Good content but weak SEO signals.
 
-#### Pattern 2: High CTR + Low Engagement
+Actions: Build quality backlinks, add internal links from high-authority pages, improve on-page SEO. Expected impact: +5-15 positions over 2-3 months.
 
-```
-GSC: CTR ↑ | Position stable
-GA4: Bounce ↑ | Time on Page ↓ | Scroll Depth ↓
-```
+### Pattern 4: Declining Rankings + Stable Traffic
 
-**Diagnosis**: Content doesn't match search intent or promise
+**Diagnosis**: Competitors advancing; brand queries protecting traffic.
 
-**Evidence Needed**:
-- Compare content to search query expectations
-- Check if title oversells/misleads
-- Analyze competing content that ranks
+Actions: Refresh content with updated data, add sections competitors have, accelerate link building.
 
-**Recommended Actions**:
-1. Align content opening with search intent
-2. Deliver promised value in first 100 words
-3. Add table of contents for scanners
+### Pattern 5: Good Rankings (1-5) + Low Impressions
 
-**Expected Impact**: -20-30% bounce rate, +50% time on page
+**Diagnosis**: Keyword losing search volume.
 
----
-plugin: seo
-updated: 2026-01-20
+Actions: Target related growing keywords, expand content for adjacent queries, consider pivoting topic angle.
 
-#### Pattern 3: High Engagement + Low Rankings
+### Pattern 6: Position Volatility (fluctuates +/-10 daily)
 
-```
-GA4: Time on Page ↑ | Bounce ↓ | Scroll Depth ↑
-GSC: Position ↓ | Impressions ↓
-```
+**Diagnosis**: Google testing content quality or thin content threshold.
 
-**Diagnosis**: Good content but weak SEO signals
+Actions: Strengthen E-E-A-T signals, add depth and originality, improve page experience. Expected stabilization: 2-4 weeks.
 
-**Evidence Needed**:
-- Check backlink profile vs competitors
-- Analyze internal linking to this page
-- Review technical SEO factors
-
-**Recommended Actions**:
-1. Build quality backlinks to page
-2. Add internal links from high-authority pages
-3. Improve on-page SEO (keyword density, headers)
-
-**Expected Impact**: +5-15 position improvement over 2-3 months
-
----
-plugin: seo
-updated: 2026-01-20
-
-#### Pattern 4: Declining Rankings + Stable Traffic
-
-```
-GSC: Position ↓ | Impressions → | Clicks → (or slight ↓)
-GA4: Traffic → (from brand/direct)
-```
-
-**Diagnosis**: Competitors advancing, brand queries protecting you
-
-**Evidence Needed**:
-- Competitor content comparison
-- Content freshness analysis
-- Backlink velocity comparison
-
-**Recommended Actions**:
-1. Content refresh with updated data/examples
-2. Add new sections competitors have
-3. Accelerate link building
-
-**Expected Impact**: Prevent further decline, regain positions
-
----
-plugin: seo
-updated: 2026-01-20
-
-#### Pattern 5: Good Rankings + Low Impressions
-
-```
-GSC: Position 1-5 | Impressions ↓ | CTR normal
-GA4: Traffic ↓
-```
-
-**Diagnosis**: Keyword losing search volume
-
-**Evidence Needed**:
-- Google Trends for keyword
-- Seasonal patterns analysis
-- Industry shifts
-
-**Recommended Actions**:
-1. Target related growing keywords
-2. Expand content for related queries
-3. Consider pivoting topic angle
-
-**Expected Impact**: Capture adjacent search demand
-
----
-plugin: seo
-updated: 2026-01-20
-
-#### Pattern 6: Position Volatility
-
-```
-GSC: Position fluctuates ±10 daily
-```
-
-**Diagnosis**: Google testing your content, or thin content threshold
-
-**Evidence Needed**:
-- Content depth vs competitors
-- E-E-A-T signals present
-- Page experience metrics
-
-**Recommended Actions**:
-1. Strengthen E-E-A-T signals
-2. Add depth and originality
-3. Improve page experience
-
-**Expected Impact**: Position stabilization within 2-4 weeks
-
-## Correlation Matrix Template
-
-### Content Changes Timeline
-
-Track all modifications to correlate with metrics:
+## Step 2: Log Content Changes
 
 ```markdown
-## Content Change Log: {URL}
-
 | Date | Change Type | Description | Scope |
 |------|-------------|-------------|-------|
 | 2025-12-01 | Content | Added 500 words on AI SEO | Major |
@@ -183,13 +63,9 @@ Track all modifications to correlate with metrics:
 | 2025-12-20 | Technical | Improved page speed | Technical |
 ```
 
-### Metric Response Timeline
-
-Map metric changes to content changes:
+## Step 3: Map Metric Responses
 
 ```markdown
-## Metric Response Analysis
-
 | Date | Metric | Before | After | Change | Likely Cause |
 |------|--------|--------|-------|--------|--------------|
 | Dec 5 | Position | 8.2 | 6.1 | +2.1 | Content expansion |
@@ -198,101 +74,54 @@ Map metric changes to content changes:
 | Dec 22 | LCP | 2.8s | 1.9s | -0.9s | Speed optimization |
 ```
 
-### Correlation Confidence
-
-Rate confidence in cause-effect relationships:
-
-```markdown
-## Correlation Confidence Assessment
+## Step 4: Rate Confidence
 
 | Change | Metric Impact | Confidence | Reasoning |
 |--------|---------------|------------|-----------|
 | +500 words | Position +2.1 | HIGH | Timing matches, logical connection |
 | Title update | CTR +1.7pp | HIGH | Direct relationship, immediate effect |
-| Internal links | ? | LOW | Too recent, effect delayed |
+| Internal links | Unknown | LOW | Too recent, effect delayed 2-4 weeks |
 | Speed fix | Bounce -5% | MEDIUM | Timing matches, indirect relationship |
-```
 
-## Multi-Source Correlation
-
-### Unified Performance View
-
-```markdown
-## Cross-Platform Correlation: {URL}
-
-### Traffic & Visibility
-| Source | Metric | Value | Trend | Correlation |
-|--------|--------|-------|-------|-------------|
-| GSC | Impressions | 15,200 | ↑ +12% | Search visibility growing |
-| GSC | Clicks | 428 | ↑ +8% | Traffic following visibility |
-| GA4 | Sessions | 512 | ↑ +10% | Confirms GSC data |
-
-### Engagement Quality
-| Source | Metric | Value | Trend | Correlation |
-|--------|--------|-------|-------|-------------|
-| GSC | CTR | 2.8% | → stable | Snippet unchanged |
-| GA4 | Bounce Rate | 38% | ↓ -4% | Content improvements working |
-| GA4 | Avg Time | 3:42 | ↑ +0:45 | Users more engaged |
-| GA4 | Scroll Depth | 72% | ↑ +8% | Content structure improved |
-
-### Ranking Performance
-| Source | Keyword | Position | Change | Opportunity |
-|--------|---------|----------|--------|-------------|
-| GSC | seo guide | 4 | +2 | Target position 1-3 |
-| GSC | seo best practices | 7 | +1 | Content gap vs leader |
-| GSC | seo tips 2025 | 12 | -3 | Needs freshness update |
-```
-
-## Hypothesis Building
-
-### Template
+## Step 5: Build Hypothesis
 
 ```markdown
 ## Optimization Hypothesis
 
 **Observation**: {what the data shows}
-
 **Hypothesis**: {proposed cause-effect relationship}
 
 **Test Plan**:
 1. {specific change to make}
-2. {metrics to monitor}
-3. {timeframe for evaluation}
+2. {metrics to monitor}: CTR, position, clicks
+3. {timeframe}: evaluate after 2 weeks
 
 **Success Criteria**:
-- Primary: {main metric target}
-- Secondary: {supporting metric targets}
+- Primary: {main metric target, e.g., CTR > 4%}
+- Secondary: {supporting target, e.g., clicks +30%}
 
-**Risk Assessment**:
-- Probability of success: {HIGH|MEDIUM|LOW}
-- Potential downside: {risk description}
-- Mitigation: {how to minimize risk}
+**Risk**: {HIGH|MEDIUM|LOW} -- {risk description and mitigation}
 ```
 
-### Example Hypothesis
+## Example: Full Correlation Analysis
 
-```markdown
-## Optimization Hypothesis: CTR Improvement
-
-**Observation**: Page ranks #4 for "seo guide 2025" with 15K monthly
-impressions but only 2.8% CTR (below 5% benchmark).
-
-**Hypothesis**: Updating title to include "Complete" and current year
-will increase CTR by appealing to users seeking comprehensive, fresh content.
-
-**Test Plan**:
-1. Change title from "SEO Guide: Tips for Success" to
-   "Complete SEO Guide 2025: 15 Proven Strategies"
-2. Monitor: CTR, impressions, position, clicks
-3. Evaluate after 2 weeks of data
-
-**Success Criteria**:
-- Primary: CTR increases from 2.8% to >4%
-- Secondary: Clicks increase by >30%
-- Position maintains or improves
-
-**Risk Assessment**:
-- Probability of success: HIGH (title changes typically show results)
-- Potential downside: Slight position fluctuation during testing
-- Mitigation: Don't change other page elements simultaneously
 ```
+URL: /blog/seo-guide
+Change: Title updated from "SEO Guide" to "Complete SEO Guide 2025: 15 Strategies"
+
+Before (Dec 1-7):  Position 4.0, CTR 2.8%, Clicks 420
+After (Dec 15-21): Position 3.8, CTR 4.5%, Clicks 680
+
+Pattern match: Pattern 1 (High Impressions + Low CTR)
+Confidence: HIGH -- direct relationship, timing matches within days
+Result: CTR +60%, Clicks +62%, Position stable
+Next hypothesis: Add FAQ section to capture People Also Ask SERP feature
+```
+
+## Validation Checklist
+
+- [ ] Content change log maintained with dates and scope
+- [ ] Metric data compared for matching time periods (before vs after)
+- [ ] At least 2 weeks of post-change data before drawing conclusions
+- [ ] Confidence rated for each correlation (HIGH/MEDIUM/LOW)
+- [ ] Only one major change made at a time for clear attribution

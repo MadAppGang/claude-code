@@ -1,6 +1,6 @@
 ---
-name: claudemem-search
-description: "⚡ PRIMARY TOOL for semantic code search AND structural analysis. NEW: AST tree navigation with map, symbol, callers, callees, context commands. PageRank ranking. Recommended workflow: Map structure first, then search semantically, analyze callers before modifying."
+name: mem-search
+description: "Provides semantic code search and AST-based structural analysis via claudemem. Use when searching codebases semantically, navigating symbol graphs with PageRank ranking, or analyzing callers and callees before modifying code."
 allowed-tools: Bash, Task, AskUserQuestion
 ---
 

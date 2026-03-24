@@ -1,267 +1,51 @@
 ---
 name: implement
-description: Execute tasks from track plan with TDD workflow and git commit integration
-version: 1.1.0
-tags: [conductor, implement, execute, tasks, git, tdd]
-keywords: [implement, execute, task, commit, progress, workflow, tdd, phase]
+description: "Executes tasks from a track plan using TDD red/green/refactor workflow with git commit integration. Manages task status progression, creates traceable commits with git notes, and runs phase completion verification. Use when ready to start coding tasks from a plan."
 ---
-plugin: conductor
-updated: 2026-01-20
 
-<role>
-  <identity>Implementation Guide & Progress Tracker</identity>
-  <expertise>
-    - Task execution and status management
-    - TDD workflow (Red/Green/Refactor)
-    - Git commit integration with track references
-    - Git Notes for audit trail
-    - Workflow.md procedure following
-    - Phase Completion Verification Protocol
-    - Progress tracking and reporting
-  </expertise>
-  <mission>
-    Guide systematic implementation of track tasks using TDD methodology,
-    maintaining clear status visibility, creating traceable git commits
-    with notes, following established workflow procedures, and executing
-    the Phase Completion Protocol at phase boundaries.
-  </mission>
-</role>
+# Conductor Implement
 
-<instructions>
-  <critical_constraints>
-    <todowrite_requirement>
-      Use Tasks to mirror plan.md tasks.
-      Keep Tasks and plan.md in sync.
-      Mark tasks in BOTH when status changes.
-    </todowrite_requirement>
+Guides systematic implementation of track tasks using TDD methodology, maintaining clear status visibility, creating traceable git commits, and executing phase completion verification at phase boundaries.
 
-    <status_progression>
-      Task status MUST follow this progression:
-      - [ ] (pending) - Not started
-      - [~] (in_progress) - Currently working
-      - [x] (complete) - Finished
-      - [!] (blocked) - Blocked by issue
+## Workflow
 
-      Only ONE task can be [~] at a time.
-    </status_progression>
+1. **Load context**
+   - Verify `conductor/` exists with required files
+   - Ask which track to work on (if multiple active)
+   - Load track's `spec.md`, `plan.md`, and `conductor/workflow.md`
 
-    <tdd_workflow>
-      Follow Test-Driven Development for each task:
+2. **Select task**
+   - Find first pending `[ ]` task (or ask user preference)
+   - Mark task as `[~]` in progress in plan.md
+   - Only ONE task can be `[~]` at a time
 
-      **Red Phase:**
-      1. Create test file for the feature
-      2. Write tests defining expected behavior
-      3. Run tests - confirm they FAIL
-      4. Do NOT proceed until tests fail
+3. **TDD implementation cycle**
+   - **Red:** Write failing tests for the task, run tests to confirm they FAIL
+   - **Green:** Write minimum code to pass tests, run tests to confirm they PASS
+   - **Refactor:** Improve code quality, run tests to confirm they still PASS
+   - Verify coverage meets >80% requirement
 
-      **Green Phase:**
-      1. Write MINIMUM code to pass tests
-      2. Run tests - confirm they PASS
-      3. No refactoring yet
+4. **Commit and update**
+   - Run quality checks (lint, typecheck, test)
+   - Stage changes and commit with format: `<type>(<scope>): <description>`
+   - Add git note: `git notes add -m "Task: {phase}.{task} - {title}\nSummary: ...\nFiles Changed: ..."`
+   - Mark task as `[x]` in plan.md, update `metadata.json` with commit SHA
 
-      **Refactor Phase:**
-      1. Improve code clarity and performance
-      2. Remove duplication
-      3. Run tests - confirm they still PASS
-    </tdd_workflow>
+5. **Phase transition check**
+   - If phase incomplete, continue to next pending task
+   - If phase complete, execute Phase Completion Protocol (see below)
 
-    <git_commit_protocol>
-      After completing each task:
-      1. Stage relevant changes
-      2. Commit with proper format:
-         ```
-         <type>(<scope>): <description>
+## Task Status Progression
 
-         - Detail 1
-         - Detail 2
+| Symbol | Status | Meaning |
+|--------|--------|---------|
+| `[ ]` | pending | Not started |
+| `[~]` | in_progress | Currently working (only one at a time) |
+| `[x]` | complete | Finished and committed |
+| `[!]` | blocked | Blocked by issue (add note with reason) |
 
-         Task: {phase}.{task}
-         ```
-      3. Attach git note with task summary:
-         ```bash
-         git notes add -m "Task: {phase}.{task} - {title}
+## Commit Message Format
 
-         Summary: {what was accomplished}
-
-         Files Changed:
-         - {file1}: {description}
-
-         Why: {business reason}" $(git log -1 --format="%H")
-         ```
-      4. Update metadata.json with commit SHA
-    </git_commit_protocol>
-
-    <commit_types>
-      | Type | Use For |
-      |------|---------|
-      | feat | New feature |
-      | fix | Bug fix |
-      | docs | Documentation |
-      | style | Formatting |
-      | refactor | Code restructuring |
-      | test | Adding tests |
-      | chore | Maintenance |
-      | perf | Performance |
-    </commit_types>
-
-    <workflow_adherence>
-      ALWAYS follow procedures in conductor/workflow.md:
-      - TDD Red/Green/Refactor cycle
-      - Quality gates (>80% coverage, linting)
-      - Document deviations in tech-stack.md
-      - Phase Completion Protocol at phase end
-    </workflow_adherence>
-
-    <human_approval_gates>
-      Pause and ask for user approval:
-      - Before starting each new phase
-      - When encountering blockers
-      - Before marking phase complete
-      - During Phase Completion Protocol Step 5
-    </human_approval_gates>
-  </critical_constraints>
-
-  <core_principles>
-    <principle name="One Task at a Time" priority="critical">
-      Focus on exactly one task.
-      Complete it fully before moving to next.
-      No partial implementations.
-    </principle>
-
-    <principle name="Test First" priority="critical">
-      Write failing tests BEFORE implementation.
-      This is the Red phase of TDD.
-      Never skip this step.
-    </principle>
-
-    <principle name="Continuous Status Updates" priority="critical">
-      Update plan.md status immediately when:
-      - Starting a task ([~])
-      - Completing a task ([x])
-      - Encountering a blocker ([!] with note)
-    </principle>
-
-    <principle name="Traceable Commits" priority="high">
-      Every commit links to track/task.
-      Commit messages follow type convention.
-      Git notes provide audit trail.
-    </principle>
-  </core_principles>
-
-  <workflow>
-    <phase number="1" name="Validation & Context">
-      <step>Check conductor/ exists with required files</step>
-      <step>Ask which track to work on (if multiple active)</step>
-      <step>Load track's spec.md and plan.md</step>
-      <step>Load conductor/workflow.md for procedures</step>
-      <step>Initialize Tasks from plan.md tasks</step>
-    </phase>
-
-    <phase number="2" name="Task Selection">
-      <step>Find first pending task (or ask user)</step>
-      <step>Mark task as [~] in_progress in plan.md</step>
-      <step>TaskUpdate to match</step>
-      <step>Read task requirements and context</step>
-    </phase>
-
-    <phase number="3" name="TDD Implementation">
-      <step>**Red Phase:** Write failing tests for the task</step>
-      <step>Run tests, confirm they FAIL</step>
-      <step>**Green Phase:** Write minimum code to pass</step>
-      <step>Run tests, confirm they PASS</step>
-      <step>**Refactor Phase:** Improve code quality</step>
-      <step>Run tests, confirm they still PASS</step>
-      <step>Verify coverage meets >80% requirement</step>
-    </phase>
-
-    <phase number="4" name="Quality & Commit">
-      <step>Run all quality checks (lint, typecheck, test)</step>
-      <step>If checks fail, fix before proceeding</step>
-      <step>Stage relevant file changes</step>
-      <step>Create commit with proper type and message</step>
-      <step>Add git note with task summary</step>
-      <step>Mark task as [x] complete in plan.md</step>
-      <step>Commit plan.md update separately</step>
-      <step>Update metadata.json with commit info</step>
-      <step>TaskUpdate to match</step>
-    </phase>
-
-    <phase number="5" name="Phase Transition Check">
-      <step>Check if phase is complete (all tasks [x])</step>
-      <step>If NOT complete, continue to next pending task</step>
-      <step>If phase IS complete, execute Phase Completion Protocol</step>
-    </phase>
-  </workflow>
-
-  <phase_completion_protocol>
-    **Execute when all tasks in a phase are [x]:**
-
-    1. **Announce Protocol Start**
-       Inform user: "Phase {N} complete. Starting verification protocol."
-
-    2. **Ensure Test Coverage**
-       ```bash
-       # Find files changed in this phase
-       PREV_SHA=$(grep -o '\[checkpoint: [a-f0-9]*\]' plan.md | tail -1 | grep -o '[a-f0-9]*')
-       git diff --name-only $PREV_SHA HEAD
-       # Verify tests exist for each code file
-       # Create missing tests if needed
-       ```
-
-    3. **Execute Automated Tests**
-       ```bash
-       echo "Running: CI=true npm test"
-       CI=true npm test
-       # If fail: attempt fix (max 2 times), then ask user
-       ```
-
-    4. **Propose Manual Verification Plan**
-       Provide step-by-step manual testing instructions.
-       Include specific commands and expected outcomes.
-
-    5. **Await User Confirmation**
-       Ask: "Does this meet your expectations? Confirm with 'yes' or provide feedback."
-       **PAUSE** - do not proceed without explicit yes.
-
-    6. **Create Checkpoint Commit**
-       ```bash
-       git add -A
-       git commit -m "conductor(checkpoint): End of Phase {N} - {Phase Name}"
-       ```
-
-    7. **Attach Verification Report**
-       ```bash
-       git notes add -m "Phase Verification Report
-       Phase: {N} - {Phase Name}
-       Automated Tests: PASSED
-       Manual Verification: User confirmed
-       Coverage: {X}%" $(git log -1 --format="%H")
-       ```
-
-    8. **Update Plan with Checkpoint**
-       Add `[checkpoint: abc1234]` to phase heading in plan.md.
-
-    9. **Commit Plan Update**
-       ```bash
-       git commit -m "conductor(plan): Mark phase '{Phase Name}' complete"
-       ```
-
-    10. **Announce Completion**
-        Inform user phase is complete with checkpoint and verification report.
-  </phase_completion_protocol>
-</instructions>
-
-<knowledge>
-  <status_symbols>
-    | Symbol | Status | Meaning |
-    |--------|--------|---------|
-    | [ ] | pending | Not started |
-    | [~] | in_progress | Currently working |
-    | [x] | complete | Finished |
-    | [!] | blocked | Blocked by issue |
-  </status_symbols>
-
-  <commit_message_format>
 ```
 <type>(<scope>): <description>
 
@@ -271,194 +55,60 @@ updated: 2026-01-20
 Task: {phase}.{task} ({task_title})
 ```
 
-    Example:
+Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`
+
+## Phase Completion Protocol
+
+Execute when all tasks in a phase are `[x]`:
+
+1. Announce: "Phase {N} complete. Starting verification protocol."
+2. Check test coverage for all files changed in this phase
+3. Run full test suite: `CI=true npm test`
+4. Present manual verification steps to user
+5. **PAUSE** - await explicit user confirmation before proceeding
+6. Create checkpoint commit: `conductor(checkpoint): End of Phase {N}`
+7. Attach verification report via git notes
+8. Add `[checkpoint: {sha}]` to phase heading in plan.md
+
+## Human Approval Gates
+
+Pause and ask for user approval:
+- Before starting each new phase
+- When encountering blockers
+- Before marking phase complete (step 5 of Protocol)
+
+## Examples
+
+### Complete a task with TDD
 ```
-feat(auth): Implement password hashing
+User: Start implementing the auth feature
 
-- Added bcrypt dependency
-- Created hashPassword utility function
-- Added unit tests for hashing
-
-Task: 2.1 (Implement password hashing)
+Agent:
+1. Loads feature_auth track, finds first pending task: 1.1 Create user table
+2. Marks 1.1 as [~] in plan.md
+3. Red: Creates test file, writes schema tests, runs → FAIL
+4. Green: Creates migration, defines schema, runs → PASS
+5. Refactor: Cleans up, runs → PASS
+6. Commits: "feat(db): Create user table schema"
+7. Adds git note, marks 1.1 as [x], moves to 1.2
 ```
-  </commit_message_format>
 
-  <git_notes_format>
+### Handle a blocker
 ```
-Task: {phase}.{task} - {task_title}
+User: Continue implementing auth
 
-Summary: {what was accomplished}
-
-Files Changed:
-- {file1}: {description}
-- {file2}: {description}
-
-Why: {business reason for this change}
+Agent:
+1. Starts task 2.1, encounters missing database credentials
+2. Marks 2.1 as [!] with note: "BLOCKED: Need database credentials"
+3. Asks user: "(A) Provide credentials (B) Skip to 2.2 (C) Pause"
+4. User provides credentials → removes blocker, continues TDD cycle
 ```
-  </git_notes_format>
 
-  <blocker_handling>
-    When encountering a blocker:
-    1. Mark task as [!] blocked in plan.md
-    2. Add note describing blocker:
-       ```markdown
-       - [!] 2.3 Implement OAuth login
-         > BLOCKED: Waiting for API credentials from team lead
-       ```
-    3. Ask user for guidance
-    4. Either resolve or skip to different task
-    5. Track blocker in metadata.json
-  </blocker_handling>
+## Verification
 
-  <deviation_protocol>
-    If implementation differs from tech-stack.md:
-    1. STOP implementation
-    2. Update tech-stack.md with new design
-    3. Add dated note explaining the change:
-       ```markdown
-       ## Changes Log
-       - 2026-01-05: Changed from SQLite to PostgreSQL for better concurrency
-       ```
-    4. Resume implementation
-  </deviation_protocol>
-</knowledge>
-
-<examples>
-  <example name="Complete Task with TDD">
-    <user_request>Start implementing the auth feature</user_request>
-    <correct_approach>
-      1. Load feature_auth_20260105 track
-      2. Read plan.md - find first pending task: 1.1 Create user table
-      3. Mark 1.1 as [~] in plan.md
-      4. Initialize Tasks with plan tasks
-
-      **Red Phase:**
-      5. Create test file: tests/user-table.test.ts
-      6. Write tests for user table schema
-      7. Run tests - confirm they FAIL
-
-      **Green Phase:**
-      8. Create migration file
-      9. Define user table schema
-      10. Run tests - confirm they PASS
-
-      **Refactor Phase:**
-      11. Clean up migration code
-      12. Run tests - confirm still PASS
-
-      **Commit:**
-      13. Run quality checks (all pass)
-      14. Commit: "feat(db): Create user table schema"
-      15. Add git note with task summary
-      16. Commit plan.md update
-      17. Mark 1.1 as [x] in plan.md
-      18. Update metadata.json
-      19. Move to next task 1.2
-    </correct_approach>
-  </example>
-
-  <example name="Phase Completion">
-    <user_request>Continue implementing auth</user_request>
-    <correct_approach>
-      1. Complete final task of Phase 1
-      2. All Phase 1 tasks now [x]
-      3. Announce: "Phase 1 complete. Starting verification protocol."
-
-      **Phase Completion Protocol:**
-      4. Check test coverage for all Phase 1 files
-      5. Run: CI=true npm test (PASSED)
-      6. Present manual verification steps to user
-      7. Ask: "Does this meet your expectations?"
-      8. User confirms: "yes"
-      9. Create checkpoint commit
-      10. Add verification report via git notes
-      11. Update plan.md with [checkpoint: abc1234]
-      12. Commit plan update
-      13. Announce: "Phase 1 checkpoint created. Proceeding to Phase 2."
-      14. Ask approval before starting Phase 2
-    </correct_approach>
-  </example>
-
-  <example name="Handle Blocker">
-    <user_request>Continue implementing auth</user_request>
-    <correct_approach>
-      1. Load track, find current task 2.1
-      2. Start Red Phase, encounter issue
-      3. Issue: Missing database credentials
-      4. Mark 2.1 as [!] blocked
-      5. Add note: "> BLOCKED: Need database credentials configured"
-      6. Ask user: "Task 2.1 is blocked. Options:
-         (A) Provide credentials to continue
-         (B) Skip to task 2.2
-         (C) Pause implementation"
-      7. User provides credentials
-      8. Remove blocker, mark [~] in_progress
-      9. Continue TDD cycle
-    </correct_approach>
-  </example>
-</examples>
-
-<formatting>
-  <progress_display>
-```
-## Implementation Progress
-
-Track: feature_auth_20260105
-Phase: 2/4 - Core Authentication
-Task: 2.1/2.5 - Implement password hashing
-
-[==========-----] 40% complete
-
-Recent:
-- [x] 1.1 Create user table schema (abc1234)
-- [x] 1.2 Add migration scripts (def5678)
-- [x] 1.3 Set up database connection (ghi9012)
-- [x] 2.1 Implement password hashing (just completed)
-
-Next:
-- [ ] 2.2 Create login endpoint
-```
-  </progress_display>
-
-  <task_completion_template>
-## Task Complete
-
-**Track:** {track_id}
-**Task:** {phase}.{task} - {task_title}
-**Commit:** {short_sha}
-**Type:** {feat/fix/refactor/etc.}
-
-**TDD Cycle:**
-- Red: Tests written and failing
-- Green: Implementation complete, tests passing
-- Refactor: Code cleaned up
-
-**Quality Checks:**
-- Lint: PASS
-- Tests: PASS ({N} tests, {X}% coverage)
-- TypeCheck: PASS
-
-**Next Task:** {next_task_id} - {next_task_title}
-
-Continue to next task? [Yes/No]
-  </task_completion_template>
-
-  <phase_completion_template>
-## Phase Complete
-
-**Track:** {track_id}
-**Phase:** {N} - {phase_name}
-**Checkpoint:** {checkpoint_sha}
-
-**Verification Report:**
-- Automated Tests: PASSED
-- Coverage: {X}%
-- Manual Verification: User confirmed
-
-**Git Note:** Attached to checkpoint commit
-
-**Next Phase:** {N+1} - {next_phase_name}
-
-Proceed to next phase? [Yes/No]
-  </phase_completion_template>
-</formatting>
+After each task completion, confirm:
+- [ ] Tests pass with >80% coverage
+- [ ] Commit follows type convention with task reference
+- [ ] Git note attached with task summary
+- [ ] plan.md status updated to `[x]`
+- [ ] metadata.json updated with commit SHA

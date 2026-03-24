@@ -1,6 +1,6 @@
 ---
 name: openrouter-trending-models
-description: Fetch trending programming models from OpenRouter rankings. Use when selecting models for multi-model review, updating model recommendations, or researching current AI coding trends. Provides model IDs, context windows, pricing, and usage statistics from the most recent week.
+description: "Fetches the top 9 trending programming models from OpenRouter rankings via a Bun script. Returns model IDs, context windows, pricing, and weekly usage statistics as structured JSON. Use when selecting models for multi-model review, comparing model pricing, updating model recommendations, or researching current AI coding trends."
 ---
 
 # OpenRouter Trending Models Skill

@@ -1,10 +1,7 @@
 ---
-name: claudemem-orchestration
-description: Use when orchestrating multi-agent code analysis with claudemem. Run claudemem once, share output across parallel agents. Enables parallel investigation, consensus analysis, and role-based command mapping.
-updated: 2026-01-20
-keywords: claudemem, orchestration, multi-agent, parallel-execution, consensus
+name: mem-orchestration
+description: "Coordinates multiple agents using shared claudemem output for code analysis. Use when orchestrating multi-agent code analysis, running parallel investigations, performing consensus analysis, or mapping role-based commands across agents."
 allowed-tools: Bash, Task, Read, Write, AskUserQuestion
-skills: orchestration:multi-model-validation
 ---
 
 # Claudemem Multi-Agent Orchestration

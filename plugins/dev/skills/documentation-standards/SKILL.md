@@ -1,18 +1,6 @@
 ---
 name: documentation-standards
-version: 1.0.0
-description: Use when writing README files, API documentation, user guides, or technical documentation following industry standards from Google, Microsoft, and GitLab style guides.
-keywords:
-  - documentation
-  - README
-  - technical writing
-  - API docs
-  - style guides
-  - Markdown
-  - documentation best practices
-plugin: dev
-updated: 2026-01-20
-research_source: 73+ authoritative sources with 98% factual integrity
+description: "Applies 15 ranked documentation best practices from Google, Microsoft, and GitLab style guides, provides 7 ready-to-use templates (README, TSDoc, ADR, changelog), and detects 42 anti-patterns. Use when writing READMEs, API docs, troubleshooting guides, or validating documentation quality."
 ---
 
 # Documentation Standards

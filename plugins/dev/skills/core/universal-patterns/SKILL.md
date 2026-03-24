@@ -1,17 +1,6 @@
 ---
 name: universal-patterns
-version: 1.0.0
-description: Use when implementing language-agnostic patterns like layered architecture, dependency injection, error handling, or code organization principles across any technology stack.
-keywords:
-  - architecture
-  - design patterns
-  - clean code
-  - SOLID principles
-  - error handling
-  - best practices
-  - code organization
-plugin: dev
-updated: 2026-01-20
+description: "Applies language-agnostic architecture patterns including layered architecture, dependency injection, SOLID principles, and error handling strategies. Use when organizing code structure, implementing design patterns, or establishing best practices across any technology stack."
 ---
 
 # Universal Development Patterns

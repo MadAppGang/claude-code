@@ -1,10 +1,6 @@
 ---
 name: ui-implement
-version: 1.0.0
-description: |
-  Patterns for implementing UI improvements based on design analysis.
-  Works with review documents from dev:ui-analyse or /dev:ui command.
-  Includes Anti-AI design rules and visual verification.
+description: "Transforms design review findings into code changes using 5 Anti-AI design rules (break symmetry, add texture, dramatic typography, micro-interactions, bespoke colors) with optional Gemini visual verification. Use when applying UI improvements from analysis, implementing design system changes, or converting generic layouts into distinctive designs."
 ---
 
 # UI Implementation Skill

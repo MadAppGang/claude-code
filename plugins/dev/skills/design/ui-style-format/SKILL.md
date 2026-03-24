@@ -1,10 +1,6 @@
 ---
 name: ui-style-format
-version: 1.0.0
-description: |
-  UI design style file format specification with reference image support.
-  Defines the schema for .claude/design-style.md and .claude/design-references/.
-  Use when creating, validating, or parsing project design styles.
+description: "Defines the schema for .claude/design-style.md and .claude/design-references/ including brand colors, typography, spacing tokens, and reference image management with validation checklists. Use when creating project design style files, validating design tokens, or configuring style-aware UI reviews."
 ---
 
 # UI Style Format Specification

@@ -1,18 +1,6 @@
 ---
 name: debugging-strategies
-version: 1.0.0
-description: Use when troubleshooting bugs, analyzing stack traces, using debugging tools (breakpoints, loggers), or applying systematic debugging methodology across any technology stack.
-keywords:
-  - debugging
-  - troubleshooting
-  - stack traces
-  - breakpoints
-  - logging
-  - error analysis
-  - bug fixing
-  - debugging tools
-plugin: dev
-updated: 2026-01-20
+description: "Applies systematic debugging methodology (scientific method, binary search, wolf fence) with structured logging strategies, breakpoint placement patterns, and common bug pattern detection. Use when troubleshooting bugs, analyzing stack traces, tracing data flow, or diagnosing race conditions across any stack."
 ---
 
 # Universal Debugging Strategies
