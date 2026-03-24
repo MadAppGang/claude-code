@@ -1,71 +1,78 @@
 ---
 name: dependency-check
-description: "Checks for Chrome DevTools MCP and OpenRouter API key before running frontend commands. Provides setup guidance, offers graceful degradation, and caches results per session. Use at the start of /implement, /review, or /validate-ui commands to verify required external dependencies."
+description: "Verifies Chrome DevTools MCP, OpenRouter API key, and Claudish CLI availability before running frontend commands. Reports missing tools with setup instructions and caches results per session. Use when checking prerequisites, setting up frontend tools, or before /implement, /review, and /validate-ui commands."
 ---
 
 # Dependency Check
 
-Standardized dependency verification for frontend plugin commands that require external tools and services.
+Verifies external dependencies required by frontend plugin commands and provides setup guidance when missing.
 
 ## Workflow
 
-1. **Check Chrome DevTools MCP** — attempt `mcp__chrome-devtools__list_pages` to verify browser automation is available.
-2. **Check OpenRouter API Key** — verify `OPENROUTER_API_KEY` environment variable is set.
-3. **Check Claudish CLI** — verify `npx claudish --version` succeeds.
-4. **Report status** — show which dependencies are available and which are missing.
-5. **Offer options** — if dependencies are missing, present setup instructions and ask user to continue or install first.
-6. **Cache results** — store dependency status in session metadata to avoid repeated checks.
+1. **Check Chrome DevTools MCP** — call `mcp__chrome-devtools__list_pages`; if it succeeds, browser automation is available.
+2. **Check OpenRouter API key** — verify `OPENROUTER_API_KEY` environment variable is non-empty.
+3. **Check Claudish CLI** — run `npx claudish --version`; if it exits 0, multi-model review is available.
+4. **Report status** — display pass/fail for each dependency with missing-dependency setup instructions.
+5. **Offer options** — if any dependency is missing, ask user to continue with reduced functionality or install first.
+6. **Cache to session** — write dependency status to `session-meta.json` so subsequent commands skip re-checking.
 
-## Example: Checking Both Dependencies
+## Example: Full Dependency Check
 
 ```bash
-# Check Chrome DevTools MCP
-CHROME_MCP_AVAILABLE=false
+# Chrome DevTools MCP
+CHROME_MCP=false
 if mcp__chrome-devtools__list_pages 2>/dev/null; then
-  CHROME_MCP_AVAILABLE=true
-  echo "✓ Chrome DevTools MCP: Available"
+  CHROME_MCP=true
+  echo "Chrome DevTools MCP: Available"
 else
-  echo "✗ Chrome DevTools MCP: Not available"
+  echo "Chrome DevTools MCP: Not available"
+  echo "  Install: npm install -g claudeup@latest && claudeup mcp add chrome-devtools"
 fi
 
-# Check OpenRouter API Key
-OPENROUTER_AVAILABLE=false
+# OpenRouter API Key
+OPENROUTER=false
 if [[ -n "${OPENROUTER_API_KEY}" ]]; then
-  OPENROUTER_AVAILABLE=true
-  echo "✓ OpenRouter API Key: Configured"
+  OPENROUTER=true
+  echo "OpenRouter API Key: Configured"
 else
-  echo "✗ OpenRouter API Key: Not configured"
+  echo "OpenRouter API Key: Not configured"
+  echo "  Set: export OPENROUTER_API_KEY=your-key"
+fi
+
+# Claudish CLI
+CLAUDISH=false
+if npx claudish --version 2>/dev/null; then
+  CLAUDISH=true
+  echo "Claudish CLI: Available"
+else
+  echo "Claudish CLI: Not available"
+  echo "  Install: npm install -g claudish"
 fi
 ```
 
-**Verification:** Confirm both checks complete before proceeding with the command workflow.
+**Verification:** Confirm all three checks run to completion before proceeding. Never block the command — always allow the user to continue with degraded functionality.
 
 ## Graceful Degradation
 
 | Missing Dependency | Impact | Fallback |
 |--------------------|--------|----------|
-| Chrome DevTools MCP | Skip UI validation, screenshots | Manual visual verification required |
-| OpenRouter + Claudish | No multi-model reviews | Embedded Claude Sonnet review only |
-| Both | Minimal mode | Core implementation still functional |
+| Chrome DevTools MCP | No screenshots, no UI validation | Manual visual verification |
+| OpenRouter + Claudish | No multi-model reviews | Embedded Claude review only |
+| Both missing | Minimal mode | Core implementation still functional |
 
-Commands always complete, even with missing dependencies.
-
-## Quick Setup (Copy-Paste Ready)
+## Quick Setup (Copy-Paste)
 
 ```bash
-# Install claudeup for easy management
 npm install -g claudeup@latest
-
-# Add Chrome DevTools MCP
 claudeup mcp add chrome-devtools
-
-# Configure OpenRouter API key
-claudeup config set OPENROUTER_API_KEY your-api-key
+npm install -g claudish
+# Set in your shell profile:
+export OPENROUTER_API_KEY=your-api-key
 ```
 
 ## Notes
 
-- Non-blocking by default — always allow users to continue with reduced functionality
-- Cache dependency status in `session-meta.json` to check once per session
-- OpenRouter is affordable with free model options available
-- Recommend claudeup for simplified dependency management
+- Non-blocking by default — commands always complete even with missing dependencies
+- Cache results in `session-meta.json` to avoid repeated checks within a session
+- OpenRouter offers free model tiers (e.g., `openrouter/polaris-alpha`)
+- Recommend claudeup for simplified MCP server management

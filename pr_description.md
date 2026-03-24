@@ -71,8 +71,12 @@ I ran your skills through `tessl skill review` at work and found some targeted i
 | test-coverage | 59% | 64% | +5% |
 | claudish-usage (shared) | 76% | 81% | +5% |
 | database-patterns | 69% | 71% | +2% |
+| debug-mode | 75% | 100% | +25% |
+| browser-debugger | 64% | 100% | +36% |
+| dependency-check | 55% | 100% | +45% |
+| openrouter-trending-models | 71% | 100% | +29% |
 
-**65 skills improved** across 10 plugins, average improvement **+30%** (55% → 85%).
+**68 skills improved** across 10 plugins, average improvement **+30%** (56% → 86%). **12 skills reached 100%**.
 
 <details>
 <summary>Changes made</summary>
@@ -98,8 +102,8 @@ I ran your skills through `tessl skill review` at work and found some targeted i
 
 ### Skills left untouched
 - 7 skills already scoring 90%+ (tanstack-router at 100%, tooling-setup at 94%, etc.)
-- 2 skills where changes didn't improve scores (reverted)
-- ~57 skills in the 75-89% range that already had good structure
+- 2 skills where initial changes regressed scores (reverted, then re-optimized successfully)
+- ~54 skills in the 75-89% range that already had good structure
 
 </details>
 
