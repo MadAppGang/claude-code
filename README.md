@@ -174,6 +174,23 @@ Deep code investigation and analysis toolkit for understanding complex codebases
 
 ---
 
+#### X/Twitter Research With Hermes Tweet
+
+**Version:** 0.1.6 | **Category:** Content | **Type:** Skills Plugin
+
+Hermes Agent plugin guidance for X/Twitter research, social signal analysis,
+monitored context, and approval-gated account actions through Hermes Tweet.
+
+**Highlights:**
+- **Hermes-native setup** - Install with `hermes plugins install Xquik-dev/hermes-tweet --enable`
+- **Research-first routing** - Use read-only exploration before any account action
+- **Explicit action gate** - Keep posting and engagement behind Hermes Tweet approval controls
+- **Claude Code handoff** - Prepare prompts, workflows, and checks before moving to Hermes Agent
+
+**Perfect for:** Social research, trend monitoring, competitive context, public X/Twitter analysis, and Hermes Agent workflows that need controlled account actions.
+
+---
+
 #### ⚡ Bun Backend Development
 
 **Version:** 1.2.0 | **Category:** Development | **Model:** Sonnet

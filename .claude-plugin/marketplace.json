@@ -252,6 +252,28 @@
         "reset-countdown"
       ],
       "strict": true
+    },
+    {
+      "name": "hermes-tweet",
+      "source": "./plugins/hermes-tweet",
+      "description": "Hermes Agent plugin guidance for X/Twitter research, social signal analysis, monitored context, and approval-gated account actions.",
+      "version": "0.1.6",
+      "author": {
+        "name": "Xquik",
+        "company": "Xquik"
+      },
+      "category": "content",
+      "keywords": [
+        "hermes-agent",
+        "x",
+        "twitter",
+        "social",
+        "research",
+        "monitoring",
+        "trend-analysis",
+        "approval-gated-actions"
+      ],
+      "strict": true
     }
   ]
 }
