@@ -174,20 +174,24 @@ Deep code investigation and analysis toolkit for understanding complex codebases
 
 ---
 
-#### X/Twitter Research With Hermes Tweet
+#### 🐦 TweetClaw for X/Twitter Workflows
 
-**Version:** 0.1.6 | **Category:** Content | **Type:** Skills Plugin
+**Version:** 1.0.0 | **Category:** Content | **Type:** Skills Plugin
 
-Hermes Agent plugin guidance for X/Twitter research, social signal analysis,
-monitored context, and approval-gated account actions through Hermes Tweet.
+Safety-reviewed Claude Code guidance for installing and operating Xquik
+TweetClaw in OpenClaw.
 
 **Highlights:**
-- **Hermes-native setup** - Install with `hermes plugins install Xquik-dev/hermes-tweet --enable`
-- **Research-first routing** - Use read-only exploration before any account action
-- **Explicit action gate** - Keep posting and engagement behind Hermes Tweet approval controls
-- **Claude Code handoff** - Prepare prompts, workflows, and checks before moving to Hermes Agent
+- **Verified install path** - Use Xquik's `clawhub:@xquik/tweetclaw` publisher
+- **Catalog-first routing** - Inspect supported endpoints before live API calls
+- **Explicit approval gates** - Review writes, paid work, private data, and monitors
+- **Safe handoff** - Keep credentials in OpenClaw config, outside agent context
 
-**Perfect for:** Social research, trend monitoring, competitive context, public X/Twitter analysis, and Hermes Agent workflows that need controlled account actions.
+**Perfect for:** X/Twitter research, publishing, media, monitoring, extraction,
+and account workflows that need clear authorization and cost boundaries.
+
+👉 **[Read the complete guide](./plugins/tweetclaw/README.md)** for setup,
+verification, safe workflows, and troubleshooting.
 
 ---
 
