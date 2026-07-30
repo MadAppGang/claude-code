@@ -14,8 +14,8 @@
     {
       "name": "code-analysis",
       "source": "./plugins/code-analysis",
-      "description": "Deep code investigation with claudemem. v3.2.2: Updated for claudish v4.5.1 (--agent flag removed). v3.0.0: ENRICHMENT MODE.",
-      "version": "3.2.2",
+      "description": "Deep code investigation with claudemem. v3.2.3: Fixed mnemex index-status parsing.",
+      "version": "3.2.3",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
