@@ -1,0 +1,25 @@
+{
+  "name": "tweetclaw",
+  "version": "1.0.0",
+  "description": "Safety-reviewed Claude Code guidance for installing and operating Xquik TweetClaw in OpenClaw.",
+  "author": {
+    "name": "Xquik",
+    "company": "Xquik"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Xquik-dev/tweetclaw",
+  "keywords": [
+    "openclaw",
+    "tweetclaw",
+    "xquik",
+    "x",
+    "twitter",
+    "automation",
+    "social-research",
+    "monitoring",
+    "approval-gated-actions"
+  ],
+  "skills": [
+    "./skills/tweetclaw"
+  ]
+}

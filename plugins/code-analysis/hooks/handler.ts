@@ -38,6 +38,7 @@ import {
   inferConceptFromFiles,
   type HookState,
 } from "./state";
+import { parseIndexStatus } from "./status";
 
 // =============================================================================
 // BYPASS HELPER
@@ -110,13 +111,7 @@ function getClaudememVersion(): string | null {
 
 function isIndexed(cwd: string): { indexed: boolean; symbolCount?: string } {
   const status = runCommand("claudemem", ["status"], cwd);
-  if (!status) return { indexed: false };
-
-  const match = status.match(/(\d+)\s+(chunks|symbols)/);
-  if (match) {
-    return { indexed: true, symbolCount: match[0] };
-  }
-  return { indexed: false };
+  return parseIndexStatus(status);
 }
 
 function versionGte(version: string, required: string): boolean {

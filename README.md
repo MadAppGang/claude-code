@@ -174,6 +174,27 @@ Deep code investigation and analysis toolkit for understanding complex codebases
 
 ---
 
+#### 🐦 TweetClaw for X/Twitter Workflows
+
+**Version:** 1.0.0 | **Category:** Content | **Type:** Skills Plugin
+
+Safety-reviewed Claude Code guidance for installing and operating Xquik
+TweetClaw in OpenClaw.
+
+**Highlights:**
+- **Verified install path** - Use Xquik's `clawhub:@xquik/tweetclaw` publisher
+- **Catalog-first routing** - Inspect supported endpoints before live API calls
+- **Explicit approval gates** - Review writes, paid work, private data, and monitors
+- **Safe handoff** - Keep credentials in OpenClaw config, outside agent context
+
+**Perfect for:** X/Twitter research, publishing, media, monitoring, extraction,
+and account workflows that need clear authorization and cost boundaries.
+
+👉 **[Read the complete guide](./plugins/tweetclaw/README.md)** for setup,
+verification, safe workflows, and troubleshooting.
+
+---
+
 #### ⚡ Bun Backend Development
 
 **Version:** 1.2.0 | **Category:** Development | **Model:** Sonnet

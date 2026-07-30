@@ -14,8 +14,8 @@
     {
       "name": "code-analysis",
       "source": "./plugins/code-analysis",
-      "description": "Deep code investigation with claudemem. v3.2.2: Updated for claudish v4.5.1 (--agent flag removed). v3.0.0: ENRICHMENT MODE.",
-      "version": "3.2.2",
+      "description": "Deep code investigation with claudemem. v3.2.3: Fixed mnemex index-status parsing.",
+      "version": "3.2.3",
       "author": {
         "name": "Jack Rudenko",
         "email": "i@madappgang.com",
@@ -250,6 +250,30 @@
         "customization",
         "themes",
         "reset-countdown"
+      ],
+      "strict": true
+    },
+    {
+      "name": "tweetclaw",
+      "source": "./plugins/tweetclaw",
+      "description": "Safety-reviewed Claude Code guidance for installing and operating Xquik TweetClaw in OpenClaw.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Xquik",
+        "company": "Xquik"
+      },
+      "category": "content",
+      "keywords": [
+        "openclaw",
+        "tweetclaw",
+        "xquik",
+        "x",
+        "twitter",
+        "automation",
+        "research",
+        "monitoring",
+        "approval-gated-actions",
+        "agent-skills"
       ],
       "strict": true
     }
